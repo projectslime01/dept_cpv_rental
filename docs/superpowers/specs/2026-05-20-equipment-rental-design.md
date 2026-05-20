@@ -86,10 +86,17 @@ model Admin {
 
 ### 수량 계산 방식
 
+**대시보드/기자재 목록 표시용 (현재 시각 기준):**
 - **전체 수량** = `Equipment.totalQuantity`
 - **대여 중** = `status = approved` AND `startAt ≤ now ≤ endAt` 인 신청의 `quantity` 합산
 - **대여 가능** = 전체 수량 − 대여 중 수량
-- 재고 수량은 DB 컬럼이 아닌 실시간 계산 → 동기화 오류 방지
+
+**신규 신청 가용성 검증 (요청 기간 기준):**
+- 요청 기간(`reqStart ~ reqEnd`)과 겹치는 `approved` 신청 수량 합산
+  - 겹침 조건: `startAt < reqEnd AND endAt > reqStart`
+- 해당 합산이 `totalQuantity` 미만이어야 신청 가능
+
+재고 수량은 DB 컬럼이 아닌 실시간 계산 → 동기화 오류 방지
 
 ---
 
