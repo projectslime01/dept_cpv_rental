@@ -8,6 +8,11 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
     globals: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+      exclude: ['src/components/ui/**', 'src/app/page.tsx'],
+    },
   },
   resolve: {
     alias: { '@': path.resolve(__dirname, './src') },
