@@ -1,3 +1,4 @@
+// src/app/actions/rental.ts
 'use server'
 
 import { prisma } from '@/lib/prisma'
@@ -20,6 +21,12 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
   const password = (formData.get('password') as string)
   const purpose = (formData.get('purpose') as string | null)?.trim() || null
 
+  if (isNaN(equipmentId) || equipmentId < 1) {
+    return { success: false, error: '기자재 정보가 올바르지 않습니다.' }
+  }
+  if (isNaN(quantity)) {
+    return { success: false, error: '수량이 올바르지 않습니다.' }
+  }
   if (!applicantName || !studentId || !phone || !password) {
     return { success: false, error: '필수 항목을 모두 입력해주세요.' }
   }
@@ -33,35 +40,40 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
     return { success: false, error: '수량은 1 이상이어야 합니다.' }
   }
 
-  const available = await checkAvailability(equipmentId, quantity, startAt, endAt, prisma)
-  if (!available) {
-    return { success: false, error: '선택한 기간에 해당 수량을 대여할 수 없습니다.' }
+  try {
+    const available = await checkAvailability(equipmentId, quantity, startAt, endAt, prisma)
+    if (!available) {
+      return { success: false, error: '선택한 기간에 해당 수량을 대여할 수 없습니다.' }
+    }
+
+    const passwordHash = await hashPassword(password)
+
+    const request = await prisma.rentalRequest.create({
+      data: {
+        requestNumber: `TEMP-${Date.now()}`,
+        passwordHash,
+        applicantName,
+        studentId,
+        phone,
+        equipmentId,
+        quantity,
+        startAt,
+        endAt,
+        purpose,
+      },
+    })
+
+    const requestNumber = generateRequestNumber(new Date(), request.id)
+    await prisma.rentalRequest.update({
+      where: { id: request.id },
+      data: { requestNumber },
+    })
+
+    return { success: true, requestNumber }
+  } catch (error) {
+    console.error('createRentalRequest error:', error)
+    return { success: false, error: '신청 처리 중 오류가 발생했습니다. 다시 시도해주세요.' }
   }
-
-  const passwordHash = await hashPassword(password)
-
-  const request = await prisma.rentalRequest.create({
-    data: {
-      requestNumber: `TEMP-${Date.now()}`,
-      passwordHash,
-      applicantName,
-      studentId,
-      phone,
-      equipmentId,
-      quantity,
-      startAt,
-      endAt,
-      purpose,
-    },
-  })
-
-  const requestNumber = generateRequestNumber(new Date(), request.id)
-  await prisma.rentalRequest.update({
-    where: { id: request.id },
-    data: { requestNumber },
-  })
-
-  return { success: true, requestNumber }
 }
 
 export type LookupResult =
@@ -84,49 +96,58 @@ export async function lookupRequest(formData: FormData): Promise<LookupResult> {
   const requestNumber = (formData.get('requestNumber') as string).trim().toUpperCase()
   const password = formData.get('password') as string
 
-  const rateLimitKey = `status:${requestNumber}`
-  const { allowed, remainingAttempts } = await checkRateLimit(rateLimitKey, prisma)
-  if (!allowed) {
-    return { success: false, error: '시도 횟수 초과로 10분간 잠겼습니다.' }
+  if (!requestNumber || !password) {
+    return { success: false, error: '신청 번호와 비밀번호를 입력해주세요.' }
   }
 
-  const request = await prisma.rentalRequest.findUnique({
-    where: { requestNumber },
-    include: { equipment: { select: { name: true } } },
-  })
-
-  if (!request) {
-    await recordFailedAttempt(rateLimitKey, prisma)
-    return {
-      success: false,
-      error: '신청 내역을 찾을 수 없습니다.',
-      remainingAttempts: remainingAttempts - 1,
+  try {
+    const rateLimitKey = `status:${requestNumber}`
+    const { allowed, remainingAttempts } = await checkRateLimit(rateLimitKey, prisma)
+    if (!allowed) {
+      return { success: false, error: '시도 횟수 초과로 10분간 잠겼습니다.' }
     }
-  }
 
-  const valid = await verifyPassword(password, request.passwordHash)
-  if (!valid) {
-    await recordFailedAttempt(rateLimitKey, prisma)
-    return {
-      success: false,
-      error: '비밀번호가 올바르지 않습니다.',
-      remainingAttempts: remainingAttempts - 1,
+    const request = await prisma.rentalRequest.findUnique({
+      where: { requestNumber },
+      include: { equipment: { select: { name: true } } },
+    })
+
+    if (!request) {
+      await recordFailedAttempt(rateLimitKey, prisma)
+      return {
+        success: false,
+        error: '신청 내역을 찾을 수 없습니다.',
+        remainingAttempts: remainingAttempts - 1,
+      }
     }
-  }
 
-  await resetAttempts(rateLimitKey, prisma)
+    const valid = await verifyPassword(password, request.passwordHash)
+    if (!valid) {
+      await recordFailedAttempt(rateLimitKey, prisma)
+      return {
+        success: false,
+        error: '비밀번호가 올바르지 않습니다.',
+        remainingAttempts: remainingAttempts - 1,
+      }
+    }
 
-  return {
-    success: true,
-    data: {
-      requestNumber: request.requestNumber,
-      status: request.status,
-      equipmentName: request.equipment.name,
-      quantity: request.quantity,
-      startAt: request.startAt,
-      endAt: request.endAt,
-      adminNote: request.adminNote,
-      createdAt: request.createdAt,
-    },
+    await resetAttempts(rateLimitKey, prisma)
+
+    return {
+      success: true,
+      data: {
+        requestNumber: request.requestNumber,
+        status: request.status,
+        equipmentName: request.equipment.name,
+        quantity: request.quantity,
+        startAt: request.startAt,
+        endAt: request.endAt,
+        adminNote: request.adminNote,
+        createdAt: request.createdAt,
+      },
+    }
+  } catch (error) {
+    console.error('lookupRequest error:', error)
+    return { success: false, error: '조회 중 오류가 발생했습니다. 다시 시도해주세요.' }
   }
 }
