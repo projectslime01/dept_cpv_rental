@@ -1,11 +1,11 @@
+import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
 import bcrypt from 'bcryptjs'
 import path from 'path'
 
-// Resolve absolute path to the SQLite database (relative to project root)
-const dbPath = path.resolve(process.cwd(), 'prisma/dev.db')
-const adapter = new PrismaLibSql({ url: `file:${dbPath}` })
+const url = process.env.DATABASE_URL ?? `file:${path.resolve(process.cwd(), 'prisma/dev.db')}`
+const adapter = new PrismaLibSql({ url })
 const prisma = new PrismaClient({ adapter })
 
 async function main() {
@@ -29,11 +29,12 @@ async function main() {
     { name: 'ND 필터 세트', category: '기타', totalQuantity: 6, description: 'ND4/8/16/32 세트' },
   ]
 
-  for (const item of equipmentData) {
-    await prisma.equipment.create({ data: item })
+  const existingCount = await prisma.equipment.count()
+  if (existingCount === 0) {
+    await prisma.equipment.createMany({ data: equipmentData })
   }
 
-  console.log('Seed complete. Admin: admin / admin1234')
+  console.log('Seed complete.')
 }
 
 main()
