@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Equipment {
+  id            Int             @id @default(autoincrement())
+  name          String
+  category      String
+  description   String?
+  imageUrl      String?
+  totalQuantity Int
+  status        String          @default("active")
+  requests      RentalRequest[]
+  createdAt     DateTime        @default(now())
+}
+
+model RentalRequest {
+  id            Int       @id @default(autoincrement())
+  requestNumber String    @unique
+  passwordHash  String
+  applicantName String
+  studentId     String
+  phone         String
+  equipmentId   Int
+  equipment     Equipment @relation(fields: [equipmentId], references: [id])
+  quantity      Int
+  startAt       DateTime
+  endAt         DateTime
+  purpose       String?
+  status        String    @default("pending")
+  adminNote     String?
+  returnedAt    DateTime?
+  createdAt     DateTime  @default(now())
+}
+
+model Admin {
+  id           Int    @id @default(autoincrement())
+  username     String @unique
+  passwordHash String
+}
+
+model RateLimitAttempt {
+  id          Int       @id @default(autoincrement())
+  key         String    @unique
+  attempts    Int       @default(0)
+  lockedUntil DateTime?
+  updatedAt   DateTime  @updatedAt
+}
