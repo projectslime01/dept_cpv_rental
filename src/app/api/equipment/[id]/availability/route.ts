@@ -9,7 +9,7 @@ export async function GET(
   const id = parseInt(params.id)
   if (isNaN(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
 
-  const { searchParams } = new URL(req.url)
+  const { searchParams } = req.nextUrl
   const startAt = searchParams.get('startAt')
   const endAt = searchParams.get('endAt')
 
@@ -24,6 +24,11 @@ export async function GET(
     return NextResponse.json({ error: 'Invalid date range' }, { status: 400 })
   }
 
-  const available = await getAvailableQuantity(id, start, end, prisma)
-  return NextResponse.json({ available })
+  try {
+    const available = await getAvailableQuantity(id, start, end, prisma)
+    return NextResponse.json({ available: Math.max(0, available) })
+  } catch (err) {
+    console.error('[availability] db error', err)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
 }
