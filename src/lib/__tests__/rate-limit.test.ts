@@ -36,8 +36,10 @@ describe('checkRateLimit', () => {
       attempts: 5,
       lockedUntil: past,
     })
+    mockPrisma.rateLimitAttempt.deleteMany.mockResolvedValue({ count: 1 })
     const result = await checkRateLimit('key:abc', mockPrisma as any)
-    expect(result.allowed).toBe(true)
+    expect(result).toEqual({ allowed: true, remainingAttempts: 5 })
+    expect(mockPrisma.rateLimitAttempt.deleteMany).toHaveBeenCalledWith({ where: { key: 'key:abc' } })
   })
 
   it('returns correct remaining attempts', async () => {

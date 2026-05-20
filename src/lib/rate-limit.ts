@@ -15,6 +15,7 @@ export async function checkRateLimit(
   }
   // Lock has expired or was never set — treat expired lock as a fresh start
   if (record.lockedUntil && record.lockedUntil <= new Date()) {
+    await (prismaClient.rateLimitAttempt as any).deleteMany({ where: { key } })
     return { allowed: true, remainingAttempts: MAX_ATTEMPTS }
   }
   const remaining = Math.max(0, MAX_ATTEMPTS - record.attempts)
