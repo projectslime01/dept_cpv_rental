@@ -24,8 +24,8 @@ const inputCls = 'w-full h-10 px-3.5 rounded-xl border border-[#3a3640] text-sm 
 
 function SectionCard({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) {
   return (
-    <div className="bg-[#201f21] rounded-2xl border border-[#2e2b2f] overflow-hidden">
-      <div className="flex items-center gap-2 px-5 py-3.5 border-b border-[#252228]">
+    <div className="bg-[#201f21] rounded-2xl border border-[#2e2b2f]">
+      <div className="flex items-center gap-2 px-5 py-3.5 border-b border-[#252228] rounded-t-2xl">
         <Icon className="w-4 h-4 text-[#6b6468]" />
         <h2 className="text-sm font-semibold text-[#c8c4c3]">{title}</h2>
       </div>
