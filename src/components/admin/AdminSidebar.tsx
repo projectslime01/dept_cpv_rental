@@ -2,13 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, ClipboardList, Package, History } from 'lucide-react'
+import { LayoutDashboard, ClipboardList, Package, History, Users } from 'lucide-react'
 
 const NAV_ITEMS = [
   { href: '/admin/dashboard', label: '대시보드', icon: LayoutDashboard },
   { href: '/admin/requests', label: '신청 관리', icon: ClipboardList },
   { href: '/admin/equipment', label: '기자재 관리', icon: Package },
   { href: '/admin/history', label: '대여 이력', icon: History },
+  { href: '/admin/accounts', label: '계정 관리', icon: Users },
 ]
 
 export function AdminSidebar() {
