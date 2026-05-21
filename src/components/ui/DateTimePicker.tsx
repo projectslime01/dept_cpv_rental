@@ -9,8 +9,7 @@ import {
 } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import {
-  CalendarDays, ChevronLeft, ChevronRight,
-  Clock, ChevronUp, ChevronDown,
+  CalendarDays, ChevronLeft, ChevronRight, Clock,
 } from 'lucide-react'
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
@@ -68,14 +67,20 @@ export function DateTimePicker({
     emit(day, hour, minute)
   }
 
-  function changeHour(delta: number) {
-    const h = ((hour + delta) + 24) % 24
+  function handleHourInput(raw: string) {
+    const n = parseInt(raw, 10)
+    if (raw === '') { setHour(0); if (selectedDate) emit(selectedDate, 0, minute); return }
+    if (isNaN(n)) return
+    const h = Math.max(0, Math.min(23, n))
     setHour(h)
     if (selectedDate) emit(selectedDate, h, minute)
   }
 
-  function changeMinute(delta: number) {
-    const m = ((minute + delta) + 60) % 60
+  function handleMinuteInput(raw: string) {
+    const n = parseInt(raw, 10)
+    if (raw === '') { setMinute(0); if (selectedDate) emit(selectedDate, hour, 0); return }
+    if (isNaN(n)) return
+    const m = Math.max(0, Math.min(59, n))
     setMinute(m)
     if (selectedDate) emit(selectedDate, hour, m)
   }
@@ -170,37 +175,35 @@ export function DateTimePicker({
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">시간 선택</span>
             </div>
 
-            <div className="flex items-center gap-3">
-              {/* Hour spinner */}
-              <div className="flex flex-col items-center gap-0.5">
-                <button type="button" onClick={() => changeHour(1)}
-                  className="p-1 hover:bg-slate-200 rounded-lg transition-colors">
-                  <ChevronUp className="w-3 h-3 text-slate-500" />
-                </button>
-                <div className="w-10 h-10 flex items-center justify-center bg-white rounded-xl border-2 border-slate-200 font-mono text-sm font-bold text-slate-800 select-none">
-                  {String(hour).padStart(2, '0')}
-                </div>
-                <button type="button" onClick={() => changeHour(-1)}
-                  className="p-1 hover:bg-slate-200 rounded-lg transition-colors">
-                  <ChevronDown className="w-3 h-3 text-slate-500" />
-                </button>
+            <div className="flex items-center gap-2">
+              {/* Hour input */}
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-[10px] text-slate-400 font-semibold">시</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={23}
+                  value={String(hour).padStart(2, '0')}
+                  onChange={e => handleHourInput(e.target.value)}
+                  onFocus={e => e.target.select()}
+                  className="w-14 h-11 text-center bg-white rounded-xl border-2 border-slate-200 font-mono text-lg font-bold text-slate-800 focus:outline-none focus:border-slate-600 transition-colors"
+                />
               </div>
 
-              <span className="text-2xl font-black text-slate-200 -mt-1 select-none">:</span>
+              <span className="text-2xl font-black text-slate-300 mt-4 select-none">:</span>
 
-              {/* Minute spinner */}
-              <div className="flex flex-col items-center gap-0.5">
-                <button type="button" onClick={() => changeMinute(1)}
-                  className="p-1 hover:bg-slate-200 rounded-lg transition-colors">
-                  <ChevronUp className="w-3 h-3 text-slate-500" />
-                </button>
-                <div className="w-10 h-10 flex items-center justify-center bg-white rounded-xl border-2 border-slate-200 font-mono text-sm font-bold text-slate-800 select-none">
-                  {String(minute).padStart(2, '0')}
-                </div>
-                <button type="button" onClick={() => changeMinute(-1)}
-                  className="p-1 hover:bg-slate-200 rounded-lg transition-colors">
-                  <ChevronDown className="w-3 h-3 text-slate-500" />
-                </button>
+              {/* Minute input */}
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-[10px] text-slate-400 font-semibold">분</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={59}
+                  value={String(minute).padStart(2, '0')}
+                  onChange={e => handleMinuteInput(e.target.value)}
+                  onFocus={e => e.target.select()}
+                  className="w-14 h-11 text-center bg-white rounded-xl border-2 border-slate-200 font-mono text-lg font-bold text-slate-800 focus:outline-none focus:border-slate-600 transition-colors"
+                />
               </div>
             </div>
           </div>
