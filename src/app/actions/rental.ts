@@ -153,6 +153,70 @@ export async function createBatchRentalRequest(formData: FormData): Promise<Crea
   }
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// Cart availability check (batch — 2 queries regardless of cart size)
+// ──────────────────────────────────────────────────────────────────────────────
+
+export type CartAvailabilityItem = {
+  equipmentId: number
+  available: number
+  totalQuantity: number
+  requested: number
+}
+
+export async function checkCartAvailability(
+  items: { equipmentId: number; quantity: number }[],
+  startAt: string,
+  endAt: string
+): Promise<CartAvailabilityItem[]> {
+  if (!items.length) return []
+
+  const start = new Date(startAt)
+  const end = new Date(endAt)
+  if (isNaN(start.getTime()) || isNaN(end.getTime()) || start >= end) return []
+
+  const ids = items.map(i => i.equipmentId)
+
+  const [equipments, overlapping] = await Promise.all([
+    prisma.equipment.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, totalQuantity: true, status: true },
+    }),
+    prisma.rentalRequest.groupBy({
+      by: ['equipmentId'],
+      where: {
+        equipmentId: { in: ids },
+        status: 'approved',
+        startAt: { lt: end },
+        endAt: { gt: start },
+      },
+      _sum: { quantity: true },
+    }),
+  ])
+
+  const usedMap: Record<number, number> = {}
+  for (const r of overlapping) {
+    usedMap[r.equipmentId] = r._sum.quantity ?? 0
+  }
+
+  const eqMap: Record<number, { totalQuantity: number; status: string }> = {}
+  for (const eq of equipments) {
+    eqMap[eq.id] = { totalQuantity: eq.totalQuantity, status: eq.status }
+  }
+
+  return items.map(item => {
+    const eq = eqMap[item.equipmentId]
+    if (!eq || eq.status !== 'active') {
+      return { equipmentId: item.equipmentId, available: 0, totalQuantity: eq?.totalQuantity ?? 0, requested: item.quantity }
+    }
+    const used = usedMap[item.equipmentId] ?? 0
+    const available = Math.max(0, eq.totalQuantity - used)
+    return { equipmentId: item.equipmentId, available, totalQuantity: eq.totalQuantity, requested: item.quantity }
+  })
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+
 export type LookupResult =
   | {
       success: true

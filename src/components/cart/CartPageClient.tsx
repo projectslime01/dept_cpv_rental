@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import Link from 'next/link'
 import { useCart } from '@/lib/useCart'
 import { DateTimePicker } from '@/components/ui/DateTimePicker'
-import { createBatchRentalRequest } from '@/app/actions/rental'
-import { ClipboardList, Trash2, CheckCircle2, Minus, Plus, ArrowRight, CalendarDays, User } from 'lucide-react'
+import { createBatchRentalRequest, checkCartAvailability, type CartAvailabilityItem } from '@/app/actions/rental'
+import { ClipboardList, Trash2, CheckCircle2, Minus, Plus, ArrowRight, CalendarDays, User, Loader2 } from 'lucide-react'
+
+type AvailabilityMap = Record<number, CartAvailabilityItem>
 
 const CATEGORY_STYLES: Record<string, string> = {
   '카메라 바디': 'text-sky-300 bg-sky-950/60 border-sky-900/60',
@@ -22,12 +24,13 @@ const CATEGORY_STYLES: Record<string, string> = {
 
 const inputCls = 'w-full h-10 px-3.5 rounded-xl border border-[#3a3640] text-sm bg-[#1a191b] text-[#e5e2e1] focus:outline-none focus:border-[#7d7173] transition-colors'
 
-function SectionCard({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) {
+function SectionCard({ title, icon: Icon, children, badge }: { title: string; icon: React.ElementType; children: React.ReactNode; badge?: React.ReactNode }) {
   return (
     <div className="bg-[#201f21] rounded-2xl border border-[#2e2b2f]">
       <div className="flex items-center gap-2 px-5 py-3.5 border-b border-[#252228] rounded-t-2xl">
         <Icon className="w-4 h-4 text-[#6b6468]" />
         <h2 className="text-sm font-semibold text-[#c8c4c3]">{title}</h2>
+        {badge && <div className="ml-auto">{badge}</div>}
       </div>
       <div className="p-5">{children}</div>
     </div>
@@ -74,6 +77,35 @@ export function CartPageClient() {
   const [endAt, setEndAt] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<{ groupNumber: string; requestNumbers: string[] } | null>(null)
+  const [availability, setAvailability] = useState<AvailabilityMap | null>(null)
+  const [isChecking, setIsChecking] = useState(false)
+
+  // 날짜·수량이 바뀔 때마다 재고 재조회 (400ms debounce)
+  const itemsKey = items.map(i => `${i.equipmentId}:${i.quantity}`).join(',')
+  useEffect(() => {
+    if (!startAt || !endAt) { setAvailability(null); return }
+    const s = new Date(startAt), e = new Date(endAt)
+    if (isNaN(s.getTime()) || isNaN(e.getTime()) || s >= e) { setAvailability(null); return }
+
+    setIsChecking(true)
+    const timer = setTimeout(async () => {
+      try {
+        const results = await checkCartAvailability(
+          items.map(i => ({ equipmentId: i.equipmentId, quantity: i.quantity })),
+          startAt,
+          endAt
+        )
+        const map: AvailabilityMap = {}
+        for (const r of results) map[r.equipmentId] = r
+        setAvailability(map)
+      } finally {
+        setIsChecking(false)
+      }
+    }, 400)
+
+    return () => { clearTimeout(timer); setIsChecking(false) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startAt, endAt, itemsKey])
 
   if (!hydrated) return null
   if (result) return <SuccessScreen {...result} onClear={clear} />
@@ -114,27 +146,56 @@ export function CartPageClient() {
         <div className="divide-y divide-[#252228]">
           {items.map(item => {
             const catStyle = CATEGORY_STYLES[item.category] ?? CATEGORY_STYLES['기타']
+            const av = availability?.[item.equipmentId]
             return (
-              <div key={item.equipmentId} className="flex items-center gap-3 px-5 py-3.5">
-                <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border shrink-0 ${catStyle}`}>
-                  {item.category}
-                </span>
-                <p className="flex-1 text-sm font-medium text-[#e5e2e1] truncate">{item.name}</p>
-                <div className="flex items-center gap-1 shrink-0">
-                  <button type="button" onClick={() => setQty(item.equipmentId, item.quantity - 1)} disabled={item.quantity <= 1}
-                    className="w-9 h-9 rounded-lg border border-[#3a3640] flex items-center justify-center hover:bg-[#252228] disabled:opacity-30 transition-colors">
-                    <Minus className="w-3 h-3 text-[#9b8f91]" />
-                  </button>
-                  <span className="w-8 text-center text-sm font-bold text-[#e5e2e1]">{item.quantity}</span>
-                  <button type="button" onClick={() => setQty(item.equipmentId, item.quantity + 1)} disabled={item.quantity >= item.totalQuantity}
-                    className="w-9 h-9 rounded-lg border border-[#3a3640] flex items-center justify-center hover:bg-[#252228] disabled:opacity-30 transition-colors">
-                    <Plus className="w-3 h-3 text-[#9b8f91]" />
+              <div key={item.equipmentId} className="px-5 py-3">
+                <div className="flex items-center gap-3">
+                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border shrink-0 ${catStyle}`}>
+                    {item.category}
+                  </span>
+                  <p className="flex-1 text-sm font-medium text-[#e5e2e1] truncate">{item.name}</p>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button type="button" onClick={() => setQty(item.equipmentId, item.quantity - 1)} disabled={item.quantity <= 1}
+                      className="w-9 h-9 rounded-lg border border-[#3a3640] flex items-center justify-center hover:bg-[#252228] disabled:opacity-30 transition-colors">
+                      <Minus className="w-3 h-3 text-[#9b8f91]" />
+                    </button>
+                    <span className="w-8 text-center text-sm font-bold text-[#e5e2e1]">{item.quantity}</span>
+                    <button type="button" onClick={() => setQty(item.equipmentId, item.quantity + 1)} disabled={item.quantity >= item.totalQuantity}
+                      className="w-9 h-9 rounded-lg border border-[#3a3640] flex items-center justify-center hover:bg-[#252228] disabled:opacity-30 transition-colors">
+                      <Plus className="w-3 h-3 text-[#9b8f91]" />
+                    </button>
+                  </div>
+                  <button type="button" onClick={() => remove(item.equipmentId)}
+                    className="p-1.5 rounded-lg text-[#4a4448] hover:text-red-400 hover:bg-red-950/40 transition-colors shrink-0">
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
-                <button type="button" onClick={() => remove(item.equipmentId)}
-                  className="p-1.5 rounded-lg text-[#4a4448] hover:text-red-400 hover:bg-red-950/40 transition-colors shrink-0">
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
+
+                {/* 실시간 재고 표시 */}
+                {(isChecking || av) && (
+                  <div className="mt-1.5 flex items-center gap-1.5">
+                    {isChecking ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] text-[#6b6468]">
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        재고 확인 중...
+                      </span>
+                    ) : av ? (
+                      av.available >= av.requested ? (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-950/40 border border-emerald-900/50 px-2 py-0.5 rounded-full">
+                          ✓ 대여 가능 · {av.available}개 여유
+                        </span>
+                      ) : av.available > 0 ? (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-400 bg-amber-950/40 border border-amber-900/50 px-2 py-0.5 rounded-full">
+                          ⚠ 수량 부족 · {av.available}개만 가능
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-400 bg-red-950/40 border border-red-900/50 px-2 py-0.5 rounded-full">
+                          ✕ 이 기간 대여 불가
+                        </span>
+                      )
+                    ) : null}
+                  </div>
+                )}
               </div>
             )
           })}
@@ -143,7 +204,24 @@ export function CartPageClient() {
 
       <form action={handleSubmit} className="space-y-4">
         {/* 대여 기간 */}
-        <SectionCard title="대여 기간 (전체 공통)" icon={CalendarDays}>
+        <SectionCard
+          title="대여 기간 (전체 공통)"
+          icon={CalendarDays}
+          badge={
+            isChecking ? (
+              <span className="flex items-center gap-1 text-[11px] text-[#6b6468]">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                재고 확인 중
+              </span>
+            ) : availability ? (
+              Object.values(availability).some(a => a.available < a.requested) ? (
+                <span className="text-[11px] font-semibold text-amber-400">⚠ 재고 부족 항목 있음</span>
+              ) : (
+                <span className="text-[11px] font-semibold text-emerald-400">✓ 전체 재고 확인됨</span>
+              )
+            ) : undefined
+          }
+        >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <p className="text-xs font-medium text-[#9b8f91]">대여 시작 *</p>
@@ -185,6 +263,12 @@ export function CartPageClient() {
             </div>
           </div>
         </SectionCard>
+
+        {availability && Object.values(availability).some(a => a.available < a.requested) && (
+          <div className="text-sm text-amber-400 bg-amber-950/40 border border-amber-900/50 rounded-xl px-4 py-3">
+            ⚠ 일부 기자재의 재고가 부족합니다. 수량을 줄이거나 다른 날짜를 선택해주세요.
+          </div>
+        )}
 
         {error && (
           <div className="text-sm text-red-400 bg-red-950/40 border border-red-900/50 rounded-xl px-4 py-3">
