@@ -1,8 +1,13 @@
 import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
+import { PrismaNeon } from '@prisma/adapter-neon'
+import { Pool } from '@neondatabase/serverless'
 import bcrypt from 'bcryptjs'
 
-const prisma = new PrismaClient()
+const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/db'
+const pool = new Pool({ connectionString })
+const adapter = new PrismaNeon(pool)
+const prisma = new PrismaClient({ adapter })
 
 async function main() {
   const adminHash = await bcrypt.hash('admin1234', 10)

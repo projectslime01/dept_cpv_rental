@@ -14,8 +14,8 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
-    "@libsql/client": "^0.17.3",
-    "@prisma/adapter-libsql": "^7.8.0",
+    "@neondatabase/serverless": "^0.11.1",
+    "@prisma/adapter-neon": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-label": "^2.1.8",
