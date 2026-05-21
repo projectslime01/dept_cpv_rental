@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { AddToCartButton } from '@/components/cart/AddToCartButton'
 import {
   Camera, Aperture, Video, Sun, HardDrive,
   Layers, Battery, Mic, Package, Grip,
@@ -88,16 +89,20 @@ export function EquipmentCard({ id, name, category, description, totalQuantity, 
         </div>
       </CardContent>
 
-      <CardFooter className="pt-0">
+      <CardFooter className="pt-0 flex gap-2">
+        <AddToCartButton
+          item={{ equipmentId: id, name, category, totalQuantity }}
+          disabled={!isAvailable}
+        />
         <Button
           asChild={isAvailable}
           size="sm"
-          className="w-full"
+          className="flex-1"
           variant={isAvailable ? 'default' : 'secondary'}
           disabled={!isAvailable}
         >
           {isAvailable ? (
-            <Link href={`/equipment/${id}`}>상세 보기 / 신청</Link>
+            <Link href={`/equipment/${id}`}>상세 / 단건 신청</Link>
           ) : (
             <span>대여 불가</span>
           )}

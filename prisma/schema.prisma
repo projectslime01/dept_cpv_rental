@@ -22,6 +22,7 @@ model Equipment {
 model RentalRequest {
   id            Int       @id @default(autoincrement())
   requestNumber String    @unique
+  groupNumber   String?
   passwordHash  String
   applicantName String
   studentId     String
