@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { SessionProviderWrapper } from '@/components/admin/SessionProviderWrapper'
+import { Camera, List, Search } from 'lucide-react'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -15,12 +16,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ko">
       <body className={inter.className}>
         <SessionProviderWrapper>
-          <header className="border-b bg-white sticky top-0 z-10">
-            <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-              <a href="/" className="font-bold text-lg">📷 기자재 대여</a>
-              <nav className="flex gap-4 text-sm">
-                <a href="/" className="hover:underline">기자재 목록</a>
-                <a href="/status" className="hover:underline">신청 조회</a>
+          <header className="bg-slate-900 text-white sticky top-0 z-10 shadow-lg">
+            <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+              <a href="/" className="flex items-center gap-2 font-semibold text-lg tracking-tight">
+                <Camera className="w-5 h-5 text-sky-400" />
+                <span>영상콘텐츠과 <span className="text-sky-400">기자재</span></span>
+              </a>
+              <nav className="flex gap-1 text-sm font-medium">
+                <a href="/" className="flex items-center gap-1.5 px-3 py-2 rounded-md hover:bg-slate-700 transition-colors duration-150">
+                  <List className="w-4 h-4" />
+                  <span>기자재 목록</span>
+                </a>
+                <a href="/status" className="flex items-center gap-1.5 px-3 py-2 rounded-md hover:bg-slate-700 transition-colors duration-150">
+                  <Search className="w-4 h-4" />
+                  <span>신청 조회</span>
+                </a>
               </nav>
             </div>
           </header>
