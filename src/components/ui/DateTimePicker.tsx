@@ -35,7 +35,7 @@ export function DateTimePicker({
   const [viewDate, setViewDate] = useState(initDate ?? new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(initDate)
   const [hour, setHour] = useState(initDate ? initDate.getHours() : 9)
-  const [minute, setMinute] = useState(initDate ? Math.round(initDate.getMinutes() / 15) * 15 % 60 : 0)
+  const [minute, setMinute] = useState(initDate ? initDate.getMinutes() : 0)
 
   // Close on outside click
   useEffect(() => {
@@ -74,7 +74,8 @@ export function DateTimePicker({
     if (selectedDate) emit(selectedDate, h, minute)
   }
 
-  function selectMinute(m: number) {
+  function changeMinute(delta: number) {
+    const m = ((minute + delta) + 60) % 60
     setMinute(m)
     if (selectedDate) emit(selectedDate, hour, m)
   }
@@ -187,17 +188,19 @@ export function DateTimePicker({
 
               <span className="text-2xl font-black text-slate-200 -mt-1 select-none">:</span>
 
-              {/* Minute chips */}
-              <div className="grid grid-cols-4 gap-1 flex-1">
-                {[0, 15, 30, 45].map(m => (
-                  <button key={m} type="button" onClick={() => selectMinute(m)}
-                    className={`py-1.5 rounded-lg text-[11px] font-bold transition-all
-                      ${minute === m
-                        ? 'bg-slate-900 text-white shadow-sm'
-                        : 'bg-white border border-slate-200 text-slate-500 hover:border-slate-400 hover:text-slate-700'}`}>
-                    :{String(m).padStart(2, '0')}
-                  </button>
-                ))}
+              {/* Minute spinner */}
+              <div className="flex flex-col items-center gap-0.5">
+                <button type="button" onClick={() => changeMinute(1)}
+                  className="p-1 hover:bg-slate-200 rounded-lg transition-colors">
+                  <ChevronUp className="w-3 h-3 text-slate-500" />
+                </button>
+                <div className="w-10 h-10 flex items-center justify-center bg-white rounded-xl border-2 border-slate-200 font-mono text-sm font-bold text-slate-800 select-none">
+                  {String(minute).padStart(2, '0')}
+                </div>
+                <button type="button" onClick={() => changeMinute(-1)}
+                  className="p-1 hover:bg-slate-200 rounded-lg transition-colors">
+                  <ChevronDown className="w-3 h-3 text-slate-500" />
+                </button>
               </div>
             </div>
           </div>
