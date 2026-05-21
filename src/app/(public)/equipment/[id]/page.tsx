@@ -37,7 +37,7 @@ export default async function EquipmentDetailPage({ params }: { params: { id: st
   const catStyle = CATEGORY_STYLES[equipment.category] ?? CATEGORY_STYLES['기타']
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-xs text-[#6b6468]">
         <a href="/" className="hover:text-[#9b8f91] transition-colors">기자재 목록</a>

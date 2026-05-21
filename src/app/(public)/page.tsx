@@ -136,7 +136,7 @@ export default async function HomePage({ searchParams }: { searchParams: { categ
           <a href="/" className="mt-3 inline-block text-xs text-[#ffb2ba] hover:underline">초기화</a>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
           {equipments.map((eq) => (
             <EquipmentCard key={eq.id} {...eq} />
           ))}

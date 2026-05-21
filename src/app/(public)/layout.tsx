@@ -7,7 +7,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
     <CartProvider>
       <div className="min-h-screen flex flex-col">
         <header className="bg-[#0f0e11] border-b border-[#2a2830] sticky top-0 z-40">
-          <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
             <a href="/" className="flex items-center gap-2.5 font-bold text-base tracking-tight hover:opacity-90 transition-opacity min-w-0">
               <div className="w-7 h-7 flex items-center justify-center shrink-0">
                 <img src="/logo.png" alt="Logo" className="w-6 h-6 object-contain" />
@@ -27,11 +27,11 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             </nav>
           </div>
         </header>
-        <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-6 md:py-8">
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 md:py-8">
           {children}
         </main>
         <footer className="border-t border-[#2a2830] bg-[#0f0e11] mt-auto">
-          <div className="max-w-5xl mx-auto px-4 h-12 flex items-center">
+          <div className="max-w-7xl mx-auto px-4 h-12 flex items-center">
             <p className="text-xs text-[#6b6468]">연성대학교 영상콘텐츠과 기자재 대여 시스템</p>
           </div>
         </footer>
