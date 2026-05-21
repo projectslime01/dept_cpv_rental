@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { EquipmentCard } from '@/components/equipment/EquipmentCard'
 import { CATEGORY_ORDER, sortByCategory } from '@/lib/categories'
-import { Search, SlidersHorizontal } from 'lucide-react'
+import { Search } from 'lucide-react'
 
 async function getEquipmentList(category?: string, search?: string) {
   const now = new Date()
