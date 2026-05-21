@@ -33,12 +33,12 @@ export default function AdminLoginPage() {
       <h1 className="text-2xl font-bold mb-6 text-center">관리자 로그인</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1">
-          <Label>아이디</Label>
-          <Input name="username" required />
+          <Label htmlFor="username">아이디</Label>
+          <Input id="username" name="username" required />
         </div>
         <div className="space-y-1">
-          <Label>비밀번호</Label>
-          <Input name="password" type="password" required />
+          <Label htmlFor="password">비밀번호</Label>
+          <Input id="password" name="password" type="password" required />
         </div>
         {error && <p className="text-red-500 text-sm">{error}</p>}
         <Button type="submit" className="w-full" disabled={loading}>
