@@ -32,7 +32,7 @@ function SectionCard({ title, icon: Icon, children }: { title: string; icon: Rea
   )
 }
 
-function SuccessScreen({ groupNumber, requestNumbers, onClear }: { groupNumber: string; requestNumbers: string[]; onClear: () => void }) {
+function SuccessScreen({ requestNumbers, onClear }: { groupNumber: string; requestNumbers: string[]; onClear: () => void }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 text-center space-y-5">
       <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-100">

@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
+import { Clock, Package } from 'lucide-react'
 
 export default async function DashboardPage() {
   const now = new Date()
@@ -40,44 +41,47 @@ export default async function DashboardPage() {
   const diffDays = (d: Date) => Math.ceil((d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-2xl font-bold">대시보드</h1>
+    <div className="space-y-6">
+      <h1 className="text-xl font-bold text-slate-900">대시보드</h1>
 
       {/* 요약 카드 */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="border rounded-lg p-4">
-          <p className="text-sm text-muted-foreground">승인 대기</p>
-          <p className="text-3xl font-bold text-orange-500">{pendingCount}</p>
-          <p className="text-xs text-muted-foreground">건</p>
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">승인 대기</p>
+          <p className="text-3xl font-black text-amber-500 mt-2">{pendingCount}</p>
+          <p className="text-xs text-slate-400 mt-1">건</p>
         </div>
-        <div className="border rounded-lg p-4">
-          <p className="text-sm text-muted-foreground">현재 대여 중</p>
-          <p className="text-3xl font-bold text-blue-600">{activeRentals}</p>
-          <p className="text-xs text-muted-foreground">건</p>
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">현재 대여 중</p>
+          <p className="text-3xl font-black text-sky-500 mt-2">{activeRentals}</p>
+          <p className="text-xs text-slate-400 mt-1">건</p>
         </div>
       </div>
 
       {/* 반납 예정 */}
       {dueSoon.length > 0 && (
-        <div>
-          <h2 className="font-semibold mb-3">반납 예정 (3일 이내)</h2>
-          <div className="border rounded overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2 px-5 py-3.5 border-b border-slate-50">
+            <Clock className="w-4 h-4 text-slate-400" />
+            <h2 className="text-sm font-semibold text-slate-700">반납 예정 (3일 이내)</h2>
+          </div>
+          <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50">
-                <tr>
-                  <th className="text-left p-3">기자재</th>
-                  <th className="text-left p-3">신청자</th>
-                  <th className="text-left p-3">반납 예정</th>
-                  <th className="text-left p-3">D-Day</th>
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-100">
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 whitespace-nowrap">기자재</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 whitespace-nowrap">신청자</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 whitespace-nowrap">반납 예정</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 whitespace-nowrap">D-Day</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-50">
                 {dueSoon.map((r) => (
-                  <tr key={r.id} className="border-t">
-                    <td className="p-3">{r.equipment.name}</td>
-                    <td className="p-3">{r.applicantName}</td>
-                    <td className="p-3">{fmt(r.endAt)}</td>
-                    <td className="p-3 font-medium text-red-500">D-{diffDays(r.endAt)}</td>
+                  <tr key={r.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-4 py-3 text-slate-800">{r.equipment.name}</td>
+                    <td className="px-4 py-3 text-slate-700">{r.applicantName}</td>
+                    <td className="px-4 py-3 text-slate-600 text-xs">{fmt(r.endAt)}</td>
+                    <td className="px-4 py-3 font-bold text-red-500 whitespace-nowrap">D-{diffDays(r.endAt)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -87,27 +91,30 @@ export default async function DashboardPage() {
       )}
 
       {/* 기자재별 수량 현황 */}
-      <div>
-        <h2 className="font-semibold mb-3">기자재 수량 현황</h2>
-        <div className="border rounded overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="flex items-center gap-2 px-5 py-3.5 border-b border-slate-50">
+          <Package className="w-4 h-4 text-slate-400" />
+          <h2 className="text-sm font-semibold text-slate-700">기자재 수량 현황</h2>
+        </div>
+        <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50">
-              <tr>
-                <th className="text-left p-3">기자재명</th>
-                <th className="text-left p-3">카테고리</th>
-                <th className="text-center p-3">전체</th>
-                <th className="text-center p-3">대여 중</th>
-                <th className="text-center p-3">대여 가능</th>
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-100">
+                <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 whitespace-nowrap">기자재명</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 whitespace-nowrap">카테고리</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 whitespace-nowrap">전체</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 whitespace-nowrap">대여 중</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 whitespace-nowrap">대여 가능</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-50">
               {stats.map((eq) => (
-                <tr key={eq.id} className="border-t">
-                  <td className="p-3">{eq.name}</td>
-                  <td className="p-3 text-muted-foreground">{eq.category}</td>
-                  <td className="p-3 text-center">{eq.totalQuantity}</td>
-                  <td className="p-3 text-center text-blue-600">{eq.rentedNow}</td>
-                  <td className={`p-3 text-center font-medium ${eq.availableNow > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                <tr key={eq.id} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-4 py-3 font-medium text-slate-800">{eq.name}</td>
+                  <td className="px-4 py-3 text-slate-500 text-xs">{eq.category}</td>
+                  <td className="px-4 py-3 text-center text-slate-600">{eq.totalQuantity}</td>
+                  <td className="px-4 py-3 text-center text-sky-600 font-medium">{eq.rentedNow}</td>
+                  <td className={`px-4 py-3 text-center font-bold ${eq.availableNow > 0 ? 'text-emerald-600' : 'text-red-500'}`}>
                     {eq.availableNow}
                   </td>
                 </tr>

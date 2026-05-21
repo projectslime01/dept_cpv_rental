@@ -100,7 +100,7 @@ export default async function HomePage({ searchParams }: { searchParams: { categ
           <p className="text-xs text-slate-400 mt-2.5 flex items-center gap-1.5">
             <span className="font-semibold text-slate-600">{equipments.length}개</span> 결과
             {searchParams.category && <><span>·</span><span className="font-medium text-slate-600">{searchParams.category}</span></>}
-            {searchParams.search && <><span>·</span><span className="font-medium text-slate-600">"{searchParams.search}"</span></>}
+            {searchParams.search && <><span>·</span><span className="font-medium text-slate-600">&quot;{searchParams.search}&quot;</span></>}
           </p>
         )}
       </div>

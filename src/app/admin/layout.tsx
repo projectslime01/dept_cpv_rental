@@ -1,39 +1,49 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import Link from 'next/link'
+import { AdminSidebar } from '@/components/admin/AdminSidebar'
+import { Camera, LogOut } from 'lucide-react'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions)
 
   if (!session) {
-    return <div className="max-w-sm mx-auto py-16">{children}</div>
+    return (
+      <div className="min-h-screen bg-[#f6f7f9] flex items-center justify-center">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 w-full max-w-sm">
+          {children}
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="flex min-h-screen">
-      <aside className="w-48 border-r bg-slate-50 p-4 shrink-0">
-        <p className="font-bold mb-6 text-sm">관리자 메뉴</p>
-        <nav className="space-y-1 text-sm">
-          {[
-            { href: '/admin/dashboard', label: '대시보드' },
-            { href: '/admin/requests', label: '신청 관리' },
-            { href: '/admin/equipment', label: '기자재 관리' },
-            { href: '/admin/history', label: '대여 이력' },
-          ].map(({ href, label }) => (
-            <Link key={href} href={href} className="block px-3 py-2 rounded hover:bg-slate-200">
-              {label}
-            </Link>
-          ))}
-        </nav>
-        <div className="mt-8 pt-4 border-t">
+    <div className="min-h-screen bg-[#f6f7f9] flex flex-col">
+      {/* Admin header */}
+      <header className="bg-slate-900 text-white border-b border-slate-800 h-14 flex items-center px-6 shrink-0">
+        <div className="flex items-center gap-2.5 font-bold text-base tracking-tight">
+          <div className="w-7 h-7 rounded-lg bg-sky-500/20 border border-sky-500/30 flex items-center justify-center">
+            <Camera className="w-3.5 h-3.5 text-sky-400" />
+          </div>
+          <span className="text-white">영상콘텐츠과 <span className="text-sky-400">기자재</span></span>
+          <span className="ml-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-700 text-slate-300">관리자</span>
+        </div>
+        <div className="ml-auto">
           <form action="/api/auth/signout" method="POST">
-            <button type="submit" className="text-xs text-muted-foreground hover:underline">
+            <button type="submit" className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-800">
+              <LogOut className="w-3.5 h-3.5" />
               로그아웃
             </button>
           </form>
         </div>
-      </aside>
-      <div className="flex-1 p-8">{children}</div>
+      </header>
+
+      {/* Content area */}
+      <div className="flex flex-1 min-h-0">
+        <AdminSidebar />
+        <main className="flex-1 p-8 overflow-auto">
+          {children}
+        </main>
+      </div>
     </div>
   )
 }

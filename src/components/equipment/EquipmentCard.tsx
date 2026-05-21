@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
 import { AddToCartButton } from '@/components/cart/AddToCartButton'
 import {
   Camera, Aperture, Video, Sun, HardDrive,

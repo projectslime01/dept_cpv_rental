@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from 'react'
 import { lookupRequest, LookupResult } from '@/app/actions/rental'
-import { Badge } from '@/components/ui/badge'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { Loader2, CalendarDays, Clock, ClipboardList } from 'lucide-react'

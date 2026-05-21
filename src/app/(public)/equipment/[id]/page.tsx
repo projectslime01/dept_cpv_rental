@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { AvailabilityChecker } from '@/components/equipment/AvailabilityChecker'
+import { AddToCartButton } from '@/components/cart/AddToCartButton'
 import {
   Camera, Aperture, Video, Sun, HardDrive,
   Layers, Battery, Mic, Package, Grip, ChevronRight,
@@ -59,6 +60,9 @@ export default async function EquipmentDetailPage({ params }: { params: { id: st
               <span className="text-sm text-slate-400">총 {equipment.totalQuantity}개 보유</span>
             </div>
           </div>
+          <AddToCartButton
+            item={{ equipmentId: equipment.id, name: equipment.name, category: equipment.category, totalQuantity: equipment.totalQuantity }}
+          />
         </div>
         {equipment.description && (
           <p className="mt-4 text-sm text-slate-600 bg-slate-50 rounded-xl px-4 py-3 border border-slate-100 leading-relaxed">
