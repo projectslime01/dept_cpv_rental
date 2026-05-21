@@ -29,11 +29,11 @@ export default function AdminLoginPage() {
   return (
     <>
       <div className="text-center mb-6">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-[#ffb2ba]/15 border border-[#ffb2ba]/25 mb-3">
-          <Camera className="w-5 h-5 text-[#ffb2ba]" />
+        <div className="inline-flex items-center justify-center w-12 h-12 mb-3">
+          <img src="/logo.svg" alt="Logo" className="w-10 h-10 object-contain" />
         </div>
         <h1 className="text-xl font-bold text-[#e5e2e1]">관리자 로그인</h1>
-        <p className="text-sm text-[#9b8f91] mt-1">영상콘텐츠과 기자재 관리 시스템</p>
+        <p className="text-sm text-[#9b8f91] mt-1">연성대학교 영상콘텐츠과 기자재 대여 관리 시스템</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
