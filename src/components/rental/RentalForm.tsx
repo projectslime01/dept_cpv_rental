@@ -69,7 +69,7 @@ export function RentalForm({ equipmentId, equipmentName, defaultStartAt, default
       </div>
 
       <form action={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <label htmlFor="applicantName" className="block text-xs font-medium text-[#9b8f91]">이름 *</label>
             <input id="applicantName" name="applicantName" required className={inputCls} />
@@ -85,7 +85,7 @@ export function RentalForm({ equipmentId, equipmentName, defaultStartAt, default
           <input id="phone" name="phone" type="tel" placeholder="010-0000-0000" required className={inputCls} />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <p className="text-xs font-medium text-[#9b8f91]">대여 시작 *</p>
             <DateTimePicker value={startAt} onChange={setStartAt} placeholder="대여 시작" disablePast />

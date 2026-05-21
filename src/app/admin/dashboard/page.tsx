@@ -68,7 +68,7 @@ export default async function DashboardPage() {
             <h2 className="text-sm font-semibold text-[#c8c4c3]">반납 예정 (3일 이내)</h2>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm min-w-[480px]">
               <thead>
                 <tr className="bg-[#252228] border-b border-[#2e2b2f]">
                   <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">기자재</th>
@@ -99,7 +99,7 @@ export default async function DashboardPage() {
           <h2 className="text-sm font-semibold text-[#c8c4c3]">기자재 수량 현황</h2>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm min-w-[480px]">
             <thead>
               <tr className="bg-[#252228] border-b border-[#2e2b2f]">
                 <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">기자재명</th>

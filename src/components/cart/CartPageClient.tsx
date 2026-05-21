@@ -122,12 +122,12 @@ export function CartPageClient() {
                 <p className="flex-1 text-sm font-medium text-[#e5e2e1] truncate">{item.name}</p>
                 <div className="flex items-center gap-1 shrink-0">
                   <button type="button" onClick={() => setQty(item.equipmentId, item.quantity - 1)} disabled={item.quantity <= 1}
-                    className="w-7 h-7 rounded-lg border border-[#3a3640] flex items-center justify-center hover:bg-[#252228] disabled:opacity-30 transition-colors">
+                    className="w-9 h-9 rounded-lg border border-[#3a3640] flex items-center justify-center hover:bg-[#252228] disabled:opacity-30 transition-colors">
                     <Minus className="w-3 h-3 text-[#9b8f91]" />
                   </button>
                   <span className="w-8 text-center text-sm font-bold text-[#e5e2e1]">{item.quantity}</span>
                   <button type="button" onClick={() => setQty(item.equipmentId, item.quantity + 1)} disabled={item.quantity >= item.totalQuantity}
-                    className="w-7 h-7 rounded-lg border border-[#3a3640] flex items-center justify-center hover:bg-[#252228] disabled:opacity-30 transition-colors">
+                    className="w-9 h-9 rounded-lg border border-[#3a3640] flex items-center justify-center hover:bg-[#252228] disabled:opacity-30 transition-colors">
                     <Plus className="w-3 h-3 text-[#9b8f91]" />
                   </button>
                 </div>
@@ -159,7 +159,7 @@ export function CartPageClient() {
         {/* 신청자 정보 */}
         <SectionCard title="신청자 정보" icon={User}>
           <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <label htmlFor="applicantName" className="block text-xs font-medium text-[#9b8f91]">이름 *</label>
                 <input id="applicantName" name="applicantName" required className={inputCls} />

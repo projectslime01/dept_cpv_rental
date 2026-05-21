@@ -100,12 +100,12 @@ export default async function HistoryPage({
             name="q"
             defaultValue={searchParams.q}
             placeholder="이름 / 학번 / 신청번호"
-            className={inputCls + ' w-44'}
+            className={inputCls + ' w-full sm:w-44'}
           />
           <select
             name="equipment"
             defaultValue={searchParams.equipment ?? ''}
-            className={inputCls + ' w-44'}
+            className={inputCls + ' w-full sm:w-44'}
           >
             <option value="">
               {categoryFilter ? `${categoryFilter} 전체` : '전체 기자재'}
@@ -140,7 +140,7 @@ export default async function HistoryPage({
           <span className="ml-auto text-xs text-[#6b6468]">{requests.length}건 (최대 200건)</span>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm min-w-[720px]">
             <thead>
               <tr className="bg-[#252228] border-b border-[#2e2b2f]">
                 <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">신청번호</th>

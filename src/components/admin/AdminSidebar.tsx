@@ -15,7 +15,7 @@ export function AdminSidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="w-52 shrink-0 border-r border-[#2a2830] bg-[#1a191b]">
+    <aside className="hidden md:block w-52 shrink-0 border-r border-[#2a2830] bg-[#1a191b]">
       <nav className="p-3 space-y-0.5">
         <p className="text-[10px] font-bold text-[#6b6468] uppercase tracking-wider px-3 py-2">메뉴</p>
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {

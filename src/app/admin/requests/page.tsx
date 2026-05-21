@@ -118,7 +118,7 @@ export default async function RequestsPage({
           <span className="ml-auto text-xs text-[#6b6468]">{requests.length}건</span>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm min-w-[720px]">
             <thead>
               <tr className="bg-[#252228] border-b border-[#2e2b2f]">
                 <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">신청번호</th>

@@ -100,12 +100,12 @@ export function EquipmentCard({ id, name, category, description, totalQuantity, 
         {isAvailable ? (
           <Link
             href={`/equipment/${id}`}
-            className="flex-1 flex items-center justify-center h-9 rounded-xl bg-[#ff4f73] hover:bg-[#e03d61] text-white text-xs font-semibold transition-colors"
+            className="flex-1 flex items-center justify-center h-11 rounded-xl bg-[#ff4f73] hover:bg-[#e03d61] text-white text-xs font-semibold transition-colors"
           >
             상세 / 단건 신청
           </Link>
         ) : (
-          <div className="flex-1 flex items-center justify-center h-9 rounded-xl bg-[#252228] text-[#4a4448] text-xs font-semibold cursor-not-allowed">
+          <div className="flex-1 flex items-center justify-center h-11 rounded-xl bg-[#252228] text-[#4a4448] text-xs font-semibold cursor-not-allowed">
             대여 불가
           </div>
         )}
