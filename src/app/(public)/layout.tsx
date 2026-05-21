@@ -1,6 +1,6 @@
 import { CartProvider } from '@/lib/useCart'
 import { CartHeaderButton } from '@/components/cart/CartHeaderButton'
-import { Camera, List, Search } from 'lucide-react'
+import { List, Search } from 'lucide-react'
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (

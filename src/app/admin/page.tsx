@@ -2,7 +2,7 @@
 
 import { signIn } from 'next-auth/react'
 import { useState } from 'react'
-import { Camera, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 
 export default function AdminLoginPage() {
   const [error, setError] = useState('')
