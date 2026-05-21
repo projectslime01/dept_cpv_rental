@@ -25,7 +25,7 @@ export default async function HistoryPage({
   })
 
   // Categories sorted by CATEGORY_ORDER
-  const existingCategories = [...new Set(allEquipment.map(e => e.category))]
+  const existingCategories = Array.from(new Set(allEquipment.map(e => e.category)))
   const categories = CATEGORY_ORDER.filter(c => existingCategories.includes(c))
 
   // Equipment filtered by selected category
