@@ -14,16 +14,16 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
   '필터': Layers, '배터리': Battery, '음향': Mic,
 }
 const CATEGORY_STYLES: Record<string, string> = {
-  '카메라 바디': 'text-sky-600 bg-sky-50 border-sky-100',
-  '렌즈': 'text-violet-600 bg-violet-50 border-violet-100',
-  '영상 장비': 'text-blue-600 bg-blue-50 border-blue-100',
-  '조명': 'text-amber-600 bg-amber-50 border-amber-100',
-  '저장 매체': 'text-emerald-600 bg-emerald-50 border-emerald-100',
-  '삼각대/지지대': 'text-slate-600 bg-slate-100 border-slate-200',
-  '필터': 'text-indigo-600 bg-indigo-50 border-indigo-100',
-  '배터리': 'text-orange-600 bg-orange-50 border-orange-100',
-  '음향': 'text-pink-600 bg-pink-50 border-pink-100',
-  '기타': 'text-gray-500 bg-gray-100 border-gray-200',
+  '카메라 바디': 'text-sky-300 bg-sky-950/60 border-sky-900/60',
+  '렌즈': 'text-violet-300 bg-violet-950/60 border-violet-900/60',
+  '영상 장비': 'text-blue-300 bg-blue-950/60 border-blue-900/60',
+  '조명': 'text-amber-300 bg-amber-950/60 border-amber-900/60',
+  '저장 매체': 'text-emerald-300 bg-emerald-950/60 border-emerald-900/60',
+  '삼각대/지지대': 'text-slate-300 bg-slate-800/60 border-slate-700/60',
+  '필터': 'text-indigo-300 bg-indigo-950/60 border-indigo-900/60',
+  '배터리': 'text-orange-300 bg-orange-950/60 border-orange-900/60',
+  '음향': 'text-pink-300 bg-pink-950/60 border-pink-900/60',
+  '기타': 'text-[#9b8f91] bg-[#252228] border-[#3a3640]',
 }
 
 export default async function EquipmentDetailPage({ params }: { params: { id: string } }) {
@@ -39,25 +39,25 @@ export default async function EquipmentDetailPage({ params }: { params: { id: st
   return (
     <div className="max-w-2xl space-y-6">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-1.5 text-xs text-slate-400">
-        <a href="/" className="hover:text-slate-600 transition-colors">기자재 목록</a>
+      <nav className="flex items-center gap-1.5 text-xs text-[#6b6468]">
+        <a href="/" className="hover:text-[#9b8f91] transition-colors">기자재 목록</a>
         <ChevronRight className="w-3 h-3" />
-        <span className="text-slate-600 font-medium">{equipment.name}</span>
+        <span className="text-[#9b8f91] font-medium">{equipment.name}</span>
       </nav>
 
       {/* Equipment info card */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+      <div className="bg-[#201f21] rounded-2xl border border-[#2e2b2f] p-6">
         <div className="flex items-start gap-4">
           <div className={`p-3 rounded-2xl border ${catStyle} shrink-0`}>
             <Icon className="w-6 h-6" />
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{equipment.name}</h1>
+            <h1 className="text-2xl font-bold text-[#e5e2e1] tracking-tight">{equipment.name}</h1>
             <div className="flex items-center gap-2.5 mt-2">
               <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${catStyle}`}>
                 {equipment.category}
               </span>
-              <span className="text-sm text-slate-400">총 {equipment.totalQuantity}개 보유</span>
+              <span className="text-sm text-[#6b6468]">총 {equipment.totalQuantity}개 보유</span>
             </div>
           </div>
           <AddToCartButton
@@ -65,7 +65,7 @@ export default async function EquipmentDetailPage({ params }: { params: { id: st
           />
         </div>
         {equipment.description && (
-          <p className="mt-4 text-sm text-slate-600 bg-slate-50 rounded-xl px-4 py-3 border border-slate-100 leading-relaxed">
+          <p className="mt-4 text-sm text-[#9b8f91] bg-[#1a191b] rounded-xl px-4 py-3 border border-[#2e2b2f] leading-relaxed">
             {equipment.description}
           </p>
         )}

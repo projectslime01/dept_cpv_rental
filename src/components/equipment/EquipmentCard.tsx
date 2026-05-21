@@ -19,16 +19,16 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
 }
 
 const CATEGORY_STYLES: Record<string, { icon: string; badge: string }> = {
-  '카메라 바디': { icon: 'text-sky-600 bg-sky-50',    badge: 'text-sky-700 bg-sky-50 border-sky-200' },
-  '렌즈':        { icon: 'text-violet-600 bg-violet-50', badge: 'text-violet-700 bg-violet-50 border-violet-200' },
-  '영상 장비':   { icon: 'text-blue-600 bg-blue-50',   badge: 'text-blue-700 bg-blue-50 border-blue-200' },
-  '조명':        { icon: 'text-amber-600 bg-amber-50',  badge: 'text-amber-700 bg-amber-50 border-amber-200' },
-  '저장 매체':   { icon: 'text-emerald-600 bg-emerald-50', badge: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
-  '삼각대/지지대':{ icon: 'text-slate-600 bg-slate-100', badge: 'text-slate-700 bg-slate-100 border-slate-200' },
-  '필터':        { icon: 'text-indigo-600 bg-indigo-50', badge: 'text-indigo-700 bg-indigo-50 border-indigo-200' },
-  '배터리':      { icon: 'text-orange-600 bg-orange-50', badge: 'text-orange-700 bg-orange-50 border-orange-200' },
-  '음향':        { icon: 'text-pink-600 bg-pink-50',   badge: 'text-pink-700 bg-pink-50 border-pink-200' },
-  '기타':        { icon: 'text-gray-500 bg-gray-100',  badge: 'text-gray-600 bg-gray-100 border-gray-200' },
+  '카메라 바디': { icon: 'text-sky-300 bg-sky-950/60',       badge: 'text-sky-300 bg-sky-950/60 border-sky-900/60' },
+  '렌즈':        { icon: 'text-violet-300 bg-violet-950/60', badge: 'text-violet-300 bg-violet-950/60 border-violet-900/60' },
+  '영상 장비':   { icon: 'text-blue-300 bg-blue-950/60',     badge: 'text-blue-300 bg-blue-950/60 border-blue-900/60' },
+  '조명':        { icon: 'text-amber-300 bg-amber-950/60',   badge: 'text-amber-300 bg-amber-950/60 border-amber-900/60' },
+  '저장 매체':   { icon: 'text-emerald-300 bg-emerald-950/60', badge: 'text-emerald-300 bg-emerald-950/60 border-emerald-900/60' },
+  '삼각대/지지대':{ icon: 'text-slate-300 bg-slate-800/60',  badge: 'text-slate-300 bg-slate-800/60 border-slate-700/60' },
+  '필터':        { icon: 'text-indigo-300 bg-indigo-950/60', badge: 'text-indigo-300 bg-indigo-950/60 border-indigo-900/60' },
+  '배터리':      { icon: 'text-orange-300 bg-orange-950/60', badge: 'text-orange-300 bg-orange-950/60 border-orange-900/60' },
+  '음향':        { icon: 'text-pink-300 bg-pink-950/60',     badge: 'text-pink-300 bg-pink-950/60 border-pink-900/60' },
+  '기타':        { icon: 'text-[#9b8f91] bg-[#252228]',     badge: 'text-[#9b8f91] bg-[#252228] border-[#3a3640]' },
 }
 
 interface Props {
@@ -47,14 +47,14 @@ export function EquipmentCard({ id, name, category, description, totalQuantity, 
   const availPct = totalQuantity > 0 ? Math.round((availableNow / totalQuantity) * 100) : 0
 
   return (
-    <div className="group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col overflow-hidden">
+    <div className="group bg-[#201f21] rounded-2xl border border-[#2e2b2f] hover:border-[#3a3640] hover:shadow-lg hover:shadow-black/30 hover:-translate-y-0.5 transition-all duration-200 flex flex-col overflow-hidden">
       {/* Card header */}
       <div className="px-4 pt-4 pb-3 flex items-start gap-3">
         <div className={`p-2 rounded-xl shrink-0 ${styles.icon}`}>
           <Icon className="w-4 h-4" />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-slate-900 leading-snug truncate group-hover:text-sky-600 transition-colors">
+          <h3 className="text-sm font-semibold text-[#e5e2e1] leading-snug truncate group-hover:text-[#ffb2ba] transition-colors">
             {name}
           </h3>
           <span className={`inline-block mt-1 text-[11px] font-medium px-2 py-0.5 rounded-full border ${styles.badge}`}>
@@ -66,7 +66,7 @@ export function EquipmentCard({ id, name, category, description, totalQuantity, 
       {/* Description */}
       <div className="px-4 flex-1">
         {description ? (
-          <p className="text-xs text-slate-500 line-clamp-1 leading-relaxed">{description}</p>
+          <p className="text-xs text-[#6b6468] line-clamp-1 leading-relaxed">{description}</p>
         ) : (
           <div className="h-4" />
         )}
@@ -75,24 +75,24 @@ export function EquipmentCard({ id, name, category, description, totalQuantity, 
       {/* Availability */}
       <div className="px-4 pt-3 pb-3 space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-slate-400">대여 가능</span>
+          <span className="text-xs text-[#6b6468]">대여 가능</span>
           <div className="flex items-baseline gap-1">
-            <span className={`text-base font-black tabular-nums ${isAvailable ? 'text-emerald-500' : 'text-red-400'}`}>
+            <span className={`text-base font-black tabular-nums ${isAvailable ? 'text-emerald-400' : 'text-red-400'}`}>
               {availableNow}
             </span>
-            <span className="text-xs text-slate-300">/ {totalQuantity}개</span>
+            <span className="text-xs text-[#4a4448]">/ {totalQuantity}개</span>
           </div>
         </div>
-        <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
+        <div className="h-1 bg-[#2a282b] rounded-full overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all duration-500 ${isAvailable ? 'bg-emerald-400' : 'bg-red-300'}`}
+            className={`h-full rounded-full transition-all duration-500 ${isAvailable ? 'bg-emerald-500' : 'bg-red-500/60'}`}
             style={{ width: `${availPct}%` }}
           />
         </div>
       </div>
 
       {/* Actions */}
-      <div className="px-4 pb-4 flex gap-2 border-t border-slate-50 pt-3">
+      <div className="px-4 pb-4 flex gap-2 border-t border-[#252228] pt-3">
         <AddToCartButton
           item={{ equipmentId: id, name, category, totalQuantity }}
           disabled={!isAvailable}
@@ -100,12 +100,12 @@ export function EquipmentCard({ id, name, category, description, totalQuantity, 
         {isAvailable ? (
           <Link
             href={`/equipment/${id}`}
-            className="flex-1 flex items-center justify-center h-9 rounded-xl bg-slate-900 hover:bg-slate-700 text-white text-xs font-semibold transition-colors"
+            className="flex-1 flex items-center justify-center h-9 rounded-xl bg-[#ff4f73] hover:bg-[#e03d61] text-white text-xs font-semibold transition-colors"
           >
             상세 / 단건 신청
           </Link>
         ) : (
-          <div className="flex-1 flex items-center justify-center h-9 rounded-xl bg-slate-100 text-slate-400 text-xs font-semibold cursor-not-allowed">
+          <div className="flex-1 flex items-center justify-center h-9 rounded-xl bg-[#252228] text-[#4a4448] text-xs font-semibold cursor-not-allowed">
             대여 불가
           </div>
         )}

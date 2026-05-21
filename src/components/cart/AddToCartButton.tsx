@@ -15,7 +15,7 @@ export function AddToCartButton({ item, disabled }: Props) {
   if (disabled) {
     return (
       <button type="button" disabled
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-300 cursor-not-allowed">
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#252228] text-[#4a4448] cursor-not-allowed">
         <ClipboardList className="w-3.5 h-3.5" />
         선택
       </button>
@@ -27,7 +27,7 @@ export function AddToCartButton({ item, disabled }: Props) {
       <button
         type="button"
         onClick={() => remove(item.equipmentId)}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-100 text-sky-700 hover:bg-red-100 hover:text-red-600 transition-colors"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#ffb2ba]/15 text-[#ffb2ba] hover:bg-red-950/50 hover:text-red-400 transition-colors"
       >
         <Check className="w-3.5 h-3.5" />
         선택됨
@@ -39,7 +39,7 @@ export function AddToCartButton({ item, disabled }: Props) {
     <button
       type="button"
       onClick={() => add(item)}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-900 hover:text-white transition-colors"
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#252228] text-[#9b8f91] hover:bg-[#2e2b33] hover:text-[#e5e2e1] border border-[#3a3640] transition-colors"
     >
       <ClipboardList className="w-3.5 h-3.5" />
       선택

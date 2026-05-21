@@ -95,41 +95,41 @@ export function DateTimePicker({
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
-        className={`w-full flex items-center gap-2.5 px-3.5 py-3 rounded-xl border text-sm transition-all duration-150 bg-white
+        className={`w-full flex items-center gap-2.5 px-3.5 py-3 rounded-xl border text-sm transition-all duration-150 bg-[#1a191b]
           ${open
-            ? 'border-slate-700 ring-2 ring-slate-700/10 shadow-sm'
-            : 'border-slate-200 hover:border-slate-400 hover:shadow-sm'}`}
+            ? 'border-[#7d7173] ring-2 ring-[#ffb2ba]/10'
+            : 'border-[#3a3640] hover:border-[#7d7173]'}`}
       >
-        <CalendarDays className={`w-4 h-4 shrink-0 ${displayText ? 'text-slate-700' : 'text-slate-400'}`} />
-        <span className={`flex-1 text-left ${displayText ? 'text-slate-800 font-medium' : 'text-slate-400'}`}>
+        <CalendarDays className={`w-4 h-4 shrink-0 ${displayText ? 'text-[#c8c4c3]' : 'text-[#4a4448]'}`} />
+        <span className={`flex-1 text-left ${displayText ? 'text-[#e5e2e1] font-medium' : 'text-[#4a4448]'}`}>
           {displayText ?? placeholder}
         </span>
       </button>
 
       {/* Dropdown panel */}
       {open && (
-        <div className="absolute z-50 top-full mt-2 left-0 bg-white rounded-2xl shadow-2xl border border-slate-100 w-72 overflow-hidden">
+        <div className="absolute z-50 top-full mt-2 left-0 bg-[#201f21] rounded-2xl shadow-2xl shadow-black/50 border border-[#3a3640] w-72 overflow-hidden">
 
           {/* Month navigation */}
-          <div className="bg-slate-900 text-white px-3 py-2.5 flex items-center justify-between">
+          <div className="bg-[#0f0e11] text-[#e5e2e1] px-3 py-2.5 flex items-center justify-between">
             <button type="button" onClick={() => setViewDate(subMonths(viewDate, 1))}
-              className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
+              className="p-1.5 rounded-lg hover:bg-[#ffb2ba]/10 transition-colors">
               <ChevronLeft className="w-3.5 h-3.5" />
             </button>
             <span className="text-sm font-semibold">
               {format(viewDate, 'yyyy년 M월', { locale: ko })}
             </span>
             <button type="button" onClick={() => setViewDate(addMonths(viewDate, 1))}
-              className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
+              className="p-1.5 rounded-lg hover:bg-[#ffb2ba]/10 transition-colors">
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
           {/* Weekday labels */}
-          <div className="grid grid-cols-7 bg-slate-50 border-b border-slate-100">
+          <div className="grid grid-cols-7 bg-[#252228] border-b border-[#2e2b2f]">
             {WEEKDAYS.map((d, i) => (
               <div key={d} className={`text-center text-[11px] font-semibold py-1.5
-                ${i === 0 ? 'text-rose-400' : i === 6 ? 'text-sky-500' : 'text-slate-400'}`}>
+                ${i === 0 ? 'text-rose-400' : i === 6 ? 'text-sky-400' : 'text-[#6b6468]'}`}>
                 {d}
               </div>
             ))}
@@ -152,14 +152,14 @@ export function DateTimePicker({
                   disabled={disabled}
                   onClick={() => !disabled && selectDay(day)}
                   className={[
-                    'aspect-square flex items-center justify-center text-xs rounded-lg transition-all duration-100',
-                    sel      ? 'bg-slate-900 text-white font-bold shadow-md scale-95' : '',
-                    nowDay && !sel ? 'ring-1 ring-slate-700 font-semibold' : '',
-                    !sel && !disabled && thisMonth ? 'hover:bg-slate-100 active:scale-95' : '',
+                    'aspect-square flex items-center justify-center text-xs rounded-lg transition-all duration-100 text-[#c8c4c3]',
+                    sel      ? 'bg-[#ff4f73] text-white font-bold scale-95' : '',
+                    nowDay && !sel ? 'ring-1 ring-[#ffb2ba] font-semibold' : '',
+                    !sel && !disabled && thisMonth ? 'hover:bg-[#2e2b33] active:scale-95' : '',
                     !thisMonth ? 'opacity-20' : '',
                     disabled  ? 'opacity-20 cursor-not-allowed' : 'cursor-pointer',
-                    sun && !sel && thisMonth ? 'text-rose-500' : '',
-                    sat && !sel && thisMonth ? 'text-sky-500' : '',
+                    sun && !sel && thisMonth ? 'text-rose-400' : '',
+                    sat && !sel && thisMonth ? 'text-sky-400' : '',
                   ].join(' ')}
                 >
                   {day.getDate()}
@@ -169,16 +169,16 @@ export function DateTimePicker({
           </div>
 
           {/* Time picker */}
-          <div className="border-t border-slate-100 bg-slate-50/80 px-3 py-3 space-y-2.5">
+          <div className="border-t border-[#2e2b2f] bg-[#1a191b] px-3 py-3 space-y-2.5">
             <div className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-slate-400" />
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">시간 선택</span>
+              <Clock className="w-3.5 h-3.5 text-[#6b6468]" />
+              <span className="text-[10px] font-bold text-[#6b6468] uppercase tracking-wider">시간 선택</span>
             </div>
 
             <div className="flex items-center gap-2">
               {/* Hour input */}
               <div className="flex flex-col items-center gap-1">
-                <span className="text-[10px] text-slate-400 font-semibold">시</span>
+                <span className="text-[10px] text-[#6b6468] font-semibold">시</span>
                 <input
                   type="number"
                   min={0}
@@ -186,15 +186,15 @@ export function DateTimePicker({
                   value={String(hour).padStart(2, '0')}
                   onChange={e => handleHourInput(e.target.value)}
                   onFocus={e => e.target.select()}
-                  className="w-14 h-11 text-center bg-white rounded-xl border-2 border-slate-200 font-mono text-lg font-bold text-slate-800 focus:outline-none focus:border-slate-600 transition-colors"
+                  className="w-14 h-11 text-center bg-[#252228] rounded-xl border-2 border-[#3a3640] font-mono text-lg font-bold text-[#e5e2e1] focus:outline-none focus:border-[#ffb2ba]/50 transition-colors"
                 />
               </div>
 
-              <span className="text-2xl font-black text-slate-300 mt-4 select-none">:</span>
+              <span className="text-2xl font-black text-[#3a3640] mt-4 select-none">:</span>
 
               {/* Minute input */}
               <div className="flex flex-col items-center gap-1">
-                <span className="text-[10px] text-slate-400 font-semibold">분</span>
+                <span className="text-[10px] text-[#6b6468] font-semibold">분</span>
                 <input
                   type="number"
                   min={0}
@@ -202,7 +202,7 @@ export function DateTimePicker({
                   value={String(minute).padStart(2, '0')}
                   onChange={e => handleMinuteInput(e.target.value)}
                   onFocus={e => e.target.select()}
-                  className="w-14 h-11 text-center bg-white rounded-xl border-2 border-slate-200 font-mono text-lg font-bold text-slate-800 focus:outline-none focus:border-slate-600 transition-colors"
+                  className="w-14 h-11 text-center bg-[#252228] rounded-xl border-2 border-[#3a3640] font-mono text-lg font-bold text-[#e5e2e1] focus:outline-none focus:border-[#ffb2ba]/50 transition-colors"
                 />
               </div>
             </div>
@@ -211,7 +211,7 @@ export function DateTimePicker({
           {/* Confirm button */}
           <div className="px-3 pb-3">
             <button type="button" onClick={() => setOpen(false)} disabled={!selectedDate}
-              className="w-full py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-xl hover:bg-slate-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+              className="w-full py-2.5 bg-[#ff4f73] text-white text-sm font-semibold rounded-xl hover:bg-[#e03d61] transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
               {selectedDate
                 ? `${format(selectedDate, 'M.d(EEE) HH:mm', { locale: ko })} 확정`
                 : '날짜를 선택해주세요'}
