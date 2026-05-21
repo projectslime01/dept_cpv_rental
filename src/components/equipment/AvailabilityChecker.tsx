@@ -2,9 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
 import { DateTimePicker } from '@/components/ui/DateTimePicker'
-import { CalendarDays, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
+import { CalendarDays, CheckCircle2, XCircle, Loader2, ArrowRight } from 'lucide-react'
 
 interface Props {
   equipmentId: number
@@ -40,53 +39,50 @@ export function AvailabilityChecker({ equipmentId, totalQuantity }: Props) {
   const isAvailable = available !== null && available > 0
 
   return (
-    <div className="border rounded-xl p-5 space-y-5 bg-slate-50">
+    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-5">
       <div className="flex items-center gap-2">
-        <CalendarDays className="w-4 h-4 text-slate-600" />
-        <h3 className="font-semibold text-sm">대여 기간 선택</h3>
+        <CalendarDays className="w-4 h-4 text-slate-400" />
+        <h3 className="font-semibold text-sm text-slate-700">대여 기간 선택</h3>
       </div>
 
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <p className="text-xs font-medium text-muted-foreground">대여 시작</p>
+          <p className="text-xs font-medium text-slate-400">대여 시작</p>
           <DateTimePicker
             value={startAt}
-            onChange={(val) => { setStartAt(val); setAvailable(null) }}
-            placeholder="대여 시작 날짜/시간"
+            onChange={(v) => { setStartAt(v); setAvailable(null) }}
+            placeholder="대여 시작"
             disablePast
           />
         </div>
         <div className="space-y-1.5">
-          <p className="text-xs font-medium text-muted-foreground">반납 예정</p>
+          <p className="text-xs font-medium text-slate-400">반납 예정</p>
           <DateTimePicker
             value={endAt}
-            onChange={(val) => { setEndAt(val); setAvailable(null) }}
-            placeholder="반납 예정 날짜/시간"
+            onChange={(v) => { setEndAt(v); setAvailable(null) }}
+            placeholder="반납 예정"
             disablePast
           />
         </div>
       </div>
 
-      <Button
-        variant="outline"
+      <button
+        type="button"
         onClick={check}
         disabled={!startAt || !endAt || loading}
-        className="w-full bg-white hover:bg-slate-100"
+        className="w-full h-10 rounded-xl border border-slate-200 bg-slate-50 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
       >
-        {loading ? (
-          <>
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            확인 중...
-          </>
-        ) : '재고 확인'}
-      </Button>
+        {loading ? <><Loader2 className="w-4 h-4 animate-spin" />확인 중...</> : '재고 확인'}
+      </button>
 
       {available !== null && (
-        <div className={`flex items-start gap-3 rounded-lg p-3 text-sm font-medium
-          ${isAvailable ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-600'}`}>
+        <div className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium border
+          ${isAvailable
+            ? 'bg-emerald-50 border-emerald-100 text-emerald-700'
+            : 'bg-red-50 border-red-100 text-red-600'}`}>
           {isAvailable
-            ? <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" />
-            : <XCircle className="w-4 h-4 mt-0.5 shrink-0" />}
+            ? <CheckCircle2 className="w-4 h-4 shrink-0" />
+            : <XCircle className="w-4 h-4 shrink-0" />}
           <span>
             {isAvailable
               ? `${available}개 대여 가능 (전체 ${totalQuantity}개)`
@@ -96,9 +92,14 @@ export function AvailabilityChecker({ equipmentId, totalQuantity }: Props) {
       )}
 
       {isAvailable && (
-        <Button onClick={goApply} className="w-full bg-slate-900 hover:bg-slate-700">
+        <button
+          type="button"
+          onClick={goApply}
+          className="w-full h-11 rounded-xl bg-slate-900 hover:bg-slate-700 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+        >
           이 기간으로 신청하기
-        </Button>
+          <ArrowRight className="w-4 h-4" />
+        </button>
       )}
     </div>
   )
