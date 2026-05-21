@@ -3,8 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { DateTimePicker } from '@/components/ui/DateTimePicker'
 import { CalendarDays, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
 
 interface Props {
@@ -47,23 +46,23 @@ export function AvailabilityChecker({ equipmentId, totalQuantity }: Props) {
         <h3 className="font-semibold text-sm">대여 기간 선택</h3>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="space-y-3">
         <div className="space-y-1.5">
-          <Label className="text-xs font-medium text-muted-foreground">대여 시작</Label>
-          <Input
-            type="datetime-local"
+          <p className="text-xs font-medium text-muted-foreground">대여 시작</p>
+          <DateTimePicker
             value={startAt}
-            onChange={(e) => { setStartAt(e.target.value); setAvailable(null) }}
-            className="bg-white text-sm"
+            onChange={(val) => { setStartAt(val); setAvailable(null) }}
+            placeholder="대여 시작 날짜/시간"
+            disablePast
           />
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs font-medium text-muted-foreground">반납 예정</Label>
-          <Input
-            type="datetime-local"
+          <p className="text-xs font-medium text-muted-foreground">반납 예정</p>
+          <DateTimePicker
             value={endAt}
-            onChange={(e) => { setEndAt(e.target.value); setAvailable(null) }}
-            className="bg-white text-sm"
+            onChange={(val) => { setEndAt(val); setAvailable(null) }}
+            placeholder="반납 예정 날짜/시간"
+            disablePast
           />
         </div>
       </div>
