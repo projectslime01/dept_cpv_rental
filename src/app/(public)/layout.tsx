@@ -10,7 +10,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
             <a href="/" className="flex items-center gap-2.5 font-bold text-base tracking-tight hover:opacity-90 transition-opacity min-w-0">
               <div className="w-7 h-7 flex items-center justify-center shrink-0">
-                <img src="/logo.svg" alt="Logo" className="w-6 h-6 object-contain" />
+                <img src="/logo.png" alt="Logo" className="w-6 h-6 object-contain" />
               </div>
               <span className="text-[#e5e2e1] truncate">연성대학교 영상콘텐츠과 <span className="text-[#ffb2ba]">기자재 대여</span></span>
             </a>

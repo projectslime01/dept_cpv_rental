@@ -23,7 +23,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <header className="bg-[#0f0e11] border-b border-[#2a2830] h-14 flex items-center px-4 md:px-6 shrink-0">
         <div className="flex items-center gap-2.5 font-bold text-base tracking-tight">
           <div className="w-7 h-7 flex items-center justify-center shrink-0">
-            <img src="/logo.svg" alt="Logo" className="w-6 h-6 object-contain" />
+            <img src="/logo.png" alt="Logo" className="w-6 h-6 object-contain" />
           </div>
           <span className="text-[#e5e2e1]">연성대학교 영상콘텐츠과 <span className="text-[#ffb2ba]">기자재 대여</span></span>
           <span className="ml-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-[#ffb2ba]/15 text-[#ffb2ba] border border-[#ffb2ba]/25">관리자</span>

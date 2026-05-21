@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <!-- TODO: Replace with the actual 연성대학교 logo SVG code -->
-  <polygon points="0,30 30,20 50,50 0,70" fill="#e41a72" />
-  <polygon points="30,20 70,0 80,40 50,50" fill="#4d5357" />
-  <polygon points="50,50 80,40 80,70 50,100" fill="#c3d500" />
-  <polygon points="0,70 50,50 50,100 20,90" fill="#4d5357" />
-</svg>
