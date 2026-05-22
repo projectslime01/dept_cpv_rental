@@ -1,5 +1,5 @@
 {
-  "buildCommand": "node scripts/prepare-db.js && prisma generate && prisma db push && next build",
+  "buildCommand": "node scripts/prepare-db.js && prisma generate && prisma db push && prisma db seed && next build",
   "installCommand": "npm ci",
   "framework": "nextjs",
   "regions": ["icn1"]
