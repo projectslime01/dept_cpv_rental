@@ -48,6 +48,21 @@ export function DateTimePicker({
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
 
+  // Prop인 value가 외부에서 갱신될 때 내부 상태와 동기화
+  useEffect(() => {
+    const d = value ? new Date(value) : null
+    if (d && isValid(d)) {
+      setSelectedDate(d)
+      setViewDate(d)
+      setHour(d.getHours())
+      setMinute(d.getMinutes())
+    } else {
+      setSelectedDate(null)
+      setHour(9)
+      setMinute(0)
+    }
+  }, [value])
+
   // Calendar grid
   const gridDays = eachDayOfInterval({
     start: startOfWeek(startOfMonth(viewDate), { weekStartsOn: 0 }),
