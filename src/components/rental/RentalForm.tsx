@@ -3,7 +3,8 @@
 import { useTransition, useState, useEffect } from 'react'
 import { createRentalRequest } from '@/app/actions/rental'
 import { DateTimePicker } from '@/components/ui/DateTimePicker'
-import { CheckCircle2, ArrowRight, AlertTriangle, Clock } from 'lucide-react'
+import { CheckCircle2, ArrowRight, AlertTriangle, Clock, CalendarDays } from 'lucide-react'
+import { AvailabilityCalendar } from '@/components/equipment/AvailabilityCalendar'
 import {
   isSubmissionTimeValid,
   isValidStartDate,
@@ -165,6 +166,24 @@ export function RentalForm({ equipmentId, equipmentName, defaultStartAt, default
               <p className="text-xs font-medium text-[#9b8f91]">반납 예정 *</p>
               <DateTimePicker value={endAt} onChange={setEndAt} placeholder="반납 예정" disablePast />
             </div>
+          </div>
+
+          {/* 실시간 예약 현황 캘린더 연동 (Visual Premium) */}
+          <div className="mt-3.5 p-4 rounded-xl border border-[#2e2b2f] bg-[#1a191b]/40 space-y-3">
+            <p className="text-xs font-semibold text-[#9b8f91] flex items-center gap-1.5">
+              <CalendarDays className="w-3.5 h-3.5 text-[#ffb2ba]" />
+              기자재 실시간 대여 현황 달력
+            </p>
+            <AvailabilityCalendar
+              equipmentId={equipmentId}
+              totalQuantity={maxQuantity}
+              startAt={startAt}
+              endAt={endAt}
+              onRangeSelect={(start, end) => {
+                setStartAt(start)
+                setEndAt(end)
+              }}
+            />
           </div>
 
           {/* 2. 대여 시작일 위반 시 경고 문구 */}

@@ -33,7 +33,7 @@ export function AvailabilityCalendar({
   // "YYYY-MM-DD" 파싱 유틸
   const parseDateOnly = (dateTimeStr: string) => {
     if (!dateTimeStr) return ''
-    return dateTimeStr.split(' ')[0] // "2026-05-22"
+    return dateTimeStr.substring(0, 10) // "2026-05-22"
   }
 
   const startOnly = parseDateOnly(startAt)
@@ -103,7 +103,7 @@ export function AvailabilityCalendar({
 
     // 1. 시작일이 비어있거나, 또는 범위가 이미 둘 다 차있는 상태에서 새로 클릭할 경우
     if (!startOnly || (startOnly && endOnly)) {
-      onRangeSelect(`${dayStr} 09:00`, '')
+      onRangeSelect(`${dayStr}T09:00`, '')
       return
     }
 
@@ -112,7 +112,7 @@ export function AvailabilityCalendar({
 
     if (clickedDate < startDate) {
       // 시작일보다 과거를 클릭하면 그것을 시작일로 갱신
-      onRangeSelect(`${dayStr} 09:00`, '')
+      onRangeSelect(`${dayStr}T09:00`, '')
     } else {
       // 시작일 포함 이후 날짜를 클릭하면 반납 예정일로 지정하여 범위 완성
       // 범위 사이에 품절(available = 0)인 날짜가 포함되어 있는지 체크
@@ -129,7 +129,7 @@ export function AvailabilityCalendar({
         return
       }
 
-      onRangeSelect(`${startOnly} 09:00`, `${dayStr} 18:00`)
+      onRangeSelect(`${startOnly}T09:00`, `${dayStr}T18:00`)
     }
   }
 
