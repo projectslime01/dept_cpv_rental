@@ -1,11 +1,19 @@
 import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
 import { PrismaNeon } from '@prisma/adapter-neon'
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 import bcrypt from 'bcryptjs'
 
 const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/db'
-const adapter = new PrismaNeon({ connectionString })
-const prisma = new PrismaClient({ adapter })
+let prisma: PrismaClient
+if (connectionString.startsWith('file:')) {
+  const dbPath = connectionString.replace('file:', '')
+  const adapter = new PrismaBetterSqlite3({ url: dbPath })
+  prisma = new PrismaClient({ adapter, log: ['error'] })
+} else {
+  const adapter = new PrismaNeon({ connectionString })
+  prisma = new PrismaClient({ adapter, log: ['error'] })
+}
 
 async function main() {
   const adminHash = await bcrypt.hash('admin1234', 10)
@@ -99,12 +107,27 @@ async function main() {
     { roomNumber: '공학관 301호', capacity: 50, description: '중대형 강의 및 세미나 가능', equipment: '빔프로젝터, 화이트보드, 전자교탁, 음향 시스템' },
     { roomNumber: '공학관 302호', capacity: 30, description: '소형 강의 및 그룹 토의 가능', equipment: '화이트보드, 빔프로젝터' },
     { roomNumber: '멀티미디어실', capacity: 40, description: '컴퓨터 실습 및 영상 편집 강의 가능', equipment: 'PC 40대, 빔프로젝터, 마이크 시스템' },
-    { roomNumber: '공동실습실', capacity: 15, description: '소규모 세미나 및 스터디룸', equipment: '화이트보드' }
+    { roomNumber: '공동실습실', capacity: 15, description: '소규모 세미나 및 스터디룸', equipment: '화이트보드' },
+    { roomNumber: '402호', capacity: 40, description: '실습 및 강의 공간', equipment: '빔프로젝터, 화이트보드, 전자교탁' },
+    { roomNumber: '405호', capacity: 40, description: '실습 및 강의 공간', equipment: '빔프로젝터, 화이트보드, 전자교탁' },
+    { roomNumber: '408호', capacity: 40, description: '실습 및 강의 공간', equipment: '빔프로젝터, 화이트보드, 전자교탁' },
+    { roomNumber: '408-1호', capacity: 30, description: '실습 및 강의 공간', equipment: '빔프로젝터, 화이트보드, 전자교탁' },
+    { roomNumber: '503호', capacity: 40, description: '실습 및 강의 공간', equipment: '빔프로젝터, 화이트보드, 전자교탁' },
+    { roomNumber: '507-1호', capacity: 20, description: '실습 및 강의 공간', equipment: '빔프로젝터, 화이트보드, 전자교탁' },
+    { roomNumber: '507-2호', capacity: 20, description: '실습 및 강의 공간', equipment: '빔프로젝터, 화이트보드, 전자교탁' },
+    { roomNumber: '507-3호', capacity: 20, description: '실습 및 강의 공간', equipment: '빔프로젝터, 화이트보드, 전자교탁' },
+    { roomNumber: '507-4호', capacity: 20, description: '실습 및 강의 공간', equipment: '빔프로젝터, 화이트보드, 전자교탁' },
+    { roomNumber: '507-5호', capacity: 20, description: '실습 및 강의 공간', equipment: '빔프로젝터, 화이트보드, 전자교탁' },
+    { roomNumber: '507-6호', capacity: 20, description: '실습 및 강의 공간', equipment: '빔프로젝터, 화이트보드, 전자교탁' },
+    { roomNumber: '공학1관 201호', capacity: 50, description: '실습 및 강의 공간', equipment: '빔프로젝터, 화이트보드, 전자교탁, 음향 시스템' }
   ]
 
-  const existingClassroomCount = await prisma.classroom.count()
-  if (existingClassroomCount === 0) {
-    await prisma.classroom.createMany({ data: classroomData })
+  for (const c of classroomData) {
+    await prisma.classroom.upsert({
+      where: { roomNumber: c.roomNumber },
+      update: {},
+      create: c,
+    })
   }
 
   console.log('Seed complete.')
