@@ -1,6 +1,6 @@
 import { CartProvider } from '@/lib/useCart'
 import { CartHeaderButton } from '@/components/cart/CartHeaderButton'
-import { List, Search } from 'lucide-react'
+import { List, Search, CalendarDays } from 'lucide-react'
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -18,6 +18,10 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               <a href="/" className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[#9b8f91] hover:text-[#e5e2e1] hover:bg-[#201f21] transition-all duration-150 min-h-[44px]">
                 <List className="w-4 h-4 shrink-0" />
                 <span className="hidden sm:inline">기자재 목록</span>
+              </a>
+              <a href="/rental-status" className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[#9b8f91] hover:text-[#e5e2e1] hover:bg-[#201f21] transition-all duration-150 min-h-[44px]">
+                <CalendarDays className="w-4 h-4 shrink-0" />
+                <span className="hidden sm:inline">전체 대여 현황</span>
               </a>
               <a href="/status" className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[#9b8f91] hover:text-[#e5e2e1] hover:bg-[#201f21] transition-all duration-150 min-h-[44px]">
                 <Search className="w-4 h-4 shrink-0" />
