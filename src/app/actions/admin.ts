@@ -82,3 +82,34 @@ export async function activateEquipment(id: number) {
   })
   revalidatePath('/admin/equipment')
 }
+
+export async function approveClassroomRequest(id: number, note?: string) {
+  await requireAdmin()
+  await prisma.classroomRentalRequest.update({
+    where: { id, status: 'pending' },
+    data: { status: 'approved', adminNote: note || null },
+  })
+  revalidatePath('/admin/requests')
+  revalidatePath('/admin/dashboard')
+}
+
+export async function rejectClassroomRequest(id: number, note: string) {
+  await requireAdmin()
+  await prisma.classroomRentalRequest.update({
+    where: { id, status: 'pending' },
+    data: { status: 'rejected', adminNote: note },
+  })
+  revalidatePath('/admin/requests')
+  revalidatePath('/admin/dashboard')
+}
+
+export async function markClassroomReturned(id: number) {
+  await requireAdmin()
+  await prisma.classroomRentalRequest.update({
+    where: { id, status: 'approved' },
+    data: { status: 'returned', returnedAt: new Date() },
+  })
+  revalidatePath('/admin/requests')
+  revalidatePath('/admin/dashboard')
+}
+

@@ -1,6 +1,6 @@
 import { CartProvider } from '@/lib/useCart'
 import { CartHeaderButton } from '@/components/cart/CartHeaderButton'
-import { List, Search, CalendarDays } from 'lucide-react'
+import { List, Search, CalendarDays, Building2 } from 'lucide-react'
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -12,12 +12,16 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               <div className="w-7 h-7 flex items-center justify-center shrink-0">
                 <img src="/logo.png" alt="Logo" className="w-6 h-6 object-contain" />
               </div>
-              <span className="text-[#e5e2e1] truncate">연성대학교 영상콘텐츠과 <span className="text-[#ffb2ba]">기자재 대여</span></span>
+              <span className="text-[#e5e2e1] truncate">연성대학교 영상콘텐츠과 <span className="text-[#ffb2ba]">통합 대여</span></span>
             </a>
             <nav className="flex items-center gap-0.5 text-sm font-medium shrink-0 ml-2">
               <a href="/" className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[#9b8f91] hover:text-[#e5e2e1] hover:bg-[#201f21] transition-all duration-150 min-h-[44px]">
                 <List className="w-4 h-4 shrink-0" />
                 <span className="hidden sm:inline">기자재 목록</span>
+              </a>
+              <a href="/classrooms" className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[#9b8f91] hover:text-[#e5e2e1] hover:bg-[#201f21] transition-all duration-150 min-h-[44px]">
+                <Building2 className="w-4 h-4 shrink-0" />
+                <span className="hidden sm:inline">강의실 대여</span>
               </a>
               <a href="/rental-status" className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[#9b8f91] hover:text-[#e5e2e1] hover:bg-[#201f21] transition-all duration-150 min-h-[44px]">
                 <CalendarDays className="w-4 h-4 shrink-0" />

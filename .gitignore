@@ -41,5 +41,7 @@ next-env.d.ts
 # SQLite database files
 prisma/*.db
 prisma/*.db-journal
+*.db
+*.db-journal
 test-results/
 playwright-report/

@@ -344,11 +344,56 @@ export async function lookupRequest(formData: FormData): Promise<LookupResult> {
     return { success: false, error: '신청 번호와 비밀번호를 입력해주세요.' }
   }
 
+  const isClassroom = requestNumber.startsWith('ROOM')
+
   try {
     const rateLimitKey = `status:${requestNumber}`
     const { allowed, remainingAttempts } = await checkRateLimit(rateLimitKey, prisma)
     if (!allowed) {
       return { success: false, error: '시도 횟수 초과로 10분간 잠겼습니다.' }
+    }
+
+    if (isClassroom) {
+      const request = await prisma.classroomRentalRequest.findUnique({
+        where: { requestNumber },
+        include: { classroom: { select: { roomNumber: true } } },
+      })
+
+      if (!request) {
+        await recordFailedAttempt(rateLimitKey, prisma)
+        return {
+          success: false,
+          error: '신청 내역을 찾을 수 없습니다.',
+          remainingAttempts: remainingAttempts - 1,
+        }
+      }
+
+      const valid = await verifyPassword(password, request.passwordHash)
+      if (!valid) {
+        await recordFailedAttempt(rateLimitKey, prisma)
+        return {
+          success: false,
+          error: '비밀번호가 올바르지 않습니다.',
+          remainingAttempts: remainingAttempts - 1,
+        }
+      }
+
+      await resetAttempts(rateLimitKey, prisma)
+
+      return {
+        success: true,
+        data: {
+          requestNumber: request.requestNumber,
+          groupNumber: null,
+          status: request.status,
+          equipmentName: `${request.classroom.roomNumber} (강의실)`,
+          quantity: 1,
+          startAt: request.startAt,
+          endAt: request.endAt,
+          adminNote: request.adminNote,
+          createdAt: request.createdAt,
+        },
+      }
     }
 
     const request = await prisma.rentalRequest.findUnique({

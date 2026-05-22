@@ -23,10 +23,12 @@ import {
   Layers,
   X,
   Info,
+  Building2,
 } from 'lucide-react'
 
 interface Rental {
   id: string
+  type: 'equipment' | 'classroom'
   applicantName: string
   equipmentName: string
   quantity: number
@@ -40,6 +42,7 @@ export function GlobalRentalCalendar() {
   const [loading, setLoading] = useState<boolean>(true)
   const [selectedDay, setSelectedDay] = useState<Date | null>(null)
   const [selectedRentals, setSelectedRentals] = useState<Rental[]>([])
+  const [filter, setFilter] = useState<'all' | 'equipment' | 'classroom'>('all')
 
   // Calculate year and month for API query (month is 1-indexed)
   const year = currentMonth.getFullYear()
@@ -76,12 +79,18 @@ export function GlobalRentalCalendar() {
   const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 })
   const days = eachDayOfInterval({ start: startDate, end: endDate })
 
+  // Filter rentals based on active filter
+  const filteredRentals = rentals.filter((r) => {
+    if (filter === 'all') return true
+    return r.type === filter
+  })
+
   // Check if rental is active on a specific day
   const getRentalsForDay = (day: Date): Rental[] => {
     const dayStart = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 0, 0, 0, 0)
     const dayEnd = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 23, 59, 59, 999)
 
-    return rentals.filter((rental) => {
+    return filteredRentals.filter((rental) => {
       const rentStart = new Date(rental.startAt)
       const rentEnd = new Date(rental.endAt)
       return rentStart <= dayEnd && rentEnd >= dayStart
@@ -103,22 +112,56 @@ export function GlobalRentalCalendar() {
   return (
     <div className="space-y-6">
       {/* Calendar Controls & Meta */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#141316] p-4 rounded-2xl border border-[#2e2b2f] backdrop-blur-md">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[#141316] p-4 rounded-2xl border border-[#2e2b2f] backdrop-blur-md">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-[#ff4f73]/10 border border-[#ff4f73]/20 flex items-center justify-center text-[#ff4f73]">
-            <CalendarDays className="w-5 h-5" />
+            <CalendarDays className="w-5 h-5 text-[#ff4f73]" />
           </div>
           <div>
             <h2 className="text-xl font-bold text-[#e5e2e1] tracking-tight">
               {format(currentMonth, 'yyyy년 M월', { locale: ko })}
             </h2>
             <p className="text-xs text-[#9b8f91] mt-0.5">
-              승인 완료된 학과 기자재 대여 현황입니다.
+              승인 완료된 학과 대여(기자재 및 강의실) 통합 현황입니다.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center justify-between sm:justify-end gap-2">
+        {/* Filter Tabs */}
+        <div className="flex bg-[#1a191b] border border-[#2e2b2f] rounded-xl p-0.5 self-start lg:self-center">
+          <button
+            onClick={() => setFilter('all')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+              filter === 'all'
+                ? 'bg-[#252228] text-[#e5e2e1] border border-[#2e2b2f] shadow'
+                : 'text-[#9b8f91] hover:text-[#e5e2e1]'
+            }`}
+          >
+            전체 보기
+          </button>
+          <button
+            onClick={() => setFilter('equipment')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+              filter === 'equipment'
+                ? 'bg-[#ff4f73]/10 text-[#ffb2ba] border border-[#ff4f73]/20 shadow'
+                : 'text-[#9b8f91] hover:text-[#e5e2e1]'
+            }`}
+          >
+            기자재만
+          </button>
+          <button
+            onClick={() => setFilter('classroom')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+              filter === 'classroom'
+                ? 'bg-[#a78bfa]/10 text-[#c7b5ff] border border-[#a78bfa]/20 shadow'
+                : 'text-[#9b8f91] hover:text-[#e5e2e1]'
+            }`}
+          >
+            강의실만
+          </button>
+        </div>
+
+        <div className="flex items-center justify-between lg:justify-end gap-2">
           <div className="flex items-center bg-[#1a191b] border border-[#2e2b2f] rounded-xl p-0.5">
             <button
               onClick={handlePrevMonth}
@@ -143,8 +186,8 @@ export function GlobalRentalCalendar() {
           </div>
 
           <div className="hidden md:flex items-center gap-1.5 px-3 py-2 bg-[#201f21] border border-[#2e2b2f] rounded-xl text-xs text-[#ffb2ba] font-semibold">
-            <Info className="w-3.5 h-3.5 shrink-0" />
-            이번 달 총 {rentals.length}건 승인됨
+            <Info className="w-3.5 h-3.5 shrink-0 text-[#ffb2ba]" />
+            이번 달 총 {filteredRentals.length}건 승인됨
           </div>
         </div>
       </div>
@@ -172,7 +215,7 @@ export function GlobalRentalCalendar() {
                   isSunday
                     ? 'text-red-400/80'
                     : isSaturday
-                    ? 'text-blue-400/80'
+                    ? 'text-[#a78bfa]/80'
                     : 'text-[#9b8f91]'
                 }`}
               >
@@ -223,17 +266,26 @@ export function GlobalRentalCalendar() {
 
                 {/* Cell Body: Active Reservation Badges */}
                 <div className="mt-2 space-y-1.5 flex-1 flex flex-col justify-end">
-                  {displayRentals.map((rental) => (
-                    <div
-                      key={rental.id}
-                      className="bg-[#ff4f73]/10 hover:bg-[#ff4f73]/20 border border-[#ff4f73]/20 rounded-lg px-2 py-1 text-[10px] md:text-xs font-semibold text-[#ffb2ba] truncate transition-colors flex items-center gap-1 shadow-sm"
-                      title={`[${rental.applicantName}] ${rental.equipmentName} (${rental.quantity}대)`}
-                    >
-                      <span className="shrink-0 text-white/70">[{rental.applicantName}]</span>
-                      <span className="truncate">{rental.equipmentName}</span>
-                      <span className="shrink-0 text-[#ff4f73] font-bold">({rental.quantity})</span>
-                    </div>
-                  ))}
+                  {displayRentals.map((rental) => {
+                    const isClassroom = rental.type === 'classroom'
+                    return (
+                      <div
+                        key={rental.id}
+                        className={`border rounded-lg px-2 py-1 text-[10px] md:text-xs font-semibold truncate transition-colors flex items-center gap-1 shadow-sm ${
+                          isClassroom
+                            ? 'bg-[#a78bfa]/10 hover:bg-[#a78bfa]/20 border-[#a78bfa]/20 text-[#c7b5ff]'
+                            : 'bg-[#ff4f73]/10 hover:bg-[#ff4f73]/20 border-[#ff4f73]/20 text-[#ffb2ba]'
+                        }`}
+                        title={`[${rental.applicantName}] ${rental.equipmentName} ${isClassroom ? '(강의실)' : `(${rental.quantity}대)`}`}
+                      >
+                        <span className="shrink-0 text-white/70">[{rental.applicantName}]</span>
+                        <span className="truncate">{rental.equipmentName}</span>
+                        {!isClassroom && (
+                          <span className="shrink-0 text-[#ff4f73] font-bold">({rental.quantity})</span>
+                        )}
+                      </div>
+                    )
+                  })}
                   {hasMore && (
                     <div className="text-[10px] md:text-xs font-bold text-[#ff4f73] pl-1 pt-0.5 hover:underline decoration-[#ff4f73] transition-colors">
                       + {dayRentals.length - 3}개 더보기
@@ -260,13 +312,11 @@ export function GlobalRentalCalendar() {
       {/* Premium Detail Modal / Dialog */}
       {selectedDay && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop with transition */}
           <div
             className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
             onClick={() => setSelectedDay(null)}
           />
 
-          {/* Modal content */}
           <div className="bg-[#141316] border border-[#2e2b2f] rounded-2xl w-full max-w-xl max-h-[85vh] flex flex-col shadow-2xl relative z-10 animate-in fade-in zoom-in-95 duration-150">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-5 border-b border-[#2e2b2f] bg-[#1a191b]/50">
@@ -287,41 +337,61 @@ export function GlobalRentalCalendar() {
             {/* Modal Scrollable Body */}
             <div className="p-5 overflow-y-auto space-y-4 flex-1">
               <div className="flex justify-between items-center text-xs text-[#9b8f91] px-1 font-semibold uppercase tracking-wider">
-                <span>기자재 및 대여 수량</span>
+                <span>대여 자산 및 수량</span>
                 <span>대여 신청자 및 기간</span>
               </div>
 
               <div className="space-y-3">
-                {selectedRentals.map((rental) => (
-                  <div
-                    key={rental.id}
-                    className="bg-[#1a191b] border border-[#2e2b2f] hover:border-[#ff4f73]/40 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 transition-colors shadow-sm"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-[#252228] border border-[#2e2b2f] flex items-center justify-center shrink-0 text-[#ffb2ba]">
-                        <Camera className="w-5 h-5" />
+                {selectedRentals.map((rental) => {
+                  const isClassroom = rental.type === 'classroom'
+                  const ItemIcon = isClassroom ? Building2 : Camera
+                  return (
+                    <div
+                      key={rental.id}
+                      className={`bg-[#1a191b] border border-[#2e2b2f] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 transition-colors shadow-sm ${
+                        isClassroom
+                          ? 'hover:border-[#a78bfa]/40'
+                          : 'hover:border-[#ff4f73]/40'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`w-10 h-10 rounded-lg bg-[#252228] border border-[#2e2b2f] flex items-center justify-center shrink-0 ${
+                          isClassroom ? 'text-[#a78bfa]' : 'text-[#ffb2ba]'
+                        }`}>
+                          <ItemIcon className="w-5 h-5" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold text-[#e5e2e1] leading-none">
+                            {rental.equipmentName}
+                          </p>
+                          <p className="text-xs text-[#9b8f91] flex items-center gap-1.5">
+                            <Layers className="w-3.5 h-3.5" />
+                            <span>
+                              {isClassroom ? (
+                                <strong className="text-[#a78bfa]">강의실 대여</strong>
+                              ) : (
+                                <>대여 수량: <strong className="text-[#ffb2ba]">{rental.quantity}대</strong></>
+                              )}
+                            </span>
+                          </p>
+                        </div>
                       </div>
-                      <div className="space-y-1">
-                        <p className="text-sm font-semibold text-[#e5e2e1] leading-none">
-                          {rental.equipmentName}
-                        </p>
-                        <p className="text-xs text-[#9b8f91] flex items-center gap-1">
-                          <Layers className="w-3.5 h-3.5" />
-                          대여 수량: <span className="text-[#ffb2ba] font-bold">{rental.quantity}대</span>
-                        </p>
-                      </div>
-                    </div>
 
-                    <div className="flex sm:flex-col sm:items-end justify-between items-center gap-1 border-t sm:border-0 border-[#252228] pt-2 sm:pt-0">
-                      <div className="bg-[#ff4f73]/10 border border-[#ff4f73]/20 rounded-full px-2.5 py-0.5 text-xs text-[#ffb2ba] font-bold">
-                        {rental.applicantName}
+                      <div className="flex sm:flex-col sm:items-end justify-between items-center gap-1 border-t sm:border-0 border-[#252228] pt-2 sm:pt-0">
+                        <div className={`border rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                          isClassroom
+                            ? 'bg-[#a78bfa]/10 border-[#a78bfa]/20 text-[#c7b5ff]'
+                            : 'bg-[#ff4f73]/10 border-[#ff4f73]/20 text-[#ffb2ba]'
+                        }`}>
+                          {rental.applicantName}
+                        </div>
+                        <p className="text-xs text-[#9b8f91] font-mono mt-1">
+                          {formatRentalTime(rental.startAt)} <span className="text-white/30">→</span> {formatRentalTime(rental.endAt)}
+                        </p>
                       </div>
-                      <p className="text-xs text-[#9b8f91] font-mono mt-1">
-                        {formatRentalTime(rental.startAt)} <span className="text-white/30">→</span> {formatRentalTime(rental.endAt)}
-                      </p>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
 

@@ -31,7 +31,8 @@ export async function GET(req: NextRequest) {
     const firstDay = new Date(year, month - 1, 1, 0, 0, 0, 0)
     const lastDay = new Date(year, month, 0, 23, 59, 59, 999)
 
-    const rentals = await prisma.rentalRequest.findMany({
+    // 1. 기자재 대여 승인 내역 조회
+    const equipmentRentals = await prisma.rentalRequest.findMany({
       where: {
         status: 'approved',
         startAt: { lte: lastDay },
@@ -54,16 +55,56 @@ export async function GET(req: NextRequest) {
       },
     })
 
-    const maskedRentals = rentals.map((r) => ({
-      id: r.id,
+    // 2. 강의실 대여 승인 내역 조회
+    const classroomRentals = await prisma.classroomRentalRequest.findMany({
+      where: {
+        status: 'approved',
+        startAt: { lte: lastDay },
+        endAt: { gte: firstDay },
+      },
+      select: {
+        id: true,
+        applicantName: true,
+        startAt: true,
+        endAt: true,
+        classroom: {
+          select: {
+            roomNumber: true,
+          },
+        },
+      },
+      orderBy: {
+        startAt: 'asc',
+      },
+    })
+
+    // 3. 포맷팅 및 통합
+    const formattedEquipment = equipmentRentals.map((r) => ({
+      id: `EQ-${r.id}`,
+      type: 'equipment',
       applicantName: maskName(r.applicantName),
       equipmentName: r.equipment.name,
       quantity: r.quantity,
-      startAt: r.startAt,
-      endAt: r.endAt,
+      startAt: r.startAt.toISOString(),
+      endAt: r.endAt.toISOString(),
     }))
 
-    return NextResponse.json({ rentals: maskedRentals })
+    const formattedClassroom = classroomRentals.map((r) => ({
+      id: `ROOM-${r.id}`,
+      type: 'classroom',
+      applicantName: maskName(r.applicantName),
+      equipmentName: r.classroom.roomNumber,
+      quantity: 1,
+      startAt: r.startAt.toISOString(),
+      endAt: r.endAt.toISOString(),
+    }))
+
+    // 시작 시간 기준 오름차순 정렬하여 병합
+    const merged = [...formattedEquipment, ...formattedClassroom].sort(
+      (a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime()
+    )
+
+    return NextResponse.json({ rentals: merged })
   } catch (err) {
     console.error('[rentals api] db error', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

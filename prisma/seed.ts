@@ -95,6 +95,18 @@ async function main() {
     await prisma.equipment.createMany({ data: equipmentData })
   }
 
+  const classroomData = [
+    { roomNumber: '공학관 301호', capacity: 50, description: '중대형 강의 및 세미나 가능', equipment: '빔프로젝터, 화이트보드, 전자교탁, 음향 시스템' },
+    { roomNumber: '공학관 302호', capacity: 30, description: '소형 강의 및 그룹 토의 가능', equipment: '화이트보드, 빔프로젝터' },
+    { roomNumber: '멀티미디어실', capacity: 40, description: '컴퓨터 실습 및 영상 편집 강의 가능', equipment: 'PC 40대, 빔프로젝터, 마이크 시스템' },
+    { roomNumber: '공동실습실', capacity: 15, description: '소규모 세미나 및 스터디룸', equipment: '화이트보드' }
+  ]
+
+  const existingClassroomCount = await prisma.classroom.count()
+  if (existingClassroomCount === 0) {
+    await prisma.classroom.createMany({ data: classroomData })
+  }
+
   console.log('Seed complete.')
 }
 

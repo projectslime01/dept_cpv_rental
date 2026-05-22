@@ -54,3 +54,34 @@ model RateLimitAttempt {
   lockedUntil DateTime?
   updatedAt   DateTime  @updatedAt
 }
+
+model Classroom {
+  id          Int                      @id @default(autoincrement())
+  roomNumber  String                   @unique
+  capacity    Int
+  description String?
+  equipment   String?                  // 예: "빔프로젝터, 화이트보드, 전자교탁"
+  status      String                   @default("active")
+  requests    ClassroomRentalRequest[]
+  createdAt   DateTime                 @default(now())
+}
+
+model ClassroomRentalRequest {
+  id                    Int       @id @default(autoincrement())
+  requestNumber         String    @unique // ROOM-YYYYMMDD-XXXX
+  passwordHash          String
+  applicantName         String
+  studentId             String
+  phone                 String
+  classroomId           Int
+  classroom             Classroom @relation(fields: [classroomId], references: [id])
+  startAt               DateTime
+  endAt                 DateTime
+  purpose               String?
+  status                String    @default("pending") // pending, approved, rejected, returned
+  adminNote             String?
+  returnedAt            DateTime?
+  hasDepartmentApproval Boolean   @default(false)
+  createdAt             DateTime  @default(now())
+}
+
