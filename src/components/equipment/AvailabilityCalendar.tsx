@@ -144,26 +144,26 @@ export function AvailabilityCalendar({
   }
 
   return (
-    <div className="bg-[#1a191b] rounded-2xl border border-[#2e2b2f] p-4 space-y-4">
+    <div className="bg-surface-raised rounded-2xl border border-base p-4 space-y-4">
       {/* Calendar Header */}
-      <div className="flex items-center justify-between border-b border-[#2e2b2f] pb-3">
+      <div className="flex items-center justify-between border-b border-base pb-3">
         <div className="flex items-center gap-1">
-          <span className="text-sm font-bold text-[#e5e2e1]">{year}년</span>
-          <span className="text-sm font-bold text-[#ffb2ba]">{month}월</span>
-          <span className="text-[10px] text-[#6b6468] ml-1">실시간 대여 현황</span>
+          <span className="text-sm font-bold text-base-primary">{year}년</span>
+          <span className="text-sm font-bold text-brand-rose">{month}월</span>
+          <span className="text-[10px] text-base-muted ml-1">실시간 대여 현황</span>
         </div>
         <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={handlePrevMonth}
-            className="p-1.5 rounded-lg border border-[#3a3640] bg-[#201f21] hover:bg-[#2e2b33] text-[#9b8f91] hover:text-[#e5e2e1] transition-colors"
+            className="p-1.5 rounded-lg border border-base bg-surface-base hover:bg-surface-overlay text-base-secondary hover:text-base-primary transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button
             type="button"
             onClick={handleNextMonth}
-            className="p-1.5 rounded-lg border border-[#3a3640] bg-[#201f21] hover:bg-[#2e2b33] text-[#9b8f91] hover:text-[#e5e2e1] transition-colors"
+            className="p-1.5 rounded-lg border border-base bg-surface-base hover:bg-surface-overlay text-base-secondary hover:text-base-primary transition-colors"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -171,20 +171,20 @@ export function AvailabilityCalendar({
       </div>
 
       {/* Weekday Names */}
-      <div className="grid grid-cols-7 gap-1.5 text-center text-[10px] font-bold text-[#6b6468] uppercase tracking-wider">
+      <div className="grid grid-cols-7 gap-1.5 text-center text-[10px] font-bold text-base-muted uppercase tracking-wider">
         <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
       </div>
 
       {/* Calendar Grid */}
       {loading ? (
         <div className="h-48 flex flex-col items-center justify-center gap-2">
-          <Loader2 className="w-6 h-6 animate-spin text-[#ffb2ba]" />
-          <span className="text-xs text-[#6b6468]">예약 정보를 불러오는 중...</span>
+          <Loader2 className="w-6 h-6 animate-spin text-brand-rose" />
+          <span className="text-xs text-base-muted">예약 정보를 불러오는 중...</span>
         </div>
       ) : errorMsg ? (
         <div className="h-48 flex flex-col items-center justify-center gap-2 text-center">
-          <AlertCircle className="w-5 h-5 text-red-400" />
-          <span className="text-xs text-red-400">{errorMsg}</span>
+          <AlertCircle className="w-5 h-5 text-red-500 dark:text-red-400" />
+          <span className="text-xs text-red-500 dark:text-red-400">{errorMsg}</span>
         </div>
       ) : (
         <div className="grid grid-cols-7 gap-1.5">
@@ -203,39 +203,39 @@ export function AvailabilityCalendar({
             const isSoldOut = dayItem.available === 0
             const isFullyAvailable = dayItem.available === totalQuantity
 
-            let bgStyle = 'bg-[#201f21] border-[#2e2b2f] text-[#c8c4c3] hover:border-[#3a3640]'
+            let bgStyle = 'bg-surface-base border-base text-base-primary hover:border-strong'
             let statusText = `${dayItem.available}대`
-            let statusColor = 'text-emerald-400'
+            let statusColor = 'text-emerald-600 dark:text-emerald-400'
 
             if (isPast) {
-              bgStyle = 'bg-[#151416] border-[#201f21] text-[#3a3640] cursor-not-allowed opacity-40'
+              bgStyle = 'bg-surface-bg/40 border-subtle text-base-faint cursor-not-allowed opacity-40'
               statusText = '-'
-              statusColor = 'text-[#3a3640]'
+              statusColor = 'text-base-faint'
             } else if (isSoldOut) {
-              bgStyle = 'bg-red-950/20 border-red-900/30 text-red-500/70 cursor-not-allowed'
+              bgStyle = 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/30 text-red-500 dark:text-red-400/70 cursor-not-allowed'
               statusText = '품절'
-              statusColor = 'text-red-500 font-semibold'
+              statusColor = 'text-red-500 dark:text-red-400 font-semibold'
             } else if (isFullyAvailable) {
-              bgStyle = 'bg-[#201f21] border-[#2e2b2f] text-[#c8c4c3] hover:bg-[#25232b] hover:border-[#ffb2ba]/40'
-              statusColor = 'text-emerald-400'
+              bgStyle = 'bg-surface-base border-base text-base-primary hover:bg-surface-overlay hover:border-brand-rose/40'
+              statusColor = 'text-emerald-600 dark:text-emerald-400'
             } else {
               // 일부 대여 중
-              bgStyle = 'bg-[#201f21] border-[#2e2b2f] text-[#c8c4c3] hover:bg-[#25232b] hover:border-[#ffb2ba]/40'
-              statusColor = 'text-amber-400'
+              bgStyle = 'bg-surface-base border-base text-base-primary hover:bg-surface-overlay hover:border-brand-rose/40'
+              statusColor = 'text-amber-600 dark:text-amber-400'
             }
 
             // 클릭으로 범위 선택 상태에 따른 하이라이트 스타일링 (Visual Premium)
             if (state === 'start-only') {
-              bgStyle = 'bg-[#ffb2ba]/20 border-[#ffb2ba] text-[#ffb2ba] shadow-[0_0_12px_rgba(255,178,186,0.15)]'
+              bgStyle = 'bg-brand-rose-muted border-brand-rose text-brand-rose shadow-[0_0_12px_rgba(244,63,94,0.15)]'
             } else if (state === 'start') {
-              bgStyle = 'bg-[#ffb2ba] border-[#ffb2ba] text-[#0f0e11] font-bold rounded-l-xl'
-              statusColor = 'text-[#0f0e11]'
+              bgStyle = 'bg-brand-rose border-brand-rose text-white dark:text-zinc-950 font-bold rounded-l-xl'
+              statusColor = 'text-white dark:text-zinc-950'
             } else if (state === 'end') {
-              bgStyle = 'bg-[#ffb2ba] border-[#ffb2ba] text-[#0f0e11] font-bold rounded-r-xl'
-              statusColor = 'text-[#0f0e11]'
+              bgStyle = 'bg-brand-rose border-brand-rose text-white dark:text-zinc-950 font-bold rounded-r-xl'
+              statusColor = 'text-white dark:text-zinc-950'
             } else if (state === 'range') {
-              bgStyle = 'bg-[#ffb2ba]/10 border-[#ffb2ba]/20 text-[#ffb2ba]'
-              statusColor = 'text-[#ffb2ba]/80'
+              bgStyle = 'bg-brand-rose/10 border-brand-rose/20 text-brand-rose'
+              statusColor = 'text-brand-rose/80'
             }
 
             return (
@@ -257,7 +257,7 @@ export function AvailabilityCalendar({
       )}
 
       {/* Legend & Guide */}
-      <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] text-[#6b6468] border-t border-[#2e2b2f] pt-2.5">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] text-base-muted border-t border-base pt-2.5">
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />

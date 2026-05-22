@@ -20,7 +20,7 @@ interface Props {
 }
 
 const inputCls =
-  'w-full h-10 px-3.5 rounded-xl border border-[#3a3640] text-sm bg-[#1a191b] text-[#e5e2e1] placeholder:text-[#4a4448] focus:outline-none focus:border-[#7d7173] transition-colors'
+  'w-full h-10 px-3.5 rounded-xl border border-strong text-sm bg-surface-raised text-base-primary placeholder:text-base-faint focus:outline-none focus:border-brand-rose transition-colors'
 
 export function AccountManagement({ admins, currentAdminId }: Props) {
   const router = useRouter()
@@ -115,49 +115,49 @@ export function AccountManagement({ admins, currentAdminId }: Props) {
     <>
       {/* 성공 토스트 */}
       {toast && (
-        <div className="fixed top-6 right-6 z-50 flex items-center gap-2 bg-emerald-950 border border-emerald-800 text-emerald-300 text-sm font-semibold px-4 py-3 rounded-xl shadow-xl">
+        <div className="fixed top-6 right-6 z-50 flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-sm font-semibold px-4 py-3 rounded-xl shadow-xl">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
           {toast}
         </div>
       )}
 
       {/* 계정 목록 카드 */}
-      <div className="bg-[#201f21] rounded-2xl border border-[#2e2b2f] overflow-hidden">
-        <div className="flex items-center gap-2 px-5 py-3.5 border-b border-[#252228]">
-          <Users className="w-4 h-4 text-[#6b6468]" />
-          <h2 className="text-sm font-semibold text-[#c8c4c3]">관리자 계정</h2>
-          <span className="ml-auto text-xs text-[#6b6468]">{admins.length}명</span>
+      <div className="bg-surface-base rounded-2xl border border-base overflow-hidden">
+        <div className="flex items-center gap-2 px-5 py-3.5 border-b border-base">
+          <Users className="w-4 h-4 text-base-muted" />
+          <h2 className="text-sm font-semibold text-base-primary">관리자 계정</h2>
+          <span className="ml-auto text-xs text-base-muted">{admins.length}명</span>
           <button
             onClick={() => { setError(null); setModal('create') }}
-            className="ml-3 flex items-center gap-1.5 h-8 px-3.5 rounded-xl bg-[#ff4f73] hover:bg-[#e03d61] text-white text-xs font-semibold transition-colors"
+            className="ml-3 flex items-center gap-1.5 h-8 px-3.5 rounded-xl bg-brand-rose hover:bg-brand-rose/90 text-white text-xs font-semibold transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
             계정 추가
           </button>
         </div>
 
-        <div className="divide-y divide-[#252228]">
+        <div className="divide-y divide-base">
           {admins.map(admin => {
             const isSelf = admin.id === currentAdminId
             return (
               <div key={admin.id} className="flex items-center gap-3 px-5 py-3.5">
                 {/* 아이콘 */}
-                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${isSelf ? 'bg-[#ffb2ba]/15' : 'bg-[#252228]'}`}>
-                  <Shield className={`w-4 h-4 ${isSelf ? 'text-[#ffb2ba]' : 'text-[#6b6468]'}`} />
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${isSelf ? 'bg-brand-rose-muted' : 'bg-surface-raised'}`}>
+                  <Shield className={`w-4 h-4 ${isSelf ? 'text-brand-rose' : 'text-base-muted'}`} />
                 </div>
 
                 {/* 아이디 & 이름 */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-[#e5e2e1]">{admin.name || '이름 없음'}</span>
-                    <span className="text-xs text-[#6b6468]">({admin.username})</span>
+                    <span className="text-sm font-semibold text-base-primary">{admin.name || '이름 없음'}</span>
+                    <span className="text-xs text-base-muted">({admin.username})</span>
                     {isSelf && (
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#ffb2ba]/15 text-[#ffb2ba] border border-[#ffb2ba]/25">
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-brand-rose-muted text-brand-rose border border-brand-rose/25">
                         나
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-[#6b6468] mt-0.5">생성일 {fmt(admin.createdAt)}</p>
+                  <p className="text-xs text-base-muted mt-0.5">생성일 {fmt(admin.createdAt)}</p>
                 </div>
 
                 {/* 액션 */}
@@ -165,7 +165,7 @@ export function AccountManagement({ admins, currentAdminId }: Props) {
                   {isSelf && (
                     <button
                       onClick={openChangePassword}
-                      className="flex items-center gap-1.5 h-8 px-3 rounded-xl border border-[#3a3640] text-xs font-medium text-[#9b8f91] hover:bg-[#252228] hover:text-[#e5e2e1] transition-colors"
+                      className="flex items-center gap-1.5 h-8 px-3 rounded-xl border border-strong text-xs font-medium text-base-secondary hover:bg-surface-overlay hover:text-base-primary transition-colors"
                     >
                       <KeyRound className="w-3.5 h-3.5" />
                       비번 변경
@@ -174,7 +174,7 @@ export function AccountManagement({ admins, currentAdminId }: Props) {
                   {!isSelf && (
                     <button
                       onClick={() => openDelete(admin)}
-                      className="flex items-center gap-1.5 h-8 px-3 rounded-xl border border-[#3a3640] text-xs font-medium text-[#6b6468] hover:bg-red-950/40 hover:text-red-400 hover:border-red-900/50 transition-colors"
+                      className="flex items-center gap-1.5 h-8 px-3 rounded-xl border border-strong text-xs font-medium text-base-muted hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-600 dark:hover:text-red-400 hover:border-red-200 dark:border-red-900/50 transition-colors"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       삭제
@@ -194,16 +194,16 @@ export function AccountManagement({ admins, currentAdminId }: Props) {
 
           {/* ── 계정 생성 모달 ─────────────────────────────────────────────── */}
           {modal === 'create' && (
-            <div className="relative bg-[#201f21] rounded-2xl border border-[#2e2b2f] w-full max-w-md shadow-2xl">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-[#252228]">
-                <h3 className="text-base font-bold text-[#e5e2e1]">새 관리자 계정 추가</h3>
-                <button onClick={closeModal} className="text-[#6b6468] hover:text-[#e5e2e1] transition-colors">
+            <div className="relative bg-surface-base rounded-2xl border border-base w-full max-w-md shadow-2xl">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-base">
+                <h3 className="text-base font-bold text-base-primary">새 관리자 계정 추가</h3>
+                <button onClick={closeModal} className="text-base-muted hover:text-base-primary transition-colors">
                   <X className="w-5 h-5" />
                 </button>
               </div>
               <form onSubmit={handleCreate} className="p-6 space-y-4">
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-medium text-[#9b8f91]">이름 *</label>
+                  <label className="block text-xs font-medium text-base-secondary">이름 *</label>
                   <input
                     name="name"
                     required
@@ -213,7 +213,7 @@ export function AccountManagement({ admins, currentAdminId }: Props) {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-medium text-[#9b8f91]">아이디 *</label>
+                  <label className="block text-xs font-medium text-base-secondary">아이디 *</label>
                   <input
                     name="username"
                     required
@@ -223,25 +223,25 @@ export function AccountManagement({ admins, currentAdminId }: Props) {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-medium text-[#9b8f91]">비밀번호 * <span className="text-[#4a4448]">(6~20자리)</span></label>
+                  <label className="block text-xs font-medium text-base-secondary">비밀번호 * <span className="text-base-faint">(6~20자리)</span></label>
                   <input name="password" type="password" required minLength={6} maxLength={20} autoComplete="new-password" className={inputCls} />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-medium text-[#9b8f91]">비밀번호 확인 *</label>
+                  <label className="block text-xs font-medium text-base-secondary">비밀번호 확인 *</label>
                   <input name="confirmPassword" type="password" required autoComplete="new-password" className={inputCls} />
                 </div>
 
                 {error && (
-                  <p className="text-sm text-red-400 bg-red-950/40 border border-red-900/50 rounded-xl px-4 py-2.5">{error}</p>
+                  <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 rounded-xl px-4 py-2.5">{error}</p>
                 )}
 
                 <div className="flex gap-2 pt-1">
                   <button type="button" onClick={closeModal} disabled={isPending}
-                    className="flex-1 h-10 rounded-xl border border-[#3a3640] text-sm font-semibold text-[#9b8f91] hover:bg-[#252228] hover:text-[#e5e2e1] transition-colors disabled:opacity-40">
+                    className="flex-1 h-10 rounded-xl border border-strong text-sm font-semibold text-base-secondary hover:bg-surface-overlay hover:text-base-primary transition-colors disabled:opacity-40">
                     취소
                   </button>
                   <button type="submit" disabled={isPending}
-                    className="flex-1 h-10 rounded-xl bg-[#ff4f73] hover:bg-[#e03d61] text-white text-sm font-bold transition-colors disabled:opacity-40">
+                    className="flex-1 h-10 rounded-xl bg-brand-rose hover:bg-brand-rose/90 text-white text-sm font-bold transition-colors disabled:opacity-40">
                     {isPending ? '생성 중...' : '계정 생성'}
                   </button>
                 </div>
@@ -251,26 +251,26 @@ export function AccountManagement({ admins, currentAdminId }: Props) {
 
           {/* ── 삭제 확인 모달 ─────────────────────────────────────────────── */}
           {modal === 'delete' && targetAdmin && (
-            <div className="relative bg-[#201f21] rounded-2xl border border-[#2e2b2f] w-full max-w-sm shadow-2xl">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-[#252228]">
-                <h3 className="text-base font-bold text-[#e5e2e1]">계정 삭제</h3>
-                <button onClick={closeModal} className="text-[#6b6468] hover:text-[#e5e2e1] transition-colors">
+            <div className="relative bg-surface-base rounded-2xl border border-base w-full max-w-sm shadow-2xl">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-base">
+                <h3 className="text-base font-bold text-base-primary">계정 삭제</h3>
+                <button onClick={closeModal} className="text-base-muted hover:text-base-primary transition-colors">
                   <X className="w-5 h-5" />
                 </button>
               </div>
               <div className="p-6 space-y-4">
-                <p className="text-sm text-[#9b8f91]">
-                  <span className="font-bold text-[#e5e2e1]">{targetAdmin.username}</span> 계정을 삭제합니다.
+                <p className="text-sm text-base-secondary">
+                  <span className="font-bold text-base-primary">{targetAdmin.username}</span> 계정을 삭제합니다.
                   <br />이 작업은 되돌릴 수 없습니다.
                 </p>
 
                 {error && (
-                  <p className="text-sm text-red-400 bg-red-950/40 border border-red-900/50 rounded-xl px-4 py-2.5">{error}</p>
+                  <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 rounded-xl px-4 py-2.5">{error}</p>
                 )}
 
                 <div className="flex gap-2">
                   <button type="button" onClick={closeModal} disabled={isPending}
-                    className="flex-1 h-10 rounded-xl border border-[#3a3640] text-sm font-semibold text-[#9b8f91] hover:bg-[#252228] hover:text-[#e5e2e1] transition-colors disabled:opacity-40">
+                    className="flex-1 h-10 rounded-xl border border-strong text-sm font-semibold text-base-secondary hover:bg-surface-overlay hover:text-base-primary transition-colors disabled:opacity-40">
                     취소
                   </button>
                   <button type="button" onClick={handleDelete} disabled={isPending}
@@ -284,38 +284,38 @@ export function AccountManagement({ admins, currentAdminId }: Props) {
 
           {/* ── 비밀번호 변경 모달 ─────────────────────────────────────────── */}
           {modal === 'changePassword' && (
-            <div className="relative bg-[#201f21] rounded-2xl border border-[#2e2b2f] w-full max-w-md shadow-2xl">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-[#252228]">
-                <h3 className="text-base font-bold text-[#e5e2e1]">비밀번호 변경</h3>
-                <button onClick={closeModal} className="text-[#6b6468] hover:text-[#e5e2e1] transition-colors">
+            <div className="relative bg-surface-base rounded-2xl border border-base w-full max-w-md shadow-2xl">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-base">
+                <h3 className="text-base font-bold text-base-primary">비밀번호 변경</h3>
+                <button onClick={closeModal} className="text-base-muted hover:text-base-primary transition-colors">
                   <X className="w-5 h-5" />
                 </button>
               </div>
               <form onSubmit={handleChangePassword} className="p-6 space-y-4">
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-medium text-[#9b8f91]">현재 비밀번호 *</label>
+                  <label className="block text-xs font-medium text-base-secondary">현재 비밀번호 *</label>
                   <input name="currentPassword" type="password" required autoComplete="current-password" className={inputCls} />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-medium text-[#9b8f91]">새 비밀번호 * <span className="text-[#4a4448]">(6~20자리)</span></label>
+                  <label className="block text-xs font-medium text-base-secondary">새 비밀번호 * <span className="text-base-faint">(6~20자리)</span></label>
                   <input name="newPassword" type="password" required minLength={6} maxLength={20} autoComplete="new-password" className={inputCls} />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-medium text-[#9b8f91]">새 비밀번호 확인 *</label>
+                  <label className="block text-xs font-medium text-base-secondary">새 비밀번호 확인 *</label>
                   <input name="confirmPassword" type="password" required autoComplete="new-password" className={inputCls} />
                 </div>
 
                 {error && (
-                  <p className="text-sm text-red-400 bg-red-950/40 border border-red-900/50 rounded-xl px-4 py-2.5">{error}</p>
+                  <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 rounded-xl px-4 py-2.5">{error}</p>
                 )}
 
                 <div className="flex gap-2 pt-1">
                   <button type="button" onClick={closeModal} disabled={isPending}
-                    className="flex-1 h-10 rounded-xl border border-[#3a3640] text-sm font-semibold text-[#9b8f91] hover:bg-[#252228] hover:text-[#e5e2e1] transition-colors disabled:opacity-40">
+                    className="flex-1 h-10 rounded-xl border border-strong text-sm font-semibold text-base-secondary hover:bg-surface-overlay hover:text-base-primary transition-colors disabled:opacity-40">
                     취소
                   </button>
                   <button type="submit" disabled={isPending}
-                    className="flex-1 h-10 rounded-xl bg-[#ff4f73] hover:bg-[#e03d61] text-white text-sm font-bold transition-colors disabled:opacity-40">
+                    className="flex-1 h-10 rounded-xl bg-brand-rose hover:bg-brand-rose/90 text-white text-sm font-bold transition-colors disabled:opacity-40">
                     {isPending ? '변경 중...' : '비밀번호 변경'}
                   </button>
                 </div>

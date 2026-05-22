@@ -168,29 +168,29 @@ export function ClassroomAvailabilityCalendar({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* 1 & 2. 달력 영역 */}
-      <div className="lg:col-span-2 bg-[#1a191b] rounded-2xl border border-[#2e2b2f] p-4 space-y-4 flex flex-col justify-between">
+      <div className="lg:col-span-2 bg-surface-base rounded-2xl border border-base p-4 space-y-4 flex flex-col justify-between">
         <div>
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-[#2e2b2f] pb-3">
+          <div className="flex items-center justify-between border-b border-base pb-3">
             <div className="flex items-center gap-1.5">
-              <CalendarDays className="w-5 h-5 text-[#a78bfa]" />
-              <h2 className="text-base font-bold text-[#e5e2e1] tracking-tight">강의실 가용 달력</h2>
+              <CalendarDays className="w-5 h-5 text-brand-indigo" />
+              <h2 className="text-base font-bold text-base-primary tracking-tight">강의실 가용 달력</h2>
             </div>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={handlePrevMonth}
-                className="p-1.5 rounded-lg border border-[#2e2b2f] bg-[#201f21] hover:bg-[#2e2b2f] text-[#c8c4c3] transition"
+                className="p-1.5 rounded-lg border border-base bg-surface-raised hover:bg-surface-overlay text-base-secondary transition"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="text-sm font-bold text-[#e5e2e1] min-w-[70px] text-center">
+              <span className="text-sm font-bold text-base-primary min-w-[70px] text-center">
                 {year}년 {month}월
               </span>
               <button
                 type="button"
                 onClick={handleNextMonth}
-                className="p-1.5 rounded-lg border border-[#2e2b2f] bg-[#201f21] hover:bg-[#2e2b2f] text-[#c8c4c3] transition"
+                className="p-1.5 rounded-lg border border-base bg-surface-raised hover:bg-surface-overlay text-base-secondary transition"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -198,26 +198,26 @@ export function ClassroomAvailabilityCalendar({
           </div>
 
           {/* Weekday Titles */}
-          <div className="grid grid-cols-7 gap-1 text-center py-2 text-[11px] font-bold text-[#6b6468] uppercase tracking-wider">
-            <span className="text-[#f87171]">일</span>
+          <div className="grid grid-cols-7 gap-1 text-center py-2 text-[11px] font-bold text-base-muted uppercase tracking-wider">
+            <span className="text-rose-500">일</span>
             <span>월</span>
             <span>화</span>
             <span>수</span>
             <span>목</span>
             <span>금</span>
-            <span className="text-[#a78bfa]">토</span>
+            <span className="text-brand-indigo">토</span>
           </div>
 
           {/* Days Grid */}
           {loading ? (
             <div className="h-[260px] flex flex-col items-center justify-center gap-2">
-              <Loader2 className="w-6 h-6 animate-spin text-[#a78bfa]" />
-              <p className="text-xs text-[#9b8f91]">대여 정보를 동기화하는 중...</p>
+              <Loader2 className="w-6 h-6 animate-spin text-brand-indigo" />
+              <p className="text-xs text-base-secondary">대여 정보를 동기화하는 중...</p>
             </div>
           ) : errorMsg ? (
             <div className="h-[260px] flex flex-col items-center justify-center gap-2 text-center">
-              <AlertCircle className="w-6 h-6 text-red-400" />
-              <p className="text-xs text-red-400">{errorMsg}</p>
+              <AlertCircle className="w-6 h-6 text-red-500" />
+              <p className="text-xs text-red-500">{errorMsg}</p>
             </div>
           ) : (
             <div className="grid grid-cols-7 gap-1">
@@ -238,23 +238,23 @@ export function ClassroomAvailabilityCalendar({
                 // 선택 범위 상태
                 let selectionClass = ''
                 if (dayStr === startOnly && !endOnly) {
-                  selectionClass = 'bg-[#a78bfa]/20 border border-[#a78bfa] text-[#a78bfa]'
+                  selectionClass = 'bg-brand-indigo-muted border border-brand-indigo text-brand-indigo'
                 } else if (dayStr === startOnly) {
-                  selectionClass = 'bg-[#a78bfa] text-[#0f0e11] font-extrabold rounded-l-xl'
+                  selectionClass = 'bg-brand-indigo text-white dark:text-black font-extrabold rounded-l-xl'
                 } else if (dayStr === endOnly) {
-                  selectionClass = 'bg-[#a78bfa] text-[#0f0e11] font-extrabold rounded-r-xl'
+                  selectionClass = 'bg-brand-indigo text-white dark:text-black font-extrabold rounded-r-xl'
                 } else if (endOnly && dayStr > startOnly && dayStr < endOnly) {
-                  selectionClass = 'bg-[#a78bfa]/15 text-[#a78bfa]'
+                  selectionClass = 'bg-brand-indigo-muted text-brand-indigo'
                 } else if (isSelected) {
-                  selectionClass = 'bg-[#201f21] border border-[#44404c] text-[#e5e2e1]'
+                  selectionClass = 'bg-surface-overlay border border-strong text-base-primary'
                 } else {
-                  selectionClass = 'bg-[#161517] hover:bg-[#201f21] border border-[#232126] text-[#c8c4c3]'
+                  selectionClass = 'bg-surface-raised hover:bg-surface-overlay border border-subtle text-base-primary'
                 }
 
                 // 주말 텍스트 컬러 지정
                 let textCol = ''
-                if (dayOfWeek === 0) textCol = 'text-[#f87171]'
-                else if (dayOfWeek === 6) textCol = 'text-[#a78bfa]'
+                if (dayOfWeek === 0) textCol = 'text-rose-500'
+                else if (dayOfWeek === 6) textCol = 'text-brand-indigo'
 
                 return (
                   <button
@@ -264,11 +264,11 @@ export function ClassroomAvailabilityCalendar({
                     className={`aspect-square flex flex-col justify-between p-1.5 rounded-xl transition duration-150 relative text-left ${selectionClass}`}
                   >
                     <div className="flex items-center justify-between w-full">
-                      <span className={`text-xs font-bold ${textCol} ${isToday ? 'underline decoration-2 decoration-[#ffb2ba]' : ''}`}>
+                      <span className={`text-xs font-bold ${textCol} ${isToday ? 'underline decoration-2 decoration-brand-rose' : ''}`}>
                         {dayNum}
                       </span>
                       {isToday && (
-                        <span className="text-[8px] px-1 py-0.5 rounded-md bg-[#252228] border border-[#44404c] font-bold text-[#ffb2ba]">
+                        <span className="text-[8px] px-1 py-0.5 rounded-md bg-brand-rose-muted border border-brand-rose/20 font-bold text-brand-rose">
                           오늘
                         </span>
                       )}
@@ -277,10 +277,10 @@ export function ClassroomAvailabilityCalendar({
                     {/* Booking indicator badges */}
                     <div className="flex flex-col gap-0.5 mt-auto w-full">
                       {approvedCount > 0 && (
-                        <div className="w-full h-1.5 rounded bg-[#a78bfa]" title="승인 예약 완료" />
+                        <div className="w-full h-1.5 rounded bg-brand-indigo" title="승인 예약 완료" />
                       )}
                       {pendingCount > 0 && (
-                        <div className="w-full h-1.5 rounded bg-[#f59e0b]/60" title="대기 중인 예약" />
+                        <div className="w-full h-1.5 rounded bg-amber-500/60" title="대기 중인 예약" />
                       )}
                     </div>
                   </button>
@@ -291,19 +291,19 @@ export function ClassroomAvailabilityCalendar({
         </div>
         
         {/* Help tooltip */}
-        <div className="text-[10px] text-[#6b6468] flex items-center gap-1.5 border-t border-[#2e2b2f] pt-2 mt-2">
+        <div className="text-[10px] text-base-muted flex items-center gap-1.5 border-t border-base pt-2 mt-2">
           <HelpCircle className="w-3.5 h-3.5" />
           <span>날짜 클릭 시 시작일/종료일 지정, 하루에 승인 예약 겹침은 불가합니다.</span>
         </div>
       </div>
 
       {/* 3. 우측 일별 타임라인 패널 */}
-      <div className="bg-[#1a191b] rounded-2xl border border-[#2e2b2f] p-4 flex flex-col space-y-4 justify-between h-[360px] lg:h-auto">
+      <div className="bg-surface-base rounded-2xl border border-base p-4 flex flex-col space-y-4 justify-between h-[360px] lg:h-auto">
         <div className="space-y-3 flex-1 overflow-y-auto">
           {/* Header */}
-          <div className="border-b border-[#2e2b2f] pb-2 flex items-center gap-1.5">
-            <Clock className="w-4 h-4 text-[#a78bfa]" />
-            <h3 className="text-xs font-bold text-[#e5e2e1] uppercase tracking-wider">
+          <div className="border-b border-base pb-2 flex items-center gap-1.5">
+            <Clock className="w-4 h-4 text-brand-indigo" />
+            <h3 className="text-xs font-bold text-base-primary uppercase tracking-wider">
               {formattedActiveDay} 대여 현황
             </h3>
           </div>
@@ -312,8 +312,8 @@ export function ClassroomAvailabilityCalendar({
           {activeDayBookings.length === 0 ? (
             <div className="h-44 flex flex-col items-center justify-center text-center gap-1">
               <CheckCircle2 className="w-8 h-8 text-emerald-500/25 mb-1" />
-              <p className="text-xs font-semibold text-[#e5e2e1]">확정된 예약 없음</p>
-              <p className="text-[10px] text-[#6b6468] max-w-[160px]">
+              <p className="text-xs font-semibold text-base-primary">확정된 예약 없음</p>
+              <p className="text-[10px] text-base-muted max-w-[160px]">
                 이 날짜에는 아직 대여 승인이나 대기 건이 없으므로 자유롭게 신청할 수 있습니다!
               </p>
             </div>
@@ -329,26 +329,26 @@ export function ClassroomAvailabilityCalendar({
                     key={b.id}
                     className={`p-2.5 rounded-xl border flex flex-col gap-1 transition ${
                       isApproved
-                        ? 'bg-[#a78bfa]/5 border-[#a78bfa]/15'
-                        : 'bg-[#f59e0b]/5 border-[#f59e0b]/15'
+                        ? 'bg-brand-indigo-muted border-brand-indigo/15'
+                        : 'bg-amber-500/5 border-amber-500/15'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[11px] font-bold text-[#e5e2e1]">
+                      <span className="text-[11px] font-bold text-base-primary">
                         {startStr} ~ {endStr}
                       </span>
                       <span
-                        className={`text-[9px] px-1.5 py-0.5 rounded-lg font-bold ${
+                        className={`text-[9px] px-1.5 py-0.5 rounded-lg font-bold border ${
                           isApproved
-                            ? 'bg-[#a78bfa]/15 text-[#a78bfa] border border-[#a78bfa]/20'
-                            : 'bg-[#f59e0b]/15 text-[#f59e0b] border border-[#f59e0b]/20'
+                            ? 'bg-brand-indigo-muted text-brand-indigo border-brand-indigo/20'
+                            : 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/30'
                         }`}
                       >
                         {isApproved ? '대여 승인완료' : '예약 대기중'}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between text-[10px] text-[#9b8f91]">
-                      <span>신청자: <strong className="text-[#c8c4c3]">{b.applicantName}</strong></span>
+                    <div className="flex items-center justify-between text-[10px] text-base-secondary">
+                      <span>신청자: <strong className="text-base-primary">{b.applicantName}</strong></span>
                       {b.purpose && (
                         <span className="truncate max-w-[120px]" title={b.purpose}>
                           목적: {b.purpose}
@@ -363,16 +363,16 @@ export function ClassroomAvailabilityCalendar({
         </div>
 
         {/* Selected date action buttons */}
-        <div className="space-y-1.5 pt-2 border-t border-[#2e2b2f]">
-          <div className="text-[10px] text-[#9b8f91]">
-            선택 범위: <strong className="text-[#a78bfa]">{startOnly || '미지정'}</strong>
-            {endOnly && <> ~ <strong className="text-[#a78bfa]">{endOnly}</strong></>}
+        <div className="space-y-1.5 pt-2 border-t border-base">
+          <div className="text-[10px] text-base-secondary">
+            선택 범위: <strong className="text-brand-indigo">{startOnly || '미지정'}</strong>
+            {endOnly && <> ~ <strong className="text-brand-indigo">{endOnly}</strong></>}
           </div>
           <div className="grid grid-cols-2 gap-1.5">
             <button
               type="button"
               onClick={() => onRangeSelect(`${selectedDayStr}T09:00`, endAt ? `${endOnly}T18:00` : '')}
-              className="py-2 rounded-xl bg-[#201f21] border border-[#2e2b2f] text-xs font-semibold text-[#e5e2e1] hover:bg-[#2e2b2f] transition"
+              className="py-2 rounded-xl bg-surface-raised border border-strong text-xs font-semibold text-base-primary hover:bg-surface-overlay transition"
             >
               시작일 지정
             </button>
@@ -386,7 +386,7 @@ export function ClassroomAvailabilityCalendar({
                 }
                 onRangeSelect(startAt, `${selectedDayStr}T18:00`)
               }}
-              className="py-2 rounded-xl bg-[#201f21] border border-[#2e2b2f] text-xs font-semibold text-[#e5e2e1] hover:bg-[#2e2b2f] disabled:opacity-30 transition"
+              className="py-2 rounded-xl bg-surface-raised border border-strong text-xs font-semibold text-base-primary hover:bg-surface-overlay disabled:opacity-30 transition"
             >
               반납일 지정
             </button>

@@ -46,15 +46,15 @@ export function AvailabilityChecker({ equipmentId, totalQuantity }: Props) {
   const isAvailable = available !== null && available > 0
 
   return (
-    <div className="bg-[#201f21] rounded-2xl border border-[#2e2b2f] p-6 space-y-5">
+    <div className="bg-surface-base rounded-2xl border border-base p-6 space-y-5">
       <div className="flex items-center gap-2">
-        <CalendarDays className="w-4 h-4 text-[#6b6468]" />
-        <h3 className="font-semibold text-sm text-[#c8c4c3]">대여 기간 선택</h3>
+        <CalendarDays className="w-4 h-4 text-base-muted" />
+        <h3 className="font-semibold text-sm text-base-primary">대여 기간 선택</h3>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <p className="text-xs font-medium text-[#6b6468]">대여 시작</p>
+          <p className="text-xs font-medium text-base-muted">대여 시작</p>
           <DateTimePicker
             value={startAt}
             onChange={(v) => { setStartAt(v); setAvailable(null) }}
@@ -63,7 +63,7 @@ export function AvailabilityChecker({ equipmentId, totalQuantity }: Props) {
           />
         </div>
         <div className="space-y-1.5">
-          <p className="text-xs font-medium text-[#6b6468]">반납 예정</p>
+          <p className="text-xs font-medium text-base-muted">반납 예정</p>
           <DateTimePicker
             value={endAt}
             onChange={(v) => { setEndAt(v); setAvailable(null) }}
@@ -86,7 +86,7 @@ export function AvailabilityChecker({ equipmentId, totalQuantity }: Props) {
         type="button"
         onClick={check}
         disabled={!startAt || !endAt || loading}
-        className="w-full h-10 rounded-xl border border-[#3a3640] bg-[#252228] text-sm font-semibold text-[#9b8f91] hover:bg-[#2e2b33] hover:text-[#e5e2e1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+        className="w-full h-10 rounded-xl border border-base bg-surface-raised text-sm font-semibold text-base-secondary hover:bg-surface-overlay hover:text-base-primary disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
       >
         {loading ? <><Loader2 className="w-4 h-4 animate-spin" />확인 중...</> : '재고 확인'}
       </button>
@@ -94,8 +94,8 @@ export function AvailabilityChecker({ equipmentId, totalQuantity }: Props) {
       {available !== null && (
         <div className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium border
           ${isAvailable
-            ? 'bg-emerald-950/50 border-emerald-900/50 text-emerald-400'
-            : 'bg-red-950/50 border-red-900/50 text-red-400'}`}>
+            ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/30 text-emerald-700 dark:text-emerald-400'
+            : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/30 text-red-700 dark:text-red-400'}`}>
           {isAvailable
             ? <CheckCircle2 className="w-4 h-4 shrink-0" />
             : <XCircle className="w-4 h-4 shrink-0" />}
@@ -111,7 +111,7 @@ export function AvailabilityChecker({ equipmentId, totalQuantity }: Props) {
         <button
           type="button"
           onClick={goApply}
-          className="w-full h-11 rounded-xl bg-[#ff4f73] hover:bg-[#e03d61] text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+          className="w-full h-11 rounded-xl bg-rose-600 dark:bg-brand-rose hover:bg-rose-700 dark:hover:bg-rose-400 text-white dark:text-zinc-950 text-sm font-semibold transition-colors flex items-center justify-center gap-2"
         >
           이 기간으로 신청하기
           <ArrowRight className="w-4 h-4" />

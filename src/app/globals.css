@@ -4,58 +4,128 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   Design Token: Light Mode (default)
+   ============================================================ */
 @layer base {
   :root {
-    --background: 240 5% 8%;
-    --foreground: 10 6% 89%;
-    --card: 270 3% 13%;
-    --card-foreground: 10 6% 89%;
-    --popover: 270 3% 13%;
-    --popover-foreground: 10 6% 89%;
-    --primary: 354 100% 85%;
-    --primary-foreground: 240 5% 8%;
-    --secondary: 270 4% 16%;
-    --secondary-foreground: 10 6% 89%;
-    --muted: 270 4% 16%;
-    --muted-foreground: 350 4% 58%;
-    --accent: 270 4% 16%;
-    --accent-foreground: 10 6% 89%;
-    --destructive: 0 86% 60%;
-    --destructive-foreground: 10 6% 89%;
-    --border: 354 19% 31%;
-    --input: 270 4% 16%;
-    --ring: 354 100% 85%;
-    --radius: 0.75rem;
-    --chart-1: 354 100% 75%;
+    /* shadcn/ui tokens */
+    --background:         0 0% 98%;
+    --foreground:         240 6% 12%;
+    --card:               0 0% 100%;
+    --card-foreground:    240 6% 12%;
+    --popover:            0 0% 100%;
+    --popover-foreground: 240 6% 12%;
+    --primary:            350 80% 56%;
+    --primary-foreground: 0 0% 100%;
+    --secondary:          240 5% 94%;
+    --secondary-foreground: 240 6% 20%;
+    --muted:              240 5% 94%;
+    --muted-foreground:   240 4% 46%;
+    --accent:             240 5% 90%;
+    --accent-foreground:  240 6% 12%;
+    --destructive:        0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border:             240 6% 86%;
+    --input:              240 6% 86%;
+    --ring:               350 80% 56%;
+    --radius:             0.75rem;
+    --chart-1: 350 80% 56%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 270 65% 60%;
     --chart-5: 40 75% 55%;
+
+    /* Custom semantic tokens — public surface */
+    --surface-bg:         240 9% 98%;       /* page background */
+    --surface-base:       0 0% 100%;        /* card / panel */
+    --surface-raised:     240 6% 96%;       /* elevated card / sidebar */
+    --surface-overlay:    240 5% 92%;       /* table header, hover */
+    --surface-header:     0 0% 100%;        /* sticky header */
+
+    --text-primary:       240 6% 12%;
+    --text-secondary:     240 4% 38%;
+    --text-muted:         240 4% 55%;
+    --text-faint:         240 4% 70%;
+
+    --border-base:        240 6% 88%;
+    --border-subtle:      240 6% 92%;
+    --border-strong:      240 6% 76%;
+
+    --accent-rose:        350 80% 56%;      /* primary brand (기자재 rose) */
+    --accent-rose-muted:  350 80% 95%;
+    --accent-rose-border: 350 60% 82%;
+
+    --accent-indigo:      262 83% 62%;      /* classroom indigo */
+    --accent-indigo-muted: 262 83% 96%;
+    --accent-indigo-border: 262 60% 82%;
+
+    --accent-red:         0 72% 51%;
+    --scrollbar-thumb:    240 6% 76%;
+    --scrollbar-thumb-hover: 240 6% 62%;
   }
 
+  /* ============================================================
+     Design Token: Dark Mode
+     ============================================================ */
   .dark {
-    --background: 240 5% 8%;
-    --foreground: 10 6% 89%;
-    --card: 270 3% 13%;
-    --card-foreground: 10 6% 89%;
-    --popover: 270 3% 13%;
-    --popover-foreground: 10 6% 89%;
-    --primary: 354 100% 85%;
+    --background:         0 0% 7%;
+    --foreground:         20 6% 89%;
+    --card:               270 3% 13%;
+    --card-foreground:    20 6% 89%;
+    --popover:            270 3% 13%;
+    --popover-foreground: 20 6% 89%;
+    --primary:            350 100% 72%;
     --primary-foreground: 240 5% 8%;
-    --secondary: 270 4% 16%;
-    --secondary-foreground: 10 6% 89%;
-    --muted: 270 4% 16%;
-    --muted-foreground: 350 4% 58%;
-    --accent: 270 4% 16%;
-    --accent-foreground: 10 6% 89%;
-    --destructive: 0 86% 60%;
-    --destructive-foreground: 10 6% 89%;
-    --border: 354 19% 31%;
-    --input: 270 4% 16%;
-    --ring: 354 100% 85%;
+    --secondary:          270 4% 16%;
+    --secondary-foreground: 20 6% 89%;
+    --muted:              270 4% 16%;
+    --muted-foreground:   350 4% 58%;
+    --accent:             270 4% 16%;
+    --accent-foreground:  20 6% 89%;
+    --destructive:        0 86% 60%;
+    --destructive-foreground: 20 6% 89%;
+    --border:             354 19% 27%;
+    --input:              270 4% 16%;
+    --ring:               350 100% 72%;
+    --chart-1: 354 100% 72%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 270 65% 60%;
+    --chart-5: 40 75% 55%;
+
+    --surface-bg:         240 5% 8%;
+    --surface-base:       270 3% 13%;
+    --surface-raised:     260 4% 10%;
+    --surface-overlay:    260 3% 15%;
+    --surface-header:     240 5% 6%;
+
+    --text-primary:       20 6% 89%;
+    --text-secondary:     20 4% 62%;
+    --text-muted:         20 4% 42%;
+    --text-faint:         20 4% 28%;
+
+    --border-base:        270 5% 20%;
+    --border-subtle:      270 5% 16%;
+    --border-strong:      270 5% 30%;
+
+    --accent-rose:        350 100% 72%;
+    --accent-rose-muted:  350 50% 14%;
+    --accent-rose-border: 350 40% 27%;
+
+    --accent-indigo:      262 83% 74%;
+    --accent-indigo-muted: 262 40% 14%;
+    --accent-indigo-border: 262 40% 27%;
+
+    --accent-red:         0 86% 60%;
+    --scrollbar-thumb:    270 5% 24%;
+    --scrollbar-thumb-hover: 350 25% 34%;
   }
 }
 
+/* ============================================================
+   Base Reset & Body
+   ============================================================ */
 @layer base {
   * {
     @apply border-border;
@@ -63,16 +133,76 @@
   html {
     scroll-behavior: smooth;
     font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    /* Prevent FOUC flash on theme switch */
+    color-scheme: light dark;
   }
   body {
-    @apply bg-[#131315] text-[#e5e2e1] antialiased;
+    background-color: hsl(var(--surface-bg));
+    color: hsl(var(--text-primary));
+    @apply antialiased;
   }
   ::selection {
-    @apply bg-[#ffb2ba]/30 text-[#e5e2e1];
+    background-color: hsl(var(--accent-rose) / 0.25);
+    color: hsl(var(--text-primary));
   }
 }
 
+/* ============================================================
+   Utility classes that map semantic tokens
+   These let us keep Tailwind-style usage without hard-coded hex.
+   ============================================================ */
+@layer utilities {
+  /* Surfaces */
+  .bg-surface          { background-color: hsl(var(--surface-bg)); }
+  .bg-surface-base     { background-color: hsl(var(--surface-base)); }
+  .bg-surface-raised   { background-color: hsl(var(--surface-raised)); }
+  .bg-surface-overlay  { background-color: hsl(var(--surface-overlay)); }
+  .bg-surface-header   { background-color: hsl(var(--surface-header)); }
+
+  /* Text */
+  .text-base-primary   { color: hsl(var(--text-primary)); }
+  .text-base-secondary { color: hsl(var(--text-secondary)); }
+  .text-base-muted     { color: hsl(var(--text-muted)); }
+  .text-base-faint     { color: hsl(var(--text-faint)); }
+
+  /* Border */
+  .border-base         { border-color: hsl(var(--border-base)); }
+  .border-subtle       { border-color: hsl(var(--border-subtle)); }
+  .border-strong       { border-color: hsl(var(--border-strong)); }
+
+  /* Brand accent: rose (기자재) */
+  .text-brand-rose        { color: hsl(var(--accent-rose)); }
+  .bg-brand-rose-muted    { background-color: hsl(var(--accent-rose-muted)); }
+  .border-brand-rose      { border-color: hsl(var(--accent-rose-border)); }
+
+  /* Brand accent: indigo (강의실) */
+  .text-brand-indigo      { color: hsl(var(--accent-indigo)); }
+  .bg-brand-indigo-muted  { background-color: hsl(var(--accent-indigo-muted)); }
+  .border-brand-indigo    { border-color: hsl(var(--accent-indigo-border)); }
+}
+
+/* ============================================================
+   Scrollbar
+   ============================================================ */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #3a3640; border-radius: 9999px; }
-::-webkit-scrollbar-thumb:hover { background: #5d3f42; }
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--scrollbar-thumb));
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--scrollbar-thumb-hover));
+}
+
+/* ============================================================
+   Theme transition — smooth color switch
+   ============================================================ */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-duration: 150ms;
+  transition-timing-function: ease;
+}
+/* Disable transition on elements that have animation to avoid conflicts */
+[data-no-theme-transition] * {
+  transition: none !important;
+}

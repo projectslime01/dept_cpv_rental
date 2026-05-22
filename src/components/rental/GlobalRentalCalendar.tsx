@@ -112,29 +112,29 @@ export function GlobalRentalCalendar() {
   return (
     <div className="space-y-6">
       {/* Calendar Controls & Meta */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[#141316] p-4 rounded-2xl border border-[#2e2b2f] backdrop-blur-md">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-surface-base p-4 rounded-2xl border border-base backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#ff4f73]/10 border border-[#ff4f73]/20 flex items-center justify-center text-[#ff4f73]">
-            <CalendarDays className="w-5 h-5 text-[#ff4f73]" />
+          <div className="w-10 h-10 rounded-xl bg-brand-rose-muted border border-brand-rose/20 flex items-center justify-center text-brand-rose">
+            <CalendarDays className="w-5 h-5 text-brand-rose" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-[#e5e2e1] tracking-tight">
+            <h2 className="text-xl font-bold text-base-primary tracking-tight">
               {format(currentMonth, 'yyyy년 M월', { locale: ko })}
             </h2>
-            <p className="text-xs text-[#9b8f91] mt-0.5">
+            <p className="text-xs text-base-secondary mt-0.5">
               승인 완료된 학과 대여(기자재 및 강의실) 통합 현황입니다.
             </p>
           </div>
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex bg-[#1a191b] border border-[#2e2b2f] rounded-xl p-0.5 self-start lg:self-center">
+        <div className="flex bg-surface-raised border border-base rounded-xl p-0.5 self-start lg:self-center">
           <button
             onClick={() => setFilter('all')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
               filter === 'all'
-                ? 'bg-[#252228] text-[#e5e2e1] border border-[#2e2b2f] shadow'
-                : 'text-[#9b8f91] hover:text-[#e5e2e1]'
+                ? 'bg-surface-overlay text-base-primary border border-base shadow'
+                : 'text-base-muted hover:text-base-primary'
             }`}
           >
             전체 보기
@@ -143,8 +143,8 @@ export function GlobalRentalCalendar() {
             onClick={() => setFilter('equipment')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
               filter === 'equipment'
-                ? 'bg-[#ff4f73]/10 text-[#ffb2ba] border border-[#ff4f73]/20 shadow'
-                : 'text-[#9b8f91] hover:text-[#e5e2e1]'
+                ? 'bg-brand-rose-muted text-brand-rose border border-brand-rose/20 shadow'
+                : 'text-base-muted hover:text-base-primary'
             }`}
           >
             기자재만
@@ -153,8 +153,8 @@ export function GlobalRentalCalendar() {
             onClick={() => setFilter('classroom')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
               filter === 'classroom'
-                ? 'bg-[#a78bfa]/10 text-[#c7b5ff] border border-[#a78bfa]/20 shadow'
-                : 'text-[#9b8f91] hover:text-[#e5e2e1]'
+                ? 'bg-brand-indigo-muted text-brand-indigo border border-brand-indigo/20 shadow'
+                : 'text-base-muted hover:text-base-primary'
             }`}
           >
             강의실만
@@ -162,49 +162,49 @@ export function GlobalRentalCalendar() {
         </div>
 
         <div className="flex items-center justify-between lg:justify-end gap-2">
-          <div className="flex items-center bg-[#1a191b] border border-[#2e2b2f] rounded-xl p-0.5">
+          <div className="flex items-center bg-surface-raised border border-base rounded-xl p-0.5">
             <button
               onClick={handlePrevMonth}
-              className="p-2 rounded-lg text-[#9b8f91] hover:text-[#e5e2e1] hover:bg-[#252228] transition-colors"
+              className="p-2 rounded-lg text-base-secondary hover:text-base-primary hover:bg-surface-overlay transition-colors"
               aria-label="Previous Month"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               onClick={handleToday}
-              className="px-3 py-1.5 text-xs font-semibold text-[#c8c4c3] hover:text-[#e5e2e1] rounded-lg hover:bg-[#252228] transition-colors"
+              className="px-3 py-1.5 text-xs font-semibold text-base-secondary hover:text-base-primary rounded-lg hover:bg-surface-overlay transition-colors"
             >
               오늘
             </button>
             <button
               onClick={handleNextMonth}
-              className="p-2 rounded-lg text-[#9b8f91] hover:text-[#e5e2e1] hover:bg-[#252228] transition-colors"
+              className="p-2 rounded-lg text-base-secondary hover:text-base-primary hover:bg-surface-overlay transition-colors"
               aria-label="Next Month"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="hidden md:flex items-center gap-1.5 px-3 py-2 bg-[#201f21] border border-[#2e2b2f] rounded-xl text-xs text-[#ffb2ba] font-semibold">
-            <Info className="w-3.5 h-3.5 shrink-0 text-[#ffb2ba]" />
+          <div className="hidden md:flex items-center gap-1.5 px-3 py-2 bg-surface-raised border border-base rounded-xl text-xs text-brand-rose font-semibold">
+            <Info className="w-3.5 h-3.5 shrink-0 text-brand-rose" />
             이번 달 총 {filteredRentals.length}건 승인됨
           </div>
         </div>
       </div>
 
       {/* Main Grid Calendar */}
-      <div className="bg-[#141316] rounded-2xl border border-[#2e2b2f] overflow-hidden shadow-2xl relative">
+      <div className="bg-surface-base rounded-2xl border border-base overflow-hidden shadow-2xl relative">
         {loading && (
-          <div className="absolute inset-0 bg-[#0f0e11]/70 backdrop-blur-sm z-10 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-3 bg-[#1a191b] p-6 rounded-2xl border border-[#2e2b2f]">
-              <Loader2 className="w-8 h-8 text-[#ff4f73] animate-spin" />
-              <p className="text-sm font-semibold text-[#9b8f91]">대여 현황 로딩 중...</p>
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm z-10 flex items-center justify-center">
+            <div className="flex flex-col items-center gap-3 bg-surface-raised p-6 rounded-2xl border border-base">
+              <Loader2 className="w-8 h-8 text-brand-rose animate-spin" />
+              <p className="text-sm font-semibold text-base-muted">대여 현황 로딩 중...</p>
             </div>
           </div>
         )}
 
         {/* Days of Week Header */}
-        <div className="grid grid-cols-7 border-b border-[#2e2b2f] bg-[#1a191b]/50">
+        <div className="grid grid-cols-7 border-b border-base bg-surface-raised/50">
           {['일', '월', '화', '수', '목', '금', '토'].map((dayName, idx) => {
             const isSunday = idx === 0
             const isSaturday = idx === 6
@@ -213,10 +213,10 @@ export function GlobalRentalCalendar() {
                 key={dayName}
                 className={`py-3 text-center text-xs font-bold tracking-wider ${
                   isSunday
-                    ? 'text-red-400/80'
+                    ? 'text-red-500/80 dark:text-red-400/80'
                     : isSaturday
-                    ? 'text-[#a78bfa]/80'
-                    : 'text-[#9b8f91]'
+                    ? 'text-indigo-500/80 dark:text-brand-indigo/80'
+                    : 'text-base-muted'
                 }`}
               >
                 {dayName}
@@ -226,7 +226,7 @@ export function GlobalRentalCalendar() {
         </div>
 
         {/* Days Grid */}
-        <div className="grid grid-cols-7 divide-x divide-y divide-[#2e2b2f] border-t border-[#2e2b2f]">
+        <div className="grid grid-cols-7 divide-x divide-y divide-base border-t border-base">
           {days.map((day) => {
             const isCurrentMonth = isSameMonth(day, currentMonth)
             const isToday = isDateFnsToday(day)
@@ -239,11 +239,11 @@ export function GlobalRentalCalendar() {
                 key={day.toString()}
                 onClick={() => handleDayClick(day, dayRentals)}
                 className={`min-h-[100px] md:min-h-[140px] p-2 flex flex-col justify-between group transition-colors relative ${
-                  isCurrentMonth ? 'bg-[#141316]' : 'bg-[#0c0b0d]/50 text-[#4a4448]'
-                } ${dayRentals.length > 0 ? 'cursor-pointer hover:bg-[#1d1b1f]' : ''} ${
+                  isCurrentMonth ? 'bg-surface-base' : 'bg-surface-raised/40 text-base-faint'
+                } ${dayRentals.length > 0 ? 'cursor-pointer hover:bg-surface-overlay' : ''} ${
                   isToday
-                    ? 'ring-1 ring-[#ff4f73]/50 border-[#ff4f73] z-1'
-                    : 'hover:bg-[#181719]'
+                    ? 'ring-1 ring-brand-rose/50 border-brand-rose z-1'
+                    : 'hover:bg-surface-overlay'
                 }`}
               >
                 {/* Cell Header: Day Number */}
@@ -251,16 +251,16 @@ export function GlobalRentalCalendar() {
                   <span
                     className={`text-xs font-bold font-mono w-6 h-6 flex items-center justify-center rounded-full transition-colors ${
                       !isCurrentMonth
-                        ? 'text-[#4a4448]'
+                        ? 'text-base-faint'
                         : isToday
-                        ? 'bg-[#ff4f73] text-white'
-                        : 'text-[#e5e2e1] group-hover:text-[#ffb2ba]'
+                        ? 'bg-brand-rose text-white dark:text-black font-extrabold'
+                        : 'text-base-primary group-hover:text-brand-rose'
                     }`}
                   >
                     {format(day, 'd')}
                   </span>
                   {isToday && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4f73] animate-pulse mr-1" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand-rose animate-pulse mr-1" />
                   )}
                 </div>
 
@@ -273,21 +273,21 @@ export function GlobalRentalCalendar() {
                         key={rental.id}
                         className={`border rounded-lg px-2 py-1 text-[10px] md:text-xs font-semibold truncate transition-colors flex items-center gap-1 shadow-sm ${
                           isClassroom
-                            ? 'bg-[#a78bfa]/10 hover:bg-[#a78bfa]/20 border-[#a78bfa]/20 text-[#c7b5ff]'
-                            : 'bg-[#ff4f73]/10 hover:bg-[#ff4f73]/20 border-[#ff4f73]/20 text-[#ffb2ba]'
+                            ? 'bg-brand-indigo-muted hover:bg-brand-indigo-muted/80 border-brand-indigo/20 text-brand-indigo'
+                            : 'bg-brand-rose-muted hover:bg-brand-rose-muted/80 border-brand-rose/20 text-brand-rose'
                         }`}
                         title={`[${rental.applicantName}] ${rental.equipmentName} ${isClassroom ? '(강의실)' : `(${rental.quantity}대)`}`}
                       >
-                        <span className="shrink-0 text-white/70">[{rental.applicantName}]</span>
+                        <span className="shrink-0 text-base-primary/70">[{rental.applicantName}]</span>
                         <span className="truncate">{rental.equipmentName}</span>
                         {!isClassroom && (
-                          <span className="shrink-0 text-[#ff4f73] font-bold">({rental.quantity})</span>
+                          <span className="shrink-0 text-brand-rose font-bold">({rental.quantity})</span>
                         )}
                       </div>
                     )
                   })}
                   {hasMore && (
-                    <div className="text-[10px] md:text-xs font-bold text-[#ff4f73] pl-1 pt-0.5 hover:underline decoration-[#ff4f73] transition-colors">
+                    <div className="text-[10px] md:text-xs font-bold text-brand-rose pl-1 pt-0.5 hover:underline decoration-brand-rose transition-colors">
                       + {dayRentals.length - 3}개 더보기
                     </div>
                   )}
@@ -299,11 +299,11 @@ export function GlobalRentalCalendar() {
       </div>
 
       {/* Visual Legend / Help Card */}
-      <div className="flex items-start gap-3 bg-[#1a191b] p-4 rounded-xl border border-[#2e2b2f]">
-        <Info className="w-4 h-4 text-[#ffb2ba] shrink-0 mt-0.5" />
+      <div className="flex items-start gap-3 bg-surface-raised p-4 rounded-xl border border-base">
+        <Info className="w-4 h-4 text-brand-rose shrink-0 mt-0.5" />
         <div className="space-y-1">
-          <h4 className="text-xs font-semibold text-[#e5e2e1]">이용 안내</h4>
-          <p className="text-xs text-[#9b8f91] leading-relaxed">
+          <h4 className="text-xs font-semibold text-base-primary">이용 안내</h4>
+          <p className="text-xs text-base-secondary leading-relaxed">
             캘린더의 각 날짜 카드를 클릭하면 당일 승인 완료된 대여 상세 일정(대여 시작 및 반납 상세 일시)을 일괄적으로 조회하실 수 있습니다. 학과 내 모든 대여 상태는 개인정보보호를 위해 이름의 가운데 자리가 마스킹(예: 홍*동) 처리되어 표기됩니다.
           </p>
         </div>
@@ -317,18 +317,18 @@ export function GlobalRentalCalendar() {
             onClick={() => setSelectedDay(null)}
           />
 
-          <div className="bg-[#141316] border border-[#2e2b2f] rounded-2xl w-full max-w-xl max-h-[85vh] flex flex-col shadow-2xl relative z-10 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-surface-base border border-base rounded-2xl w-full max-w-xl max-h-[85vh] flex flex-col shadow-2xl relative z-10 animate-in fade-in zoom-in-95 duration-150">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-5 border-b border-[#2e2b2f] bg-[#1a191b]/50">
+            <div className="flex items-center justify-between p-5 border-b border-base bg-surface-raised/50">
               <div className="flex items-center gap-2">
-                <CalendarDays className="w-5 h-5 text-[#ff4f73]" />
-                <h3 className="text-lg font-bold text-[#e5e2e1]">
+                <CalendarDays className="w-5 h-5 text-brand-rose" />
+                <h3 className="text-lg font-bold text-base-primary">
                   {format(selectedDay, 'yyyy년 M월 d일 (E)', { locale: ko })} 대여 목록
                 </h3>
               </div>
               <button
                 onClick={() => setSelectedDay(null)}
-                className="p-1.5 rounded-lg text-[#9b8f91] hover:text-[#e5e2e1] hover:bg-[#252228] transition-colors"
+                className="p-1.5 rounded-lg text-base-secondary hover:text-base-primary hover:bg-surface-overlay transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -336,7 +336,7 @@ export function GlobalRentalCalendar() {
 
             {/* Modal Scrollable Body */}
             <div className="p-5 overflow-y-auto space-y-4 flex-1">
-              <div className="flex justify-between items-center text-xs text-[#9b8f91] px-1 font-semibold uppercase tracking-wider">
+              <div className="flex justify-between items-center text-xs text-base-secondary px-1 font-semibold uppercase tracking-wider">
                 <span>대여 자산 및 수량</span>
                 <span>대여 신청자 및 기간</span>
               </div>
@@ -348,45 +348,45 @@ export function GlobalRentalCalendar() {
                   return (
                     <div
                       key={rental.id}
-                      className={`bg-[#1a191b] border border-[#2e2b2f] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 transition-colors shadow-sm ${
+                      className={`bg-surface-raised border border-base rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 transition-colors shadow-sm ${
                         isClassroom
-                          ? 'hover:border-[#a78bfa]/40'
-                          : 'hover:border-[#ff4f73]/40'
+                          ? 'hover:border-brand-indigo/40'
+                          : 'hover:border-brand-rose/40'
                       }`}
                     >
                       <div className="flex items-start gap-3">
-                        <div className={`w-10 h-10 rounded-lg bg-[#252228] border border-[#2e2b2f] flex items-center justify-center shrink-0 ${
-                          isClassroom ? 'text-[#a78bfa]' : 'text-[#ffb2ba]'
+                        <div className={`w-10 h-10 rounded-lg bg-surface-overlay border border-base flex items-center justify-center shrink-0 ${
+                          isClassroom ? 'text-brand-indigo' : 'text-brand-rose'
                         }`}>
                           <ItemIcon className="w-5 h-5" />
                         </div>
                         <div className="space-y-1">
-                          <p className="text-sm font-semibold text-[#e5e2e1] leading-none">
+                          <p className="text-sm font-semibold text-base-primary leading-none">
                             {rental.equipmentName}
                           </p>
-                          <p className="text-xs text-[#9b8f91] flex items-center gap-1.5">
+                          <p className="text-xs text-base-secondary flex items-center gap-1.5">
                             <Layers className="w-3.5 h-3.5" />
                             <span>
                               {isClassroom ? (
-                                <strong className="text-[#a78bfa]">강의실 대여</strong>
+                                <strong className="text-brand-indigo">강의실 대여</strong>
                               ) : (
-                                <>대여 수량: <strong className="text-[#ffb2ba]">{rental.quantity}대</strong></>
+                                <>대여 수량: <strong className="text-brand-rose">{rental.quantity}대</strong></>
                               )}
                             </span>
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex sm:flex-col sm:items-end justify-between items-center gap-1 border-t sm:border-0 border-[#252228] pt-2 sm:pt-0">
+                      <div className="flex sm:flex-col sm:items-end justify-between items-center gap-1 border-t sm:border-0 border-base pt-2 sm:pt-0">
                         <div className={`border rounded-full px-2.5 py-0.5 text-xs font-bold ${
                           isClassroom
-                            ? 'bg-[#a78bfa]/10 border-[#a78bfa]/20 text-[#c7b5ff]'
-                            : 'bg-[#ff4f73]/10 border-[#ff4f73]/20 text-[#ffb2ba]'
+                            ? 'bg-brand-indigo-muted border-brand-indigo/20 text-brand-indigo'
+                            : 'bg-brand-rose-muted border-brand-rose/20 text-brand-rose'
                         }`}>
                           {rental.applicantName}
                         </div>
-                        <p className="text-xs text-[#9b8f91] font-mono mt-1">
-                          {formatRentalTime(rental.startAt)} <span className="text-white/30">→</span> {formatRentalTime(rental.endAt)}
+                        <p className="text-xs text-base-secondary font-mono mt-1">
+                          {formatRentalTime(rental.startAt)} <span className="text-base-muted/30">→</span> {formatRentalTime(rental.endAt)}
                         </p>
                       </div>
                     </div>
@@ -396,10 +396,10 @@ export function GlobalRentalCalendar() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-[#2e2b2f] bg-[#1a191b]/50 flex justify-end">
+            <div className="p-4 border-t border-base bg-surface-raised/50 flex justify-end">
               <button
                 onClick={() => setSelectedDay(null)}
-                className="h-10 px-5 rounded-xl bg-[#252228] hover:bg-[#322d36] text-[#e5e2e1] text-xs font-bold border border-[#2e2b2f] transition-colors"
+                className="h-10 px-5 rounded-xl bg-surface-overlay hover:bg-surface-overlay/80 text-base-primary text-xs font-bold border border-base transition-colors"
               >
                 닫기
               </button>

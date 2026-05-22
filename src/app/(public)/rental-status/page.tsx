@@ -11,16 +11,16 @@ export default function RentalStatusPage() {
   return (
     <div className="space-y-6">
       {/* Visual Title Header Area */}
-      <div className="border-b border-[#2a2830] pb-6">
+      <div className="border-b border-base pb-6">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-[#ff4f73]/10 border border-[#ff4f73]/20 flex items-center justify-center text-[#ff4f73]">
+          <div className="w-12 h-12 rounded-2xl bg-brand-rose-muted border border-brand-rose flex items-center justify-center text-brand-rose">
             <CalendarDays className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-3xl font-extrabold text-[#e5e2e1] tracking-tight sm:text-4xl">
+            <h1 className="text-3xl font-extrabold text-base-primary tracking-tight sm:text-4xl">
               전체 대여 현황
             </h1>
-            <p className="text-sm md:text-base text-[#9b8f91] mt-1.5 leading-relaxed">
+            <p className="text-sm md:text-base text-base-secondary mt-1.5 leading-relaxed">
               기자재를 개별로 선택하지 않아도 학과 전체의 승인 완료된 대여 내역을 캘린더에서 한눈에 통합 확인하실 수 있습니다.
             </p>
           </div>

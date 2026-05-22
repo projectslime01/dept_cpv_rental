@@ -3,14 +3,15 @@ import { authOptions } from '@/lib/auth'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
 import { AdminBottomNav } from '@/components/admin/AdminBottomNav'
 import { AdminLogoutButton } from '@/components/admin/AdminLogoutButton'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions)
 
   if (!session) {
     return (
-      <div className="min-h-screen bg-[#131315] flex items-center justify-center px-4">
-        <div className="bg-[#201f21] rounded-2xl border border-[#2e2b2f] shadow-xl p-8 w-full max-w-sm">
+      <div className="min-h-screen bg-surface flex items-center justify-center px-4">
+        <div className="bg-surface-base rounded-2xl border border-base shadow-xl p-8 w-full max-w-sm">
           {children}
         </div>
       </div>
@@ -18,20 +19,26 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <div className="min-h-screen bg-[#131315] flex flex-col">
+    <div className="min-h-screen bg-surface flex flex-col">
       {/* Admin header */}
-      <header className="bg-[#0f0e11] border-b border-[#2a2830] h-14 flex items-center px-4 md:px-6 shrink-0">
+      <header className="bg-surface-header border-b border-base h-14 flex items-center px-4 md:px-6 shrink-0">
         <div className="flex items-center gap-2.5 font-bold text-base tracking-tight">
           <div className="w-7 h-7 flex items-center justify-center shrink-0">
             <img src="/logo.png" alt="Logo" className="w-6 h-6 object-contain" />
           </div>
-          <span className="text-[#e5e2e1]">연성대학교 영상콘텐츠과 <span className="text-[#ffb2ba]">기자재 대여</span></span>
-          <span className="ml-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-[#ffb2ba]/15 text-[#ffb2ba] border border-[#ffb2ba]/25">관리자</span>
-        </div>
-        <div className="ml-auto flex items-center gap-4">
-          <span className="text-xs text-[#9b8f91] hidden sm:inline">
-            <span className="text-[#ffb2ba] font-bold">{session.user.name || '관리자'}</span>님 환영합니다
+          <span className="text-base-primary">
+            연성대학교 영상콘텐츠과{' '}
+            <span className="text-brand-rose">기자재 대여</span>
           </span>
+          <span className="ml-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-rose-muted text-brand-rose border border-brand-rose">
+            관리자
+          </span>
+        </div>
+        <div className="ml-auto flex items-center gap-3">
+          <span className="text-xs text-base-muted hidden sm:inline">
+            <span className="text-brand-rose font-bold">{session.user.name || '관리자'}</span>님 환영합니다
+          </span>
+          <ThemeToggle />
           <AdminLogoutButton />
         </div>
       </header>

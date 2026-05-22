@@ -18,7 +18,7 @@ export function AdminBottomNav() {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0f0e11] border-t border-[#2a2830]"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface-header border-t border-base"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       <div className="flex">
@@ -29,7 +29,7 @@ export function AdminBottomNav() {
               key={href}
               href={href}
               className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition-colors ${
-                active ? 'text-[#ffb2ba]' : 'text-[#6b6468] hover:text-[#9b8f91]'
+                active ? 'text-brand-rose' : 'text-base-faint hover:text-base-secondary'
               }`}
             >
               <Icon className="w-5 h-5" />

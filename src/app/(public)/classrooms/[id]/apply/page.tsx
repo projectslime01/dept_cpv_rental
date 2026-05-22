@@ -23,14 +23,14 @@ export default async function ClassroomApplyPage({
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-1.5 text-xs text-[#6b6468]">
-        <a href="/classrooms" className="hover:text-[#9b8f91] transition-colors">강의실 목록</a>
+      <nav className="flex items-center gap-1.5 text-xs text-base-muted">
+        <a href="/classrooms" className="hover:text-base-secondary transition-colors">강의실 목록</a>
         <ChevronRight className="w-3 h-3" />
-        <a href={`/classrooms/${classroom.id}`} className="hover:text-[#9b8f91] transition-colors">
+        <a href={`/classrooms/${classroom.id}`} className="hover:text-base-secondary transition-colors">
           {classroom.roomNumber}
         </a>
         <ChevronRight className="w-3 h-3" />
-        <span className="text-[#9b8f91] font-medium">대여 신청서</span>
+        <span className="text-base-secondary font-medium">대여 신청서</span>
       </nav>
 
       <ClassroomRentalForm

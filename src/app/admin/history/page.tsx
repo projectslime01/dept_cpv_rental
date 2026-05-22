@@ -5,10 +5,10 @@ import { History, Search } from 'lucide-react'
 import { CATEGORY_ORDER } from '@/lib/categories'
 
 const STATUS_STYLES: Record<string, string> = {
-  pending:  'bg-amber-950/50 text-amber-400 border-amber-900/50',
-  approved: 'bg-emerald-950/50 text-emerald-400 border-emerald-900/50',
-  rejected: 'bg-red-950/50 text-red-400 border-red-900/50',
-  returned: 'bg-[#252228] text-[#9b8f91] border-[#3a3640]',
+  pending:  'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/30',
+  approved: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/30',
+  rejected: 'bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900/30',
+  returned: 'bg-surface-raised text-base-secondary border-base',
 }
 const STATUS_LABELS: Record<string, string> = {
   pending: '대기', approved: '승인', rejected: '거절', returned: '반납',
@@ -90,20 +90,20 @@ export default async function HistoryPage({
   const requestsCount = currentType === 'equipment' ? equipmentRequests.length : classroomRequests.length
 
   const fmt = (d: Date) => format(d, 'yy.MM.dd HH:mm', { locale: ko })
-  const inputCls = 'h-9 px-3.5 rounded-xl border border-[#3a3640] text-sm bg-[#1a191b] text-[#e5e2e1] focus:outline-none focus:border-[#7d7173] transition-colors'
+  const inputCls = 'h-9 px-3.5 rounded-xl border border-base text-sm bg-surface-raised text-base-primary focus:outline-none focus:border-strong transition-colors'
 
   return (
     <div className="space-y-5">
-      <h1 className="text-xl font-bold text-[#e5e2e1]">대여 이력</h1>
+      <h1 className="text-xl font-bold text-base-primary">대여 이력</h1>
 
       {/* 대여 대상 타입 토글 */}
-      <div className="flex border-b border-[#2a2830] pb-px gap-2">
+      <div className="flex border-b border-base pb-px gap-2">
         <a
           href="/admin/history?type=equipment"
           className={`px-5 py-2.5 font-bold text-sm border-b-2 transition-all duration-200 ${
             currentType === 'equipment'
-              ? 'border-[#ff4f73] text-[#ffb2ba]'
-              : 'border-transparent text-[#9b8f91] hover:text-[#e5e2e1]'
+              ? 'border-brand-rose text-brand-rose'
+              : 'border-transparent text-base-secondary hover:text-base-primary'
           }`}
         >
           기자재 대여 이력
@@ -112,8 +112,8 @@ export default async function HistoryPage({
           href="/admin/history?type=classroom"
           className={`px-5 py-2.5 font-bold text-sm border-b-2 transition-all duration-200 ${
             currentType === 'classroom'
-              ? 'border-indigo-500 text-indigo-400'
-              : 'border-transparent text-[#9b8f91] hover:text-[#e5e2e1]'
+              ? 'border-brand-indigo text-brand-indigo'
+              : 'border-transparent text-base-secondary hover:text-base-primary'
           }`}
         >
           강의실 대여 이력
@@ -123,13 +123,13 @@ export default async function HistoryPage({
       {/* 카테고리 탭 (기자재일 경우에만 표시) */}
       {currentType === 'equipment' && (
         <div className="flex gap-1.5 flex-wrap items-center">
-          <span className="text-xs text-[#6b6468] font-semibold mr-1">카테고리</span>
+          <span className="text-xs text-base-muted font-semibold mr-1">카테고리</span>
           <a
             href="/admin/history?type=equipment"
             className={`px-3 py-1 rounded-lg text-xs font-medium border transition-colors ${
               !categoryFilter
-                ? 'bg-[#252228] text-[#e5e2e1] border-[#3a3640]'
-                : 'bg-transparent text-[#6b6468] border-[#252228] hover:border-[#3a3640] hover:text-[#9b8f91]'
+                ? 'bg-surface-raised text-base-primary border-strong'
+                : 'bg-transparent text-base-muted border-base hover:border-strong hover:text-base-secondary'
             }`}
           >
             전체
@@ -140,8 +140,8 @@ export default async function HistoryPage({
               href={`/admin/history?type=equipment&category=${encodeURIComponent(c)}`}
               className={`px-3 py-1 rounded-lg text-xs font-medium border transition-colors ${
                 categoryFilter === c
-                  ? 'bg-[#252228] text-[#e5e2e1] border-[#3a3640]'
-                  : 'bg-transparent text-[#6b6468] border-[#252228] hover:border-[#3a3640] hover:text-[#9b8f91]'
+                  ? 'bg-surface-raised text-base-primary border-strong'
+                  : 'bg-transparent text-base-muted border-base hover:border-strong hover:text-base-secondary'
               }`}
             >
               {c}
@@ -151,7 +151,7 @@ export default async function HistoryPage({
       )}
 
       {/* 검색 필터 */}
-      <div className="bg-[#201f21] rounded-2xl border border-[#2e2b2f] p-4">
+      <div className="bg-surface-base rounded-2xl border border-base p-4">
         <form className="flex flex-wrap gap-2.5 items-center">
           <input type="hidden" name="type" value={currentType} />
           {currentType === 'equipment' && categoryFilter && (
@@ -192,15 +192,15 @@ export default async function HistoryPage({
           )}
 
           <input name="from" type="date" defaultValue={searchParams.from} className={inputCls} />
-          <span className="text-[#6b6468] text-sm">~</span>
+          <span className="text-base-muted text-sm">~</span>
           <input name="to" type="date" defaultValue={searchParams.to} className={inputCls} />
           
           <button
             type="submit"
-            className={`h-9 px-4 rounded-xl text-white text-sm font-semibold transition-colors flex items-center gap-1.5 ${
+            className={`h-9 px-4 rounded-xl text-sm font-semibold transition-colors flex items-center gap-1.5 ${
               currentType === 'classroom'
-                ? 'bg-indigo-600 hover:bg-indigo-700'
-                : 'bg-[#ff4f73] hover:bg-[#e03d61]'
+                ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                : 'bg-rose-600 hover:bg-rose-700 text-white dark:bg-brand-rose dark:hover:bg-rose-400 dark:text-zinc-950'
             }`}
           >
             <Search className="w-3.5 h-3.5" />
@@ -215,55 +215,55 @@ export default async function HistoryPage({
                   ? `/admin/history?type=equipment&category=${encodeURIComponent(categoryFilter)}`
                   : '/admin/history?type=equipment'
             }
-            className="h-9 px-4 rounded-xl border border-[#3a3640] text-sm text-[#9b8f91] font-medium hover:bg-[#252228] hover:text-[#e5e2e1] transition-colors flex items-center"
+            className="h-9 px-4 rounded-xl border border-strong text-sm text-base-secondary font-medium hover:bg-surface-raised hover:text-base-primary transition-colors flex items-center"
           >
             초기화
           </a>
         </form>
       </div>
 
-      <div className="bg-[#201f21] rounded-2xl border border-[#2e2b2f] overflow-hidden">
-        <div className="flex items-center gap-2 px-5 py-3.5 border-b border-[#252228]">
-          <History className="w-4 h-4 text-[#6b6468]" />
-          <h2 className="text-sm font-semibold text-[#c8c4c3]">이력 목록</h2>
-          <span className="ml-auto text-xs text-[#6b6468]">{requestsCount}건 (최대 200건)</span>
+      <div className="bg-surface-base rounded-2xl border border-base overflow-hidden">
+        <div className="flex items-center gap-2 px-5 py-3.5 border-b border-base">
+          <History className="w-4 h-4 text-base-muted" />
+          <h2 className="text-sm font-semibold text-base-primary">이력 목록</h2>
+          <span className="ml-auto text-xs text-base-muted">{requestsCount}건 (최대 200건)</span>
         </div>
         <div className="overflow-x-auto">
           {currentType === 'equipment' ? (
             <table className="w-full text-sm min-w-[720px]">
               <thead>
-                <tr className="bg-[#252228] border-b border-[#2e2b2f]">
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">신청번호</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">신청자</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">학번</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">기자재</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">카테고리</th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">수량</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">대여 기간</th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">상태</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">신청일</th>
+                <tr className="bg-surface-raised border-b border-base">
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">신청번호</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">신청자</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">학번</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">기자재</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">카테고리</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">수량</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">대여 기간</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">상태</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">신청일</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#252228]">
+              <tbody className="divide-y divide-base">
                 {equipmentRequests.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="text-center py-12 text-sm text-[#6b6468]">이력이 없습니다.</td>
+                    <td colSpan={9} className="text-center py-12 text-sm text-base-muted">이력이 없습니다.</td>
                   </tr>
                 ) : equipmentRequests.map((r) => (
-                  <tr key={r.id} className="hover:bg-[#252228] transition-colors">
-                    <td className="px-4 py-3 font-mono text-xs text-[#9b8f91]">{r.requestNumber}</td>
-                    <td className="px-4 py-3 text-[#e5e2e1]">{r.applicantName}</td>
-                    <td className="px-4 py-3 text-[#9b8f91]">{r.studentId}</td>
-                    <td className="px-4 py-3 text-[#e5e2e1]">{r.equipment.name}</td>
-                    <td className="px-4 py-3 text-[#9b8f91] text-xs">{r.equipment.category}</td>
-                    <td className="px-4 py-3 text-center text-[#9b8f91]">{r.quantity}</td>
-                    <td className="px-4 py-3 text-xs text-[#9b8f91] whitespace-nowrap">{fmt(r.startAt)}<br />~ {fmt(r.endAt)}</td>
+                  <tr key={r.id} className="hover:bg-surface-overlay transition-colors">
+                    <td className="px-4 py-3 font-mono text-xs text-base-secondary">{r.requestNumber}</td>
+                    <td className="px-4 py-3 text-base-primary">{r.applicantName}</td>
+                    <td className="px-4 py-3 text-base-secondary">{r.studentId}</td>
+                    <td className="px-4 py-3 text-base-primary">{r.equipment.name}</td>
+                    <td className="px-4 py-3 text-base-secondary text-xs">{r.equipment.category}</td>
+                    <td className="px-4 py-3 text-center text-base-secondary">{r.quantity}</td>
+                    <td className="px-4 py-3 text-xs text-base-secondary whitespace-nowrap">{fmt(r.startAt)}<br />~ {fmt(r.endAt)}</td>
                     <td className="px-4 py-3 text-center">
                       <span className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full border ${STATUS_STYLES[r.status] ?? STATUS_STYLES.pending}`}>
                         {STATUS_LABELS[r.status] ?? r.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-xs text-[#9b8f91] whitespace-nowrap">{fmt(r.createdAt)}</td>
+                    <td className="px-4 py-3 text-xs text-base-secondary whitespace-nowrap">{fmt(r.createdAt)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -271,50 +271,50 @@ export default async function HistoryPage({
           ) : (
             <table className="w-full text-sm min-w-[720px]">
               <thead>
-                <tr className="bg-[#252228] border-b border-[#2e2b2f]">
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">신청번호</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">신청자</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">학번</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">강의실</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">대여 목적</th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">학과장 승인</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">대여 기간</th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">상태</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">신청일</th>
+                <tr className="bg-surface-raised border-b border-base">
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">신청번호</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">신청자</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">학번</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">강의실</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">대여 목적</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">학과장 승인</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">대여 기간</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">상태</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">신청일</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#252228]">
+              <tbody className="divide-y divide-base">
                 {classroomRequests.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="text-center py-12 text-sm text-[#6b6468]">이력이 없습니다.</td>
+                    <td colSpan={9} className="text-center py-12 text-sm text-base-muted">이력이 없습니다.</td>
                   </tr>
                 ) : classroomRequests.map((r) => (
-                  <tr key={r.id} className="hover:bg-[#252228] transition-colors">
-                    <td className="px-4 py-3 font-mono text-xs text-[#9b8f91]">{r.requestNumber}</td>
-                    <td className="px-4 py-3 text-[#e5e2e1]">{r.applicantName}</td>
-                    <td className="px-4 py-3 text-[#9b8f91]">{r.studentId}</td>
-                    <td className="px-4 py-3 text-[#e5e2e1] font-semibold">{r.classroom.roomNumber}</td>
-                    <td className="px-4 py-3 text-[#9b8f91] max-w-[180px] truncate" title={r.purpose || ''}>
+                  <tr key={r.id} className="hover:bg-surface-overlay transition-colors">
+                    <td className="px-4 py-3 font-mono text-xs text-base-secondary">{r.requestNumber}</td>
+                    <td className="px-4 py-3 text-base-primary">{r.applicantName}</td>
+                    <td className="px-4 py-3 text-base-secondary">{r.studentId}</td>
+                    <td className="px-4 py-3 text-base-primary font-semibold">{r.classroom.roomNumber}</td>
+                    <td className="px-4 py-3 text-base-secondary max-w-[180px] truncate" title={r.purpose || ''}>
                       {r.purpose || '-'}
                     </td>
                     <td className="px-4 py-3 text-center">
                       {r.hasDepartmentApproval ? (
-                        <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-950/50 text-emerald-400 border border-emerald-900/50">
+                        <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/30">
                           승인 득함
                         </span>
                       ) : (
-                        <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-[#1a191b] text-[#6b6468] border border-[#2e2b2f]">
+                        <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-surface-raised text-base-muted border border-base">
                           미대상/없음
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-xs text-[#9b8f91] whitespace-nowrap">{fmt(r.startAt)}<br />~ {fmt(r.endAt)}</td>
+                    <td className="px-4 py-3 text-xs text-base-secondary whitespace-nowrap">{fmt(r.startAt)}<br />~ {fmt(r.endAt)}</td>
                     <td className="px-4 py-3 text-center">
                       <span className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full border ${STATUS_STYLES[r.status] ?? STATUS_STYLES.pending}`}>
                         {STATUS_LABELS[r.status] ?? r.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-xs text-[#9b8f91] whitespace-nowrap">{fmt(r.createdAt)}</td>
+                    <td className="px-4 py-3 text-xs text-base-secondary whitespace-nowrap">{fmt(r.createdAt)}</td>
                   </tr>
                 ))}
               </tbody>

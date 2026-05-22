@@ -20,26 +20,26 @@ import { ko } from 'date-fns/locale'
 type AvailabilityMap = Record<number, CartAvailabilityItem>
 
 const CATEGORY_STYLES: Record<string, string> = {
-  '카메라 바디': 'text-sky-300 bg-sky-950/60 border-sky-900/60',
-  '렌즈':        'text-violet-300 bg-violet-950/60 border-violet-900/60',
-  '영상 장비':   'text-blue-300 bg-blue-950/60 border-blue-900/60',
-  '조명':        'text-amber-300 bg-amber-950/60 border-amber-900/60',
-  '저장 매체':   'text-emerald-300 bg-emerald-950/60 border-emerald-900/60',
-  '삼각대/지지대':'text-slate-300 bg-slate-800/60 border-slate-700/60',
-  '필터':        'text-indigo-300 bg-indigo-950/60 border-indigo-900/60',
-  '배터리':      'text-orange-300 bg-orange-950/60 border-orange-900/60',
-  '음향':        'text-pink-300 bg-pink-950/60 border-pink-900/60',
-  '기타':        'text-[#9b8f91] bg-[#252228] border-[#3a3640]',
+  '카메라 바디': 'text-sky-750 bg-sky-50 border-sky-200 dark:text-sky-300 dark:bg-sky-950/60 dark:border-sky-900/60',
+  '렌즈':        'text-violet-750 bg-violet-50 border-violet-200 dark:text-violet-300 dark:bg-violet-950/60 dark:border-violet-900/60',
+  '영상 장비':   'text-blue-750 bg-blue-50 border-blue-200 dark:text-blue-300 dark:bg-blue-950/60 dark:border-blue-900/60',
+  '조명':        'text-amber-750 bg-amber-50 border-amber-200 dark:text-amber-300 dark:bg-amber-950/60 dark:border-amber-900/60',
+  '저장 매체':   'text-emerald-750 bg-emerald-50 border-emerald-200 dark:text-emerald-300 dark:bg-emerald-950/60 dark:border-emerald-900/60',
+  '삼각대/지지대':'text-slate-750 bg-slate-50 border-slate-200 dark:text-slate-300 dark:bg-slate-800/60 dark:border-slate-700/60',
+  '필터':        'text-indigo-750 bg-indigo-50 border-indigo-200 dark:text-indigo-300 dark:bg-indigo-950/60 dark:border-indigo-900/60',
+  '배터리':      'text-orange-750 bg-orange-50 border-orange-200 dark:text-orange-300 dark:bg-orange-950/60 dark:border-orange-900/60',
+  '음향':        'text-pink-750 bg-pink-50 border-pink-200 dark:text-pink-300 dark:bg-pink-950/60 dark:border-pink-900/60',
+  '기타':        'text-base-secondary bg-surface-raised border-base',
 }
 
-const inputCls = 'w-full h-10 px-3.5 rounded-xl border border-[#3a3640] text-sm bg-[#1a191b] text-[#e5e2e1] focus:outline-none focus:border-[#7d7173] transition-colors'
+const inputCls = 'w-full h-10 px-3.5 rounded-xl border border-base text-sm bg-surface-raised text-base-primary focus:outline-none focus:border-brand-rose transition-colors'
 
 function SectionCard({ title, icon: Icon, children, badge }: { title: string; icon: React.ElementType; children: React.ReactNode; badge?: React.ReactNode }) {
   return (
-    <div className="bg-[#201f21] rounded-2xl border border-[#2e2b2f]">
-      <div className="flex items-center gap-2 px-5 py-3.5 border-b border-[#252228] rounded-t-2xl">
-        <Icon className="w-4 h-4 text-[#6b6468]" />
-        <h2 className="text-sm font-semibold text-[#c8c4c3]">{title}</h2>
+    <div className="bg-surface-base rounded-2xl border border-base">
+      <div className="flex items-center gap-2 px-5 py-3.5 border-b border-base rounded-t-2xl">
+        <Icon className="w-4 h-4 text-base-muted" />
+        <h2 className="text-sm font-semibold text-base-primary">{title}</h2>
         {badge && <div className="ml-auto">{badge}</div>}
       </div>
       <div className="p-5">{children}</div>
@@ -49,30 +49,30 @@ function SectionCard({ title, icon: Icon, children, badge }: { title: string; ic
 
 function SuccessScreen({ requestNumbers, onClear }: { groupNumber: string; requestNumbers: string[]; onClear: () => void }) {
   return (
-    <div className="bg-[#201f21] rounded-2xl border border-[#2e2b2f] p-8 text-center space-y-5">
-      <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-950/50 border border-emerald-900/50">
-        <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+    <div className="bg-surface-base rounded-2xl border border-base p-8 text-center space-y-5">
+      <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/30">
+        <CheckCircle2 className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
       </div>
       <div>
-        <h2 className="text-xl font-bold text-[#e5e2e1]">신청 완료!</h2>
-        <p className="text-sm text-[#9b8f91] mt-1">{requestNumbers.length}종 기자재가 일괄 신청됐습니다.</p>
+        <h2 className="text-xl font-bold text-base-primary">신청 완료!</h2>
+        <p className="text-sm text-base-secondary mt-1">{requestNumbers.length}종 기자재가 일괄 신청됐습니다.</p>
       </div>
-      <div className="bg-[#1a191b] rounded-xl border border-[#2e2b2f] p-4 text-left space-y-2">
-        <p className="text-[11px] font-bold text-[#6b6468] uppercase tracking-wider mb-3">신청 번호</p>
+      <div className="bg-surface-raised rounded-xl border border-base p-4 text-left space-y-2">
+        <p className="text-[11px] font-bold text-base-muted uppercase tracking-wider mb-3">신청 번호</p>
         {requestNumbers.map(rn => (
-          <p key={rn} className="font-mono text-sm font-bold text-[#ffb2ba] bg-[#252228] rounded-lg border border-[#2e2b2f] px-3 py-2">
+          <p key={rn} className="font-mono text-sm font-bold text-brand-rose bg-surface-overlay rounded-lg border border-base px-3 py-2">
             {rn}
           </p>
         ))}
       </div>
-      <p className="text-xs text-red-400 font-medium bg-red-950/40 rounded-xl px-4 py-2.5 border border-red-900/50">
+      <p className="text-xs text-red-600 dark:text-red-400 font-medium bg-red-50 dark:bg-red-950/30 rounded-xl px-4 py-2.5 border border-red-200 dark:border-red-900/30">
         ⚠️ 위 번호를 반드시 저장하세요. 조회 시 사용됩니다.
       </p>
       <div className="flex gap-2 justify-center">
-        <Link href="/" onClick={onClear} className="h-10 px-5 rounded-xl border border-[#3a3640] text-sm font-semibold text-[#9b8f91] hover:bg-[#252228] hover:text-[#e5e2e1] transition-colors flex items-center">
+        <Link href="/" onClick={onClear} className="h-10 px-5 rounded-xl border border-base text-sm font-semibold text-base-secondary hover:bg-surface-overlay hover:text-base-primary transition-colors flex items-center">
           목록으로
         </Link>
-        <Link href="/status" className="h-10 px-5 rounded-xl bg-[#ff4f73] hover:bg-[#e03d61] text-white text-sm font-semibold transition-colors flex items-center gap-1.5">
+        <Link href="/status" className="h-10 px-5 rounded-xl bg-rose-600 dark:bg-brand-rose hover:bg-rose-700 dark:hover:bg-rose-400 text-white dark:text-zinc-950 text-sm font-semibold transition-colors flex items-center gap-1.5">
           신청 조회 <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>
@@ -168,10 +168,10 @@ export function CartPageClient() {
 
   if (items.length === 0) {
     return (
-      <div className="bg-[#201f21] rounded-2xl border border-[#2e2b2f] py-20 text-center space-y-3">
-        <ClipboardList className="w-12 h-12 mx-auto text-[#3a3640]" />
-        <p className="text-sm font-medium text-[#6b6468]">선택한 기자재가 없습니다.</p>
-        <Link href="/" className="inline-flex items-center h-9 px-5 rounded-xl border border-[#3a3640] text-sm font-semibold text-[#9b8f91] hover:bg-[#252228] hover:text-[#e5e2e1] transition-colors">
+      <div className="bg-surface-base rounded-2xl border border-base py-20 text-center space-y-3">
+        <ClipboardList className="w-12 h-12 mx-auto text-base-muted" />
+        <p className="text-sm font-medium text-base-muted">선택한 기자재가 없습니다.</p>
+        <Link href="/" className="inline-flex items-center h-9 px-5 rounded-xl border border-base text-sm font-semibold text-base-secondary hover:bg-surface-overlay hover:text-base-primary transition-colors">
           기자재 목록으로
         </Link>
       </div>
@@ -195,7 +195,7 @@ export function CartPageClient() {
     <div className="space-y-4">
       {/* 1. 신청 시간 위반 시 경고 배너 */}
       {!currentTimeValid && (
-        <div className="flex items-start gap-2.5 bg-red-950/40 border border-red-900/50 rounded-xl p-4 text-red-400 animate-in fade-in slide-in-from-top-1 duration-200">
+        <div className="flex items-start gap-2.5 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/30 rounded-xl p-4 text-red-600 dark:text-red-400 animate-in fade-in slide-in-from-top-1 duration-200">
           <Clock className="w-5 h-5 shrink-0 mt-0.5" />
           <div className="space-y-1">
             <p className="text-xs font-bold uppercase tracking-wider">신청 불가 시간 안내</p>
@@ -207,13 +207,13 @@ export function CartPageClient() {
       )}
 
       {/* 선택 목록 */}
-      <div className="bg-[#201f21] rounded-2xl border border-[#2e2b2f] overflow-hidden">
-        <div className="flex items-center gap-2 px-5 py-3.5 border-b border-[#252228]">
-          <ClipboardList className="w-4 h-4 text-[#6b6468]" />
-          <h2 className="text-sm font-semibold text-[#c8c4c3]">선택한 기자재</h2>
-          <span className="ml-auto text-xs text-[#6b6468]">{items.length}종</span>
+      <div className="bg-surface-base rounded-2xl border border-base overflow-hidden">
+        <div className="flex items-center gap-2 px-5 py-3.5 border-b border-base">
+          <ClipboardList className="w-4 h-4 text-base-muted" />
+          <h2 className="text-sm font-semibold text-base-primary">선택한 기자재</h2>
+          <span className="ml-auto text-xs text-base-muted">{items.length}종</span>
         </div>
-        <div className="divide-y divide-[#252228]">
+        <div className="divide-y divide-base">
           {items.map(item => {
             const catStyle = CATEGORY_STYLES[item.category] ?? CATEGORY_STYLES['기타']
             const av = availability?.[item.equipmentId]
@@ -223,20 +223,20 @@ export function CartPageClient() {
                   <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border shrink-0 ${catStyle}`}>
                     {item.category}
                   </span>
-                  <p className="flex-1 text-sm font-medium text-[#e5e2e1] truncate">{item.name}</p>
+                  <p className="flex-1 text-sm font-medium text-base-primary truncate">{item.name}</p>
                   <div className="flex items-center gap-1 shrink-0">
                     <button type="button" onClick={() => setQty(item.equipmentId, item.quantity - 1)} disabled={item.quantity <= 1}
-                      className="w-9 h-9 rounded-lg border border-[#3a3640] flex items-center justify-center hover:bg-[#252228] disabled:opacity-30 transition-colors">
-                      <Minus className="w-3 h-3 text-[#9b8f91]" />
+                      className="w-9 h-9 rounded-lg border border-base flex items-center justify-center hover:bg-surface-overlay disabled:opacity-30 transition-colors">
+                      <Minus className="w-3 h-3 text-base-secondary" />
                     </button>
-                    <span className="w-8 text-center text-sm font-bold text-[#e5e2e1]">{item.quantity}</span>
+                    <span className="w-8 text-center text-sm font-bold text-base-primary">{item.quantity}</span>
                     <button type="button" onClick={() => setQty(item.equipmentId, item.quantity + 1)} disabled={item.quantity >= item.totalQuantity}
-                      className="w-9 h-9 rounded-lg border border-[#3a3640] flex items-center justify-center hover:bg-[#252228] disabled:opacity-30 transition-colors">
-                      <Plus className="w-3 h-3 text-[#9b8f91]" />
+                      className="w-9 h-9 rounded-lg border border-base flex items-center justify-center hover:bg-surface-overlay disabled:opacity-30 transition-colors">
+                      <Plus className="w-3 h-3 text-base-secondary" />
                     </button>
                   </div>
                   <button type="button" onClick={() => remove(item.equipmentId)}
-                    className="p-1.5 rounded-lg text-[#4a4448] hover:text-red-400 hover:bg-red-950/40 transition-colors shrink-0">
+                    className="p-1.5 rounded-lg text-base-muted hover:text-red-650 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors shrink-0">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -245,21 +245,21 @@ export function CartPageClient() {
                 {(isChecking || av) && (
                   <div className="mt-1.5 flex items-center gap-1.5">
                     {isChecking ? (
-                      <span className="inline-flex items-center gap-1 text-[11px] text-[#6b6468]">
+                      <span className="inline-flex items-center gap-1 text-[11px] text-base-muted">
                         <Loader2 className="w-3 h-3 animate-spin" />
                         재고 확인 중...
                       </span>
                     ) : av ? (
                       av.available >= av.requested ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-950/40 border border-emerald-900/50 px-2 py-0.5 rounded-full">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-650 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 px-2 py-0.5 rounded-full">
                           ✓ 대여 가능 · {av.available}개 여유
                         </span>
                       ) : av.available > 0 ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-400 bg-amber-950/40 border border-amber-900/50 px-2 py-0.5 rounded-full">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-750 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 px-2 py-0.5 rounded-full">
                           ⚠ 수량 부족 · {av.available}개만 가능
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-400 bg-red-950/40 border border-red-900/50 px-2 py-0.5 rounded-full">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-650 dark:text-red-400 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 px-2 py-0.5 rounded-full">
                           ✕ 이 기간 대여 불가
                         </span>
                       )
@@ -279,15 +279,15 @@ export function CartPageClient() {
           icon={CalendarDays}
           badge={
             isChecking ? (
-              <span className="flex items-center gap-1 text-[11px] text-[#6b6468]">
+              <span className="flex items-center gap-1 text-[11px] text-base-muted">
                 <Loader2 className="w-3 h-3 animate-spin" />
                 재고 확인 중
               </span>
             ) : availability ? (
               Object.values(availability).some(a => a.available < a.requested) ? (
-                <span className="text-[11px] font-semibold text-amber-400">⚠ 재고 부족 항목 있음</span>
+                <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-400">⚠ 재고 부족 항목 있음</span>
               ) : (
-                <span className="text-[11px] font-semibold text-emerald-400">✓ 전체 재고 확인됨</span>
+                <span className="text-[11px] font-semibold text-emerald-650 dark:text-emerald-400">✓ 전체 재고 확인됨</span>
               )
             ) : undefined
           }
@@ -295,18 +295,18 @@ export function CartPageClient() {
           <div className="space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <p className="text-xs font-medium text-[#9b8f91]">대여 시작 *</p>
+                <p className="text-xs font-medium text-base-secondary">대여 시작 *</p>
                 <DateTimePicker value={startAt} onChange={setStartAt} placeholder="대여 시작" disablePast />
               </div>
               <div className="space-y-1.5">
-                <p className="text-xs font-medium text-[#9b8f91]">반납 예정 *</p>
+                <p className="text-xs font-medium text-base-secondary">반납 예정 *</p>
                 <DateTimePicker value={endAt} onChange={setEndAt} placeholder="반납 예정" disablePast />
               </div>
             </div>
 
             {/* 2. 대여 시작일 위반 시 경고 문구 */}
             {startAt && !isStartAtValid && (
-              <div className="text-xs text-red-400 bg-red-950/20 border border-red-900/30 rounded-xl px-3 py-2 flex items-center gap-1.5 mt-2 animate-in fade-in slide-in-from-top-1 duration-200">
+              <div className="text-xs text-red-650 dark:text-red-400 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-xl px-3 py-2 flex items-center gap-1.5 mt-2 animate-in fade-in slide-in-from-top-1 duration-200">
                 <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                 <span>대여 신청은 평일 기준 최소 2일 전까지만 가능합니다. (가장 빠른 대여 가능일: {earliestAllowedStr})</span>
               </div>
@@ -317,27 +317,27 @@ export function CartPageClient() {
         {/* 3 & 4. 대여 기간 또는 주말 제약 조건 위반 시 학과장님 승인 확인 박스 */}
         {startAt && endAt && needsApproval && (
           <div className="space-y-2.5 animate-in fade-in duration-200">
-            <div className="flex items-start gap-2.5 bg-amber-950/30 border border-amber-900/40 rounded-xl p-4 text-amber-400">
+            <div className="flex items-start gap-2.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 rounded-xl p-4 text-amber-800 dark:text-amber-400">
               <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
               <div className="space-y-1">
                 <p className="text-xs font-bold uppercase tracking-wider">기간 초과/주말 수칙 초과 대여 경고</p>
                 <p className="text-xs font-medium leading-relaxed">
                   {validationError}
                 </p>
-                <p className="text-[11px] text-[#9b8f91] font-semibold leading-relaxed mt-0.5">
+                <p className="text-[11px] text-base-secondary font-semibold leading-relaxed mt-0.5">
                   (기준 초과 대여의 경우 학과장님께 사전 승인 후 신청이 가능하며, 담당 조교에게 공유 필수입니다.)
                 </p>
               </div>
             </div>
-            <div className="flex items-start gap-3 bg-[#252228] border border-[#2e2b2f] rounded-xl p-3.5 hover:border-[#ff4f73]/30 transition-colors">
+            <div className="flex items-start gap-3 bg-surface-overlay border border-base rounded-xl p-3.5 hover:border-brand-rose/40 transition-colors">
               <input
                 type="checkbox"
                 id="hasDepartmentApproval"
                 checked={hasDepartmentApproval}
                 onChange={(e) => setHasDepartmentApproval(e.target.checked)}
-                className="w-4.5 h-4.5 rounded border-[#3a3640] text-[#ff4f73] focus:ring-[#ff4f73]/50 focus:ring-offset-[#1a191b] bg-[#1a191b] mt-0.5 cursor-pointer accent-[#ff4f73] shrink-0"
+                className="w-4.5 h-4.5 rounded border-base text-brand-rose focus:ring-brand-rose/50 focus:ring-offset-surface-raised bg-surface-raised mt-0.5 cursor-pointer accent-brand-rose shrink-0"
               />
-              <label htmlFor="hasDepartmentApproval" className="text-xs font-semibold text-[#c8c4c3] select-none cursor-pointer leading-relaxed">
+              <label htmlFor="hasDepartmentApproval" className="text-xs font-semibold text-base-primary select-none cursor-pointer leading-relaxed">
                 학과장님 사전 승인을 받았으며, 담당 조교에게 공유를 완료했습니다. (승인 확인 체크)
               </label>
             </div>
@@ -349,45 +349,45 @@ export function CartPageClient() {
           <div className="space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label htmlFor="applicantName" className="block text-xs font-medium text-[#9b8f91]">이름 *</label>
+                <label htmlFor="applicantName" className="block text-xs font-medium text-base-secondary">이름 *</label>
                 <input id="applicantName" name="applicantName" required className={inputCls} />
               </div>
               <div className="space-y-1.5">
-                <label htmlFor="studentId" className="block text-xs font-medium text-[#9b8f91]">학번 *</label>
+                <label htmlFor="studentId" className="block text-xs font-medium text-base-secondary">학번 *</label>
                 <input id="studentId" name="studentId" required className={inputCls} />
               </div>
             </div>
             <div className="space-y-1.5">
-              <label htmlFor="phone" className="block text-xs font-medium text-[#9b8f91]">연락처 *</label>
+              <label htmlFor="phone" className="block text-xs font-medium text-base-secondary">연락처 *</label>
               <input id="phone" name="phone" type="tel" placeholder="010-0000-0000" required className={inputCls} />
             </div>
             <div className="space-y-1.5">
-              <label htmlFor="password" className="block text-xs font-medium text-[#9b8f91]">조회용 비밀번호 * <span className="text-[#4a4448]">(4~8자리)</span></label>
+              <label htmlFor="password" className="block text-xs font-medium text-base-secondary">조회용 비밀번호 * <span className="text-base-muted">(4~8자리)</span></label>
               <input id="password" name="password" type="password" minLength={4} maxLength={8} required className={inputCls} />
-              <p className="text-[11px] text-[#6b6468]">신청 후 조회 시 사용합니다. 분실 시 복구 불가.</p>
+              <p className="text-[11px] text-base-muted">신청 후 조회 시 사용합니다. 분실 시 복구 불가.</p>
             </div>
             <div className="space-y-1.5">
-              <label htmlFor="purpose" className="block text-xs font-medium text-[#9b8f91]">사용 목적 <span className="text-[#4a4448]">(선택)</span></label>
+              <label htmlFor="purpose" className="block text-xs font-medium text-base-secondary">사용 목적 <span className="text-base-muted">(선택)</span></label>
               <textarea id="purpose" name="purpose" rows={2}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#3a3640] text-sm bg-[#1a191b] text-[#e5e2e1] focus:outline-none focus:border-[#7d7173] transition-colors resize-none" />
+                className="w-full px-3.5 py-2.5 rounded-xl border border-base text-sm bg-surface-raised text-base-primary focus:outline-none focus:border-brand-rose transition-colors resize-none" />
             </div>
           </div>
         </SectionCard>
 
         {availability && Object.values(availability).some(a => a.available < a.requested) && (
-          <div className="text-sm text-amber-400 bg-amber-950/40 border border-amber-900/50 rounded-xl px-4 py-3">
+          <div className="text-sm text-amber-800 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-xl px-4 py-3">
             ⚠ 일부 기자재의 재고가 부족합니다. 수량을 줄이거나 다른 날짜를 선택해주세요.
           </div>
         )}
 
         {error && (
-          <div className="text-sm text-red-400 bg-red-950/40 border border-red-900/50 rounded-xl px-4 py-3">
+          <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 rounded-xl px-4 py-3">
             {error}
           </div>
         )}
 
         <button type="submit" disabled={isSubmitDisabled}
-          className="w-full h-12 rounded-xl bg-[#ff4f73] hover:bg-[#e03d61] text-white text-sm font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+          className="w-full h-12 rounded-xl bg-rose-600 dark:bg-brand-rose hover:bg-rose-700 dark:hover:bg-rose-400 text-white dark:text-zinc-950 text-sm font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
           {isPending ? '신청 중...' : <>{items.length}종 기자재 일괄 신청 <ArrowRight className="w-4 h-4" /></>}
         </button>
       </form>

@@ -19,7 +19,7 @@ export default async function AccountsPage() {
 
   return (
     <div className="space-y-5 max-w-2xl">
-      <h1 className="text-xl font-bold text-[#e5e2e1]">계정 관리</h1>
+      <h1 className="text-xl font-bold text-base-primary">계정 관리</h1>
       <AccountManagement admins={admins} currentAdminId={currentAdminId} />
     </div>
   )

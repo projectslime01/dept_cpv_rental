@@ -6,10 +6,10 @@ import { ActionButtons, ClassroomActionButtons } from '@/components/admin/Action
 import { CATEGORY_ORDER } from '@/lib/categories'
 
 const STATUS_STYLES: Record<string, string> = {
-  pending:  'bg-amber-950/50 text-amber-400 border-amber-900/50',
-  approved: 'bg-emerald-950/50 text-emerald-400 border-emerald-900/50',
-  rejected: 'bg-red-950/50 text-red-400 border-red-900/50',
-  returned: 'bg-[#252228] text-[#9b8f91] border-[#3a3640]',
+  pending:  'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/30',
+  approved: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/30',
+  rejected: 'bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900/30',
+  returned: 'bg-surface-raised text-base-secondary border-base',
 }
 const STATUS_LABELS: Record<string, string> = {
   pending: '대기', approved: '승인', rejected: '거절', returned: '반납',
@@ -85,16 +85,16 @@ export default async function RequestsPage({
 
   return (
     <div className="space-y-5">
-      <h1 className="text-xl font-bold text-[#e5e2e1]">신청 관리</h1>
+      <h1 className="text-xl font-bold text-base-primary">신청 관리</h1>
 
       {/* 대여 대상 타입 토글 */}
-      <div className="flex border-b border-[#2a2830] pb-px gap-2">
+      <div className="flex border-b border-base pb-px gap-2">
         <a
           href="/admin/requests?type=equipment"
           className={`px-5 py-2.5 font-bold text-sm border-b-2 transition-all duration-200 ${
             currentType === 'equipment'
-              ? 'border-[#ff4f73] text-[#ffb2ba]'
-              : 'border-transparent text-[#9b8f91] hover:text-[#e5e2e1]'
+              ? 'border-brand-rose text-brand-rose'
+              : 'border-transparent text-base-secondary hover:text-base-primary'
           }`}
         >
           기자재 대여 신청
@@ -103,8 +103,8 @@ export default async function RequestsPage({
           href="/admin/requests?type=classroom"
           className={`px-5 py-2.5 font-bold text-sm border-b-2 transition-all duration-200 ${
             currentType === 'classroom'
-              ? 'border-indigo-500 text-indigo-400'
-              : 'border-transparent text-[#9b8f91] hover:text-[#e5e2e1]'
+              ? 'border-brand-indigo text-brand-indigo'
+              : 'border-transparent text-base-secondary hover:text-base-primary'
           }`}
         >
           강의실 대여 신청
@@ -120,9 +120,9 @@ export default async function RequestsPage({
             className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-colors ${
               currentStatus === t
                 ? currentType === 'classroom'
-                  ? 'bg-indigo-950/50 text-indigo-400 border-indigo-900/40'
-                  : 'bg-[#ffb2ba]/15 text-[#ffb2ba] border-[#ffb2ba]/30'
-                : 'bg-[#201f21] text-[#9b8f91] border-[#2e2b2f] hover:bg-[#252228] hover:text-[#e5e2e1]'
+                  ? 'bg-brand-indigo-muted text-brand-indigo border-brand-indigo/30'
+                  : 'bg-brand-rose-muted text-brand-rose border-brand-rose/30'
+                : 'bg-surface-base text-base-secondary border-base hover:bg-surface-raised hover:text-base-primary'
             }`}
           >
             {TAB_LABELS[t]}
@@ -133,13 +133,13 @@ export default async function RequestsPage({
       {/* 카테고리 필터 (기자재인 경우에만 표시) */}
       {currentType === 'equipment' && (
         <div className="flex gap-1.5 flex-wrap items-center">
-          <span className="text-xs text-[#6b6468] font-semibold mr-1">카테고리</span>
+          <span className="text-xs text-base-muted font-semibold mr-1">카테고리</span>
           <a
             href={categoryHref('all')}
             className={`px-3 py-1 rounded-lg text-xs font-medium border transition-colors ${
               currentCategory === 'all'
-                ? 'bg-[#252228] text-[#e5e2e1] border-[#3a3640]'
-                : 'bg-transparent text-[#6b6468] border-[#252228] hover:border-[#3a3640] hover:text-[#9b8f91]'
+                ? 'bg-surface-raised text-base-primary border-strong'
+                : 'bg-transparent text-base-muted border-base hover:border-strong hover:text-base-secondary'
             }`}
           >
             전체
@@ -150,8 +150,8 @@ export default async function RequestsPage({
               href={categoryHref(c)}
               className={`px-3 py-1 rounded-lg text-xs font-medium border transition-colors ${
                 currentCategory === c
-                  ? 'bg-[#252228] text-[#e5e2e1] border-[#3a3640]'
-                  : 'bg-transparent text-[#6b6468] border-[#252228] hover:border-[#3a3640] hover:text-[#9b8f91]'
+                  ? 'bg-surface-raised text-base-primary border-strong'
+                  : 'bg-transparent text-base-muted border-base hover:border-strong hover:text-base-secondary'
               }`}
             >
               {c}
@@ -160,44 +160,44 @@ export default async function RequestsPage({
         </div>
       )}
 
-      <div className="bg-[#201f21] rounded-2xl border border-[#2e2b2f] overflow-hidden">
-        <div className="flex items-center gap-2 px-5 py-3.5 border-b border-[#252228]">
-          <ClipboardList className="w-4 h-4 text-[#6b6468]" />
-          <h2 className="text-sm font-semibold text-[#c8c4c3]">
+      <div className="bg-surface-base rounded-2xl border border-base overflow-hidden">
+        <div className="flex items-center gap-2 px-5 py-3.5 border-b border-base">
+          <ClipboardList className="w-4 h-4 text-base-muted" />
+          <h2 className="text-sm font-semibold text-base-primary">
             {currentType === 'equipment' ? '기자재 신청 목록' : '강의실 신청 목록'}
           </h2>
-          <span className="ml-auto text-xs text-[#6b6468]">{requestsCount}건</span>
+          <span className="ml-auto text-xs text-base-muted">{requestsCount}건</span>
         </div>
         <div className="overflow-x-auto">
           {currentType === 'equipment' ? (
             <table className="w-full text-sm min-w-[720px]">
               <thead>
-                <tr className="bg-[#252228] border-b border-[#2e2b2f]">
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">신청번호</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">신청자</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">학번</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">기자재</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">카테고리</th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">수량</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">기간</th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">상태</th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">처리</th>
+                <tr className="bg-surface-raised border-b border-base">
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">신청번호</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">신청자</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">학번</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">기자재</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">카테고리</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">수량</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">기간</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">상태</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">처리</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#252228]">
+              <tbody className="divide-y divide-base">
                 {equipmentRequests.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="text-center py-12 text-sm text-[#6b6468]">신청 내역이 없습니다.</td>
+                    <td colSpan={9} className="text-center py-12 text-sm text-base-muted">신청 내역이 없습니다.</td>
                   </tr>
                 ) : equipmentRequests.map((r) => (
-                  <tr key={r.id} className="hover:bg-[#252228] transition-colors">
-                    <td className="px-4 py-3 font-mono text-xs text-[#9b8f91]">{r.requestNumber}</td>
-                    <td className="px-4 py-3 text-[#e5e2e1]">{r.applicantName}</td>
-                    <td className="px-4 py-3 text-[#9b8f91]">{r.studentId}</td>
-                    <td className="px-4 py-3 text-[#e5e2e1]">{r.equipment.name}</td>
-                    <td className="px-4 py-3 text-[#9b8f91] text-xs">{r.equipment.category}</td>
-                    <td className="px-4 py-3 text-center text-[#9b8f91]">{r.quantity}</td>
-                    <td className="px-4 py-3 text-xs text-[#9b8f91] whitespace-nowrap">{fmt(r.startAt)}<br />~ {fmt(r.endAt)}</td>
+                  <tr key={r.id} className="hover:bg-surface-overlay transition-colors">
+                    <td className="px-4 py-3 font-mono text-xs text-base-secondary">{r.requestNumber}</td>
+                    <td className="px-4 py-3 text-base-primary">{r.applicantName}</td>
+                    <td className="px-4 py-3 text-base-secondary">{r.studentId}</td>
+                    <td className="px-4 py-3 text-base-primary">{r.equipment.name}</td>
+                    <td className="px-4 py-3 text-base-secondary text-xs">{r.equipment.category}</td>
+                    <td className="px-4 py-3 text-center text-base-secondary">{r.quantity}</td>
+                    <td className="px-4 py-3 text-xs text-base-secondary whitespace-nowrap">{fmt(r.startAt)}<br />~ {fmt(r.endAt)}</td>
                     <td className="px-4 py-3 text-center">
                       <span className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full border ${STATUS_STYLES[r.status] ?? STATUS_STYLES.pending}`}>
                         {STATUS_LABELS[r.status] ?? r.status}
@@ -218,44 +218,44 @@ export default async function RequestsPage({
           ) : (
             <table className="w-full text-sm min-w-[720px]">
               <thead>
-                <tr className="bg-[#252228] border-b border-[#2e2b2f]">
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">신청번호</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">신청자</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">학번</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">강의실</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">대여 목적</th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">학과장 승인</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">대여 기간</th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">상태</th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">처리</th>
+                <tr className="bg-surface-raised border-b border-base">
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">신청번호</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">신청자</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">학번</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">강의실</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">대여 목적</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">학과장 승인</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">대여 기간</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">상태</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">처리</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#252228]">
+              <tbody className="divide-y divide-base">
                 {classroomRequests.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="text-center py-12 text-sm text-[#6b6468]">신청 내역이 없습니다.</td>
+                    <td colSpan={9} className="text-center py-12 text-sm text-base-muted">신청 내역이 없습니다.</td>
                   </tr>
                 ) : classroomRequests.map((r) => (
-                  <tr key={r.id} className="hover:bg-[#252228] transition-colors">
-                    <td className="px-4 py-3 font-mono text-xs text-[#9b8f91]">{r.requestNumber}</td>
-                    <td className="px-4 py-3 text-[#e5e2e1]">{r.applicantName}</td>
-                    <td className="px-4 py-3 text-[#9b8f91]">{r.studentId}</td>
-                    <td className="px-4 py-3 text-[#e5e2e1] font-semibold">{r.classroom.roomNumber}</td>
-                    <td className="px-4 py-3 text-[#9b8f91] max-w-[150px] truncate" title={r.purpose || ''}>
+                  <tr key={r.id} className="hover:bg-surface-overlay transition-colors">
+                    <td className="px-4 py-3 font-mono text-xs text-base-secondary">{r.requestNumber}</td>
+                    <td className="px-4 py-3 text-base-primary">{r.applicantName}</td>
+                    <td className="px-4 py-3 text-base-secondary">{r.studentId}</td>
+                    <td className="px-4 py-3 text-base-primary font-semibold">{r.classroom.roomNumber}</td>
+                    <td className="px-4 py-3 text-base-secondary max-w-[150px] truncate" title={r.purpose || ''}>
                       {r.purpose || '-'}
                     </td>
                     <td className="px-4 py-3 text-center">
                       {r.hasDepartmentApproval ? (
-                        <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-950/50 text-emerald-400 border border-emerald-900/50">
+                        <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/30">
                           승인 득함
                         </span>
                       ) : (
-                        <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-[#1a191b] text-[#6b6468] border border-[#2e2b2f]">
+                        <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-surface-raised text-base-muted border border-base">
                           미대상/없음
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-xs text-[#9b8f91] whitespace-nowrap">{fmt(r.startAt)}<br />~ {fmt(r.endAt)}</td>
+                    <td className="px-4 py-3 text-xs text-base-secondary whitespace-nowrap">{fmt(r.startAt)}<br />~ {fmt(r.endAt)}</td>
                     <td className="px-4 py-3 text-center">
                       <span className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full border ${STATUS_STYLES[r.status] ?? STATUS_STYLES.pending}`}>
                         {STATUS_LABELS[r.status] ?? r.status}
