@@ -20,10 +20,26 @@ export const authOptions: AuthOptions = {
         if (!admin) return null
         const valid = await verifyPassword(credentials.password, admin.passwordHash)
         if (!valid) return null
-        return { id: String(admin.id), name: admin.username }
+        return { id: String(admin.id), name: admin.name || admin.username }
       },
     }),
   ],
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id
+        token.name = user.name
+      }
+      return token
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id as string
+        session.user.name = token.name as string
+      }
+      return session
+    },
+  },
   session: { strategy: 'jwt' },
   pages: { signIn: '/admin' },
   secret: process.env.NEXTAUTH_SECRET,

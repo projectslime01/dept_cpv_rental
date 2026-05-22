@@ -16,6 +16,7 @@ export async function createAdminAccount(formData: FormData): Promise<Result> {
 
   const username = (formData.get('username') as string ?? '').trim().toLowerCase()
   const password = (formData.get('password') as string ?? '')
+  const name = (formData.get('name') as string ?? '').trim()
 
   if (!username || username.length < 3 || username.length > 20) {
     return { success: false, error: '아이디는 3~20자리여야 합니다.' }
@@ -26,12 +27,15 @@ export async function createAdminAccount(formData: FormData): Promise<Result> {
   if (!password || password.length < 6 || password.length > 20) {
     return { success: false, error: '비밀번호는 6~20자리여야 합니다.' }
   }
+  if (!name || name.length < 2 || name.length > 20) {
+    return { success: false, error: '이름은 2~20자리여야 합니다.' }
+  }
 
   const existing = await prisma.admin.findUnique({ where: { username } })
   if (existing) return { success: false, error: '이미 사용 중인 아이디입니다.' }
 
   const passwordHash = await hashPassword(password)
-  await prisma.admin.create({ data: { username, passwordHash } })
+  await prisma.admin.create({ data: { username, passwordHash, name } })
   revalidatePath('/admin/accounts')
   return { success: true }
 }

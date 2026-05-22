@@ -28,7 +28,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <span className="text-[#e5e2e1]">연성대학교 영상콘텐츠과 <span className="text-[#ffb2ba]">기자재 대여</span></span>
           <span className="ml-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-[#ffb2ba]/15 text-[#ffb2ba] border border-[#ffb2ba]/25">관리자</span>
         </div>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-4">
+          <span className="text-xs text-[#9b8f91] hidden sm:inline">
+            <span className="text-[#ffb2ba] font-bold">{session.user.name || '관리자'}</span>님 환영합니다
+          </span>
           <form action="/api/auth/signout" method="POST">
             <button type="submit" className="flex items-center gap-1.5 text-xs text-[#9b8f91] hover:text-[#e5e2e1] transition-colors px-3 py-2 rounded-lg hover:bg-[#201f21] min-h-[44px]">
               <LogOut className="w-3.5 h-3.5" />

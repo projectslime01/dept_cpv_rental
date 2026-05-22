@@ -11,7 +11,7 @@ import {
 } from '@/app/actions/admin-accounts'
 import { Users, Plus, Trash2, KeyRound, X, CheckCircle2, Shield } from 'lucide-react'
 
-type AdminRow = { id: number; username: string; createdAt: Date }
+type AdminRow = { id: number; username: string; name: string | null; createdAt: Date }
 type ModalType = 'create' | 'delete' | 'changePassword' | null
 
 interface Props {
@@ -146,10 +146,11 @@ export function AccountManagement({ admins, currentAdminId }: Props) {
                   <Shield className={`w-4 h-4 ${isSelf ? 'text-[#ffb2ba]' : 'text-[#6b6468]'}`} />
                 </div>
 
-                {/* 아이디 */}
+                {/* 아이디 & 이름 */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-[#e5e2e1]">{admin.username}</span>
+                    <span className="text-sm font-semibold text-[#e5e2e1]">{admin.name || '이름 없음'}</span>
+                    <span className="text-xs text-[#6b6468]">({admin.username})</span>
                     {isSelf && (
                       <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#ffb2ba]/15 text-[#ffb2ba] border border-[#ffb2ba]/25">
                         나
@@ -201,6 +202,16 @@ export function AccountManagement({ admins, currentAdminId }: Props) {
                 </button>
               </div>
               <form onSubmit={handleCreate} className="p-6 space-y-4">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-[#9b8f91]">이름 *</label>
+                  <input
+                    name="name"
+                    required
+                    autoComplete="off"
+                    placeholder="실명 입력 (예: 김조교)"
+                    className={inputCls}
+                  />
+                </div>
                 <div className="space-y-1.5">
                   <label className="block text-xs font-medium text-[#9b8f91]">아이디 *</label>
                   <input

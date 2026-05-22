@@ -6,7 +6,7 @@ import { AccountManagement } from '@/components/admin/AccountModals'
 export default async function AccountsPage() {
   const session = await getServerSession(authOptions)
   const admins = await prisma.admin.findMany({
-    select: { id: true, username: true, createdAt: true },
+    select: { id: true, username: true, name: true, createdAt: true },
     orderBy: { id: 'asc' },
   })
 

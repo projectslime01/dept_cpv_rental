@@ -12,7 +12,7 @@ async function main() {
   await prisma.admin.upsert({
     where: { username: 'admin' },
     update: {},
-    create: { username: 'admin', passwordHash: adminHash },
+    create: { username: 'admin', passwordHash: adminHash, name: '최고관리자' },
   })
 
   const equipmentData = [
