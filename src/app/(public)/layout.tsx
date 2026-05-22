@@ -17,7 +17,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             <nav className="flex items-center gap-0.5 text-sm font-medium shrink-0 ml-2">
               <a href="/" className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[#9b8f91] hover:text-[#e5e2e1] hover:bg-[#201f21] transition-all duration-150 min-h-[44px]">
                 <List className="w-4 h-4 shrink-0" />
-                <span className="hidden sm:inline">기자재 목록</span>
+                <span className="hidden sm:inline">기자재 대여</span>
               </a>
               <a href="/classrooms" className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[#9b8f91] hover:text-[#e5e2e1] hover:bg-[#201f21] transition-all duration-150 min-h-[44px]">
                 <Building2 className="w-4 h-4 shrink-0" />

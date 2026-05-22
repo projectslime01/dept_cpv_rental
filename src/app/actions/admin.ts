@@ -113,3 +113,49 @@ export async function markClassroomReturned(id: number) {
   revalidatePath('/admin/dashboard')
 }
 
+export async function createClassroom(formData: FormData) {
+  await requireAdmin()
+  await prisma.classroom.create({
+    data: {
+      roomNumber: formData.get('roomNumber') as string,
+      capacity: parseInt(formData.get('capacity') as string),
+      description: (formData.get('description') as string) || null,
+      equipment: (formData.get('equipment') as string) || null,
+    },
+  })
+  revalidatePath('/admin/classrooms')
+}
+
+export async function updateClassroom(id: number, formData: FormData) {
+  await requireAdmin()
+  await prisma.classroom.update({
+    where: { id },
+    data: {
+      roomNumber: formData.get('roomNumber') as string,
+      capacity: parseInt(formData.get('capacity') as string),
+      description: (formData.get('description') as string) || null,
+      equipment: (formData.get('equipment') as string) || null,
+    },
+  })
+  revalidatePath('/admin/classrooms')
+}
+
+export async function deactivateClassroom(id: number) {
+  await requireAdmin()
+  await prisma.classroom.update({
+    where: { id },
+    data: { status: 'inactive' },
+  })
+  revalidatePath('/admin/classrooms')
+}
+
+export async function activateClassroom(id: number) {
+  await requireAdmin()
+  await prisma.classroom.update({
+    where: { id },
+    data: { status: 'active' },
+  })
+  revalidatePath('/admin/classrooms')
+}
+
+
