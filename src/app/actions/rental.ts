@@ -3,8 +3,19 @@
 
 import { prisma } from '@/lib/prisma'
 import { hashPassword, verifyPassword } from '@/lib/password'
-import { checkAvailability, generateRequestNumber } from '@/lib/rental'
+import {
+  checkAvailability,
+  generateRequestNumber,
+  isSubmissionTimeValid,
+  isValidStartDate,
+  countWeekdaysInRange,
+  includesWeekend,
+  isValidWeekendRental,
+  getEarliestAllowedStartDate,
+} from '@/lib/rental'
 import { checkRateLimit, recordFailedAttempt, resetAttempts } from '@/lib/rate-limit'
+import { format } from 'date-fns'
+import { ko } from 'date-fns/locale'
 
 export type CreateRequestResult =
   | { success: true; requestNumber: string }
@@ -38,6 +49,48 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
   }
   if (quantity < 1) {
     return { success: false, error: '수량은 1 이상이어야 합니다.' }
+  }
+
+  // 대여 신청 및 기간 규칙 유효성 검증
+  const now = new Date()
+  if (!isSubmissionTimeValid(now)) {
+    return {
+      success: false,
+      error: '대여 신청은 평일 09:00 ~ 17:00에만 가능합니다. (주말 및 공휴일 신청 불가)',
+    }
+  }
+
+  if (!isValidStartDate(startAt, now)) {
+    const earliestAllowed = getEarliestAllowedStartDate(now)
+    const earliestStr = format(earliestAllowed, 'yyyy년 MM월 dd일', { locale: ko })
+    return {
+      success: false,
+      error: `대여 신청은 평일 기준 최소 2일 전까지 가능합니다. (가장 빠른 대여 시작일: ${earliestStr})`,
+    }
+  }
+
+  const hasDepartmentApproval =
+    formData.get('hasDepartmentApproval') === 'true' ||
+    formData.get('hasDepartmentApproval') === 'on'
+  const weekdayCount = countWeekdaysInRange(startAt, endAt)
+  const exceedsDuration = weekdayCount > 3
+  const containsWeekend = includesWeekend(startAt, endAt)
+  const violatesWeekendRule = containsWeekend && !isValidWeekendRental(startAt, endAt)
+
+  if (exceedsDuration || violatesWeekendRule) {
+    if (!hasDepartmentApproval) {
+      if (exceedsDuration) {
+        return {
+          success: false,
+          error: `대여 기간은 최대 평일 기준 3일 이내여야 합니다. (선택: ${weekdayCount}일). 대여 기간을 초과할 경우 학과장님 사전 승인을 득하고 승인 여부를 체크하셔야 대여 신청이 가능합니다.`,
+        }
+      } else {
+        return {
+          success: false,
+          error: '주말이 포함된 대여는 반드시 "금요일 반출, 월요일 반납" 수칙을 준수해야 합니다. 미준수 시 학과장님 사전 승인을 득하고 승인 여부를 체크하셔야 대여 신청이 가능합니다.',
+        }
+      }
+    }
   }
 
   try {
@@ -97,6 +150,48 @@ export async function createBatchRentalRequest(formData: FormData): Promise<Crea
   }
   if (isNaN(startAt.getTime()) || isNaN(endAt.getTime()) || startAt >= endAt) {
     return { success: false, error: '대여 기간이 올바르지 않습니다.' }
+  }
+
+  // 대여 신청 및 기간 규칙 유효성 검증
+  const now = new Date()
+  if (!isSubmissionTimeValid(now)) {
+    return {
+      success: false,
+      error: '대여 신청은 평일 09:00 ~ 17:00에만 가능합니다. (주말 및 공휴일 신청 불가)',
+    }
+  }
+
+  if (!isValidStartDate(startAt, now)) {
+    const earliestAllowed = getEarliestAllowedStartDate(now)
+    const earliestStr = format(earliestAllowed, 'yyyy년 MM월 dd일', { locale: ko })
+    return {
+      success: false,
+      error: `대여 신청은 평일 기준 최소 2일 전까지 가능합니다. (가장 빠른 대여 시작일: ${earliestStr})`,
+    }
+  }
+
+  const hasDepartmentApproval =
+    formData.get('hasDepartmentApproval') === 'true' ||
+    formData.get('hasDepartmentApproval') === 'on'
+  const weekdayCount = countWeekdaysInRange(startAt, endAt)
+  const exceedsDuration = weekdayCount > 3
+  const containsWeekend = includesWeekend(startAt, endAt)
+  const violatesWeekendRule = containsWeekend && !isValidWeekendRental(startAt, endAt)
+
+  if (exceedsDuration || violatesWeekendRule) {
+    if (!hasDepartmentApproval) {
+      if (exceedsDuration) {
+        return {
+          success: false,
+          error: `대여 기간은 최대 평일 기준 3일 이내여야 합니다. (선택: ${weekdayCount}일). 대여 기간을 초과할 경우 학과장님 사전 승인을 득하고 승인 여부를 체크하셔야 대여 신청이 가능합니다.`,
+        }
+      } else {
+        return {
+          success: false,
+          error: '주말이 포함된 대여는 반드시 "금요일 반출, 월요일 반납" 수칙을 준수해야 합니다. 미준수 시 학과장님 사전 승인을 득하고 승인 여부를 체크하셔야 대여 신청이 가능합니다.',
+        }
+      }
+    }
   }
 
   let items: { equipmentId: number; quantity: number }[]
