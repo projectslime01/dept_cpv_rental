@@ -158,4 +158,22 @@ export async function activateClassroom(id: number) {
   revalidatePath('/admin/classrooms')
 }
 
+export async function deleteClassroom(id: number) {
+  await requireAdmin()
+  await prisma.$transaction([
+    prisma.classroomRentalRequest.deleteMany({ where: { classroomId: id } }),
+    prisma.classroom.delete({ where: { id } }),
+  ])
+  revalidatePath('/admin/classrooms')
+}
+
+export async function deleteEquipment(id: number) {
+  await requireAdmin()
+  await prisma.$transaction([
+    prisma.rentalRequest.deleteMany({ where: { equipmentId: id } }),
+    prisma.equipment.delete({ where: { id } }),
+  ])
+  revalidatePath('/admin/equipment')
+}
+
 

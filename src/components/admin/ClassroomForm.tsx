@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { createClassroom, updateClassroom, deactivateClassroom, activateClassroom } from '@/app/actions/admin'
+import { createClassroom, updateClassroom, deactivateClassroom, activateClassroom, deleteClassroom } from '@/app/actions/admin'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Trash2 } from 'lucide-react'
 
 interface Classroom {
   id: number
@@ -105,6 +106,7 @@ export function CreateClassroomButton() {
 
 export function ClassroomActions({ classroom }: { classroom: Classroom }) {
   const [editOpen, setEditOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
 
   function handleUpdate(formData: FormData) {
@@ -124,14 +126,21 @@ export function ClassroomActions({ classroom }: { classroom: Classroom }) {
     })
   }
 
+  function handleDelete() {
+    startTransition(async () => {
+      await deleteClassroom(classroom.id)
+      setDeleteOpen(false)
+    })
+  }
+
   return (
     <>
-      <div className="flex gap-2 justify-center">
+      <div className="flex gap-1.5 justify-center">
         <Button
           size="sm"
           variant="outline"
           onClick={() => setEditOpen(true)}
-          className="border-strong text-base-secondary hover:bg-surface-overlay hover:text-base-primary rounded-lg h-8 text-xs font-semibold"
+          className="border-strong text-base-secondary hover:bg-surface-overlay hover:text-base-primary rounded-lg h-8 text-xs font-semibold px-2.5"
         >
           수정
         </Button>
@@ -140,7 +149,7 @@ export function ClassroomActions({ classroom }: { classroom: Classroom }) {
           variant={classroom.status === 'active' ? 'secondary' : 'default'}
           onClick={handleToggle}
           disabled={isPending}
-          className={`rounded-lg h-8 text-xs font-semibold ${
+          className={`rounded-lg h-8 text-xs font-semibold px-2.5 ${
             classroom.status === 'active'
               ? 'bg-surface-raised border border-strong hover:bg-surface-overlay text-base-secondary'
               : 'bg-indigo-600 hover:bg-indigo-500 text-white'
@@ -148,7 +157,52 @@ export function ClassroomActions({ classroom }: { classroom: Classroom }) {
         >
           {classroom.status === 'active' ? '비활성화' : '활성화'}
         </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setDeleteOpen(true)}
+          disabled={isPending}
+          className="border-strong text-red-600 hover:bg-red-500/10 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300 rounded-lg h-8 text-xs font-semibold px-2.5"
+        >
+          삭제
+        </Button>
       </div>
+
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent className="bg-surface-base border-base text-base-primary max-w-sm rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-base-primary font-bold text-lg flex items-center gap-2">
+              <Trash2 className="w-5 h-5 text-red-500" />
+              강의실 삭제
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-2 text-sm text-base-secondary leading-relaxed">
+            정말로 <span className="font-bold text-base-primary">{classroom.roomNumber} 강의실</span>을 삭제하시겠습니까?
+            <br />
+            <span className="text-xs text-red-500 font-semibold mt-2 block">
+              ⚠️ 해당 강의실의 대여 신청 내역도 함께 완전히 삭제되며 이 작업은 되돌릴 수 없습니다.
+            </span>
+          </div>
+          <DialogFooter className="pt-2 gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => setDeleteOpen(false)}
+              className="border-strong text-base-secondary hover:bg-surface-overlay hover:text-base-primary rounded-xl"
+            >
+              취소
+            </Button>
+            <Button
+              type="button"
+              onClick={handleDelete}
+              disabled={isPending}
+              className="bg-red-600 hover:bg-red-500 text-white rounded-xl"
+            >
+              {isPending ? '삭제 중...' : '삭제'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="bg-surface-base border-base text-base-primary max-w-md rounded-2xl">
