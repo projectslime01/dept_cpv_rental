@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { DateTimePicker } from '@/components/ui/DateTimePicker'
 import { CalendarDays, CheckCircle2, XCircle, Loader2, ArrowRight } from 'lucide-react'
+import { AvailabilityCalendar } from './AvailabilityCalendar'
 
 interface Props {
   equipmentId: number
@@ -16,6 +17,12 @@ export function AvailabilityChecker({ equipmentId, totalQuantity }: Props) {
   const [endAt, setEndAt] = useState('')
   const [available, setAvailable] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
+
+  function handleRangeSelect(start: string, end: string) {
+    setStartAt(start)
+    setEndAt(end)
+    setAvailable(null)
+  }
 
   async function check() {
     if (!startAt || !endAt) return
@@ -65,6 +72,15 @@ export function AvailabilityChecker({ equipmentId, totalQuantity }: Props) {
           />
         </div>
       </div>
+
+      {/* 비주얼 실시간 예약 현황 캘린더 */}
+      <AvailabilityCalendar
+        equipmentId={equipmentId}
+        totalQuantity={totalQuantity}
+        startAt={startAt}
+        endAt={endAt}
+        onRangeSelect={handleRangeSelect}
+      />
 
       <button
         type="button"
