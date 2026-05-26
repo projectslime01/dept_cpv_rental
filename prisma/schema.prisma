@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 model Equipment {
@@ -15,8 +15,8 @@ model Equipment {
   imageUrl      String?
   totalQuantity Int
   status        String          @default("active")
-  requests      RentalRequest[]
   createdAt     DateTime        @default(now())
+  requests      RentalRequest[]
 }
 
 model RentalRequest {
@@ -28,7 +28,6 @@ model RentalRequest {
   studentId     String
   phone         String
   equipmentId   Int
-  equipment     Equipment @relation(fields: [equipmentId], references: [id])
   quantity      Int
   startAt       DateTime
   endAt         DateTime
@@ -37,14 +36,15 @@ model RentalRequest {
   adminNote     String?
   returnedAt    DateTime?
   createdAt     DateTime  @default(now())
+  equipment     Equipment @relation(fields: [equipmentId], references: [id])
 }
 
 model Admin {
   id           Int      @id @default(autoincrement())
   username     String   @unique
   passwordHash String
-  name         String   @default("관리자")
   createdAt    DateTime @default(now())
+  name         String   @default("관리자")
 }
 
 model ClassroomRequest {
@@ -79,32 +79,31 @@ model Classroom {
   roomNumber  String                   @unique
   capacity    Int
   description String?
-  equipment   String?                  // 예: "빔프로젝터, 화이트보드, 전자교탁"
+  equipment   String?
   status      String                   @default("active")
-  requests    ClassroomRentalRequest[]
   createdAt   DateTime                 @default(now())
+  requests    ClassroomRentalRequest[]
 }
 
 model ClassroomRentalRequest {
   id                    Int       @id @default(autoincrement())
-  requestNumber         String    @unique // ROOM-YYYYMMDD-XXXX
+  requestNumber         String    @unique
   passwordHash          String
   applicantName         String
   studentId             String
   phone                 String
   classroomId           Int
-  classroom             Classroom @relation(fields: [classroomId], references: [id])
   startAt               DateTime
   endAt                 DateTime
   purpose               String?
-  isGroup               Boolean   @default(false)
-  groupCount            Int?
-  groupMembers          String?
-  monitorAssets         String?
-  status                String    @default("pending") // pending, approved, rejected, returned
+  status                String    @default("pending")
   adminNote             String?
   returnedAt            DateTime?
   hasDepartmentApproval Boolean   @default(false)
   createdAt             DateTime  @default(now())
+  groupCount            Int?
+  groupMembers          String?
+  isGroup               Boolean   @default(false)
+  monitorAssets         String?
+  classroom             Classroom @relation(fields: [classroomId], references: [id])
 }
-
