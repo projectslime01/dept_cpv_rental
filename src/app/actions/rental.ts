@@ -52,18 +52,27 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
     return { success: false, error: '수량은 1 이상이어야 합니다.' }
   }
 
-  // 최소 대여 수량 서버사이드 검증
-  const equipmentForMin = await prisma.equipment.findUnique({
+  // 최소·최대 대여 수량 서버사이드 검증
+  const equipmentForLimit = await prisma.equipment.findUnique({
     where: { id: equipmentId },
-    select: { minRentalQuantity: true, status: true },
+    select: { minRentalQuantity: true, maxRentalQuantity: true, totalQuantity: true, status: true },
   })
-  if (!equipmentForMin || equipmentForMin.status !== 'active') {
+  if (!equipmentForLimit || equipmentForLimit.status !== 'active') {
     return { success: false, error: '해당 기자재를 찾을 수 없습니다.' }
   }
-  if (quantity < equipmentForMin.minRentalQuantity) {
+  if (quantity < equipmentForLimit.minRentalQuantity) {
     return {
       success: false,
-      error: `이 기자재는 최소 ${equipmentForMin.minRentalQuantity}개 이상 신청해야 합니다.`,
+      error: `이 기자재는 최소 ${equipmentForLimit.minRentalQuantity}개 이상 신청해야 합니다.`,
+    }
+  }
+  const effectiveMax = equipmentForLimit.maxRentalQuantity !== null
+    ? Math.min(equipmentForLimit.maxRentalQuantity, equipmentForLimit.totalQuantity)
+    : equipmentForLimit.totalQuantity
+  if (quantity > effectiveMax) {
+    return {
+      success: false,
+      error: `이 기자재는 1회 신청 시 최대 ${effectiveMax}개까지 신청 가능합니다.`,
     }
   }
 
@@ -219,20 +228,26 @@ export async function createBatchRentalRequest(formData: FormData): Promise<Crea
   if (!items.length) return { success: false, error: '선택한 기자재가 없습니다.' }
 
   try {
-    // 가용성 + 최소수량 체크를 병렬로 실행
+    // 가용성 + 최소/최대 수량 체크를 병렬로 실행
     const availabilityResults = await Promise.all(
       items.map(async item => {
         const [available, eq] = await Promise.all([
           getAvailableQuantity(item.equipmentId, startAt, endAt),
-          prisma.equipment.findUnique({ where: { id: item.equipmentId }, select: { name: true, minRentalQuantity: true } }),
+          prisma.equipment.findUnique({ where: { id: item.equipmentId }, select: { name: true, minRentalQuantity: true, maxRentalQuantity: true, totalQuantity: true } }),
         ])
         return { item, available, eq }
       })
     )
     for (const { item, available, eq } of availabilityResults) {
       const minQty = eq?.minRentalQuantity ?? 1
+      const effectiveMax = eq?.maxRentalQuantity !== null && eq?.maxRentalQuantity !== undefined
+        ? Math.min(eq.maxRentalQuantity, eq.totalQuantity)
+        : (eq?.totalQuantity ?? item.quantity)
       if (item.quantity < minQty) {
         return { success: false, error: `'${eq?.name ?? item.equipmentId}': 이 기자재는 최소 ${minQty}개 이상 신청해야 합니다.` }
+      }
+      if (item.quantity > effectiveMax) {
+        return { success: false, error: `'${eq?.name ?? item.equipmentId}': 이 기자재는 1회 신청 시 최대 ${effectiveMax}개까지 신청 가능합니다.` }
       }
       if (available < item.quantity) {
         return { success: false, error: `'${eq?.name ?? item.equipmentId}': 선택한 기간에 해당 수량을 대여할 수 없습니다.` }

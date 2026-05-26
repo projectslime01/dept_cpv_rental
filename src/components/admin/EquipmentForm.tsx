@@ -16,6 +16,7 @@ interface Equipment {
   description: string | null
   totalQuantity: number
   minRentalQuantity: number
+  maxRentalQuantity: number | null
   status: string
   rentedNow: number
   availableNow: number
@@ -83,17 +84,29 @@ export function CreateEquipmentButton() {
                 className="bg-surface-raised border-strong text-base-primary focus:border-brand-rose focus:ring-1 focus:ring-brand-rose rounded-xl"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-base-secondary text-xs font-semibold">최소 대여 수량</Label>
-              <Input
-                name="minRentalQuantity"
-                type="number"
-                min={1}
-                defaultValue={1}
-                className="bg-surface-raised border-strong text-base-primary focus:border-brand-rose focus:ring-1 focus:ring-brand-rose rounded-xl"
-              />
-              <p className="text-[11px] text-base-muted">신청 시 최소로 빌려야 하는 수량입니다. 기본값은 1개입니다.</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-base-secondary text-xs font-semibold">최소 대여 수량</Label>
+                <Input
+                  name="minRentalQuantity"
+                  type="number"
+                  min={1}
+                  defaultValue={1}
+                  className="bg-surface-raised border-strong text-base-primary focus:border-brand-rose focus:ring-1 focus:ring-brand-rose rounded-xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-base-secondary text-xs font-semibold">최대 대여 수량</Label>
+                <Input
+                  name="maxRentalQuantity"
+                  type="number"
+                  min={1}
+                  placeholder="제한 없음"
+                  className="bg-surface-raised border-strong text-base-primary focus:border-brand-rose focus:ring-1 focus:ring-brand-rose rounded-xl"
+                />
+              </div>
             </div>
+            <p className="text-[11px] text-base-muted -mt-2">최대 대여 수량을 비워두면 재고 내에서 자유롭게 신청 가능합니다.</p>
             <DialogFooter className="pt-2 gap-2 sm:gap-0">
               <Button
                 variant="outline"
@@ -263,17 +276,30 @@ export function EquipmentActions({ equipment }: { equipment: Equipment }) {
                 className="bg-surface-raised border-strong text-base-primary focus:border-brand-rose focus:ring-1 focus:ring-brand-rose rounded-xl"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-base-secondary text-xs font-semibold">최소 대여 수량</Label>
-              <Input
-                name="minRentalQuantity"
-                type="number"
-                min={1}
-                defaultValue={equipment.minRentalQuantity}
-                className="bg-surface-raised border-strong text-base-primary focus:border-brand-rose focus:ring-1 focus:ring-brand-rose rounded-xl"
-              />
-              <p className="text-[11px] text-base-muted">신청 시 최소로 빌려야 하는 수량입니다.</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-base-secondary text-xs font-semibold">최소 대여 수량</Label>
+                <Input
+                  name="minRentalQuantity"
+                  type="number"
+                  min={1}
+                  defaultValue={equipment.minRentalQuantity}
+                  className="bg-surface-raised border-strong text-base-primary focus:border-brand-rose focus:ring-1 focus:ring-brand-rose rounded-xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-base-secondary text-xs font-semibold">최대 대여 수량</Label>
+                <Input
+                  name="maxRentalQuantity"
+                  type="number"
+                  min={1}
+                  defaultValue={equipment.maxRentalQuantity ?? ''}
+                  placeholder="제한 없음"
+                  className="bg-surface-raised border-strong text-base-primary focus:border-brand-rose focus:ring-1 focus:ring-brand-rose rounded-xl"
+                />
+              </div>
             </div>
+            <p className="text-[11px] text-base-muted -mt-2">최대 대여 수량을 비워두면 재고 내에서 자유롭게 신청 가능합니다.</p>
             <DialogFooter className="pt-2 gap-2 sm:gap-0">
               <Button
                 variant="outline"

@@ -225,8 +225,11 @@ export function CartPageClient() {
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-base-primary truncate">{item.name}</p>
-                    {item.minRentalQuantity > 1 && (
-                      <p className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold mt-0.5">최소 {item.minRentalQuantity}개</p>
+                    {(item.minRentalQuantity > 1 || item.maxRentalQuantity !== null) && (
+                      <p className="text-[10px] font-semibold mt-0.5 flex gap-1.5">
+                        {item.minRentalQuantity > 1 && <span className="text-amber-600 dark:text-amber-400">최소 {item.minRentalQuantity}개</span>}
+                        {item.maxRentalQuantity !== null && <span className="text-sky-600 dark:text-sky-400">최대 {item.maxRentalQuantity}개</span>}
+                      </p>
                     )}
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
@@ -235,7 +238,8 @@ export function CartPageClient() {
                       <Minus className="w-3 h-3 text-base-secondary" />
                     </button>
                     <span className="w-8 text-center text-sm font-bold text-base-primary">{item.quantity}</span>
-                    <button type="button" onClick={() => setQty(item.equipmentId, item.quantity + 1)} disabled={item.quantity >= item.totalQuantity}
+                    <button type="button" onClick={() => setQty(item.equipmentId, item.quantity + 1)}
+                      disabled={item.quantity >= Math.min(item.maxRentalQuantity ?? item.totalQuantity, item.totalQuantity)}
                       className="w-9 h-9 rounded-lg border border-base flex items-center justify-center hover:bg-surface-overlay disabled:opacity-30 transition-colors">
                       <Plus className="w-3 h-3 text-base-secondary" />
                     </button>

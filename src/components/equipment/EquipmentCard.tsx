@@ -39,10 +39,11 @@ interface Props {
   description: string | null
   totalQuantity: number
   minRentalQuantity: number
+  maxRentalQuantity: number | null
   availableNow: number
 }
 
-export function EquipmentCard({ id, name, category, description, totalQuantity, minRentalQuantity, availableNow }: Props) {
+export function EquipmentCard({ id, name, category, description, totalQuantity, minRentalQuantity, maxRentalQuantity, availableNow }: Props) {
   const isAvailable = availableNow > 0
   const Icon = CATEGORY_ICONS[category] ?? Package
   const styles = CATEGORY_STYLES[category] ?? CATEGORY_STYLES['기타']
@@ -77,11 +78,16 @@ export function EquipmentCard({ id, name, category, description, totalQuantity, 
       {/* Availability */}
       <div className="px-4 pt-3 pb-3 space-y-2">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-xs text-base-muted">대여 가능</span>
             {minRentalQuantity > 1 && (
               <span className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 px-1.5 py-0.5 rounded-full">
                 최소 {minRentalQuantity}개
+              </span>
+            )}
+            {maxRentalQuantity !== null && (
+              <span className="text-[10px] font-semibold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900/50 px-1.5 py-0.5 rounded-full">
+                최대 {maxRentalQuantity}개
               </span>
             )}
           </div>
@@ -103,7 +109,7 @@ export function EquipmentCard({ id, name, category, description, totalQuantity, 
       {/* Actions */}
       <div className="px-4 pb-4 flex gap-2 border-t border-base pt-3">
         <AddToCartButton
-          item={{ equipmentId: id, name, category, totalQuantity, minRentalQuantity }}
+          item={{ equipmentId: id, name, category, totalQuantity, minRentalQuantity, maxRentalQuantity }}
           disabled={!isAvailable}
         />
         {isAvailable ? (
