@@ -68,7 +68,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         {/* ── Footer ── */}
         <footer className="border-t border-base bg-surface-header mt-auto">
           <div className="max-w-7xl mx-auto px-4 h-12 flex items-center">
-            <p className="text-xs text-base-faint">연성대학교 영상콘텐츠과 기자재 대여 시스템</p>
+            <p className="text-xs text-base-faint">연성대학교 영상콘텐츠과 통합 대여</p>
           </div>
         </footer>
       </div>

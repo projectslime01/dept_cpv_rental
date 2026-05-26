@@ -4,8 +4,8 @@ import { SessionProviderWrapper } from '@/components/admin/SessionProviderWrappe
 import { ThemeProvider } from '@/components/ThemeProvider'
 
 export const metadata: Metadata = {
-  title: '연성대학교 영상콘텐츠과 기자재 대여',
-  description: '연성대학교 영상콘텐츠과 기자재 대여 신청 시스템',
+  title: '연성대학교 영상콘텐츠과 통합 대여',
+  description: '연성대학교 영상콘텐츠과 통합 대여 시스템',
   icons: {
     icon: '/logo.png',
   },
