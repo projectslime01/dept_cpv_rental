@@ -19,6 +19,7 @@ interface Props {
   onChange: (v: string) => void
   placeholder?: string
   disablePast?: boolean
+  minDate?: Date           // disable any day strictly before this date
 }
 
 export function DateTimePicker({
@@ -26,6 +27,7 @@ export function DateTimePicker({
   onChange,
   placeholder = '날짜 선택',
   disablePast = false,
+  minDate,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)
@@ -155,7 +157,8 @@ export function DateTimePicker({
             {gridDays.map(day => {
               const sel      = selectedDate ? isSameDay(day, selectedDate) : false
               const thisMonth = isSameMonth(day, viewDate)
-              const disabled  = disablePast && isBefore(startOfDay(day), todayStart)
+              const disabled  = (disablePast && isBefore(startOfDay(day), todayStart))
+                             || (minDate != null && isBefore(startOfDay(day), startOfDay(minDate)))
               const nowDay    = isToday(day)
               const sun = day.getDay() === 0
               const sat = day.getDay() === 6

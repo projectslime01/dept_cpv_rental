@@ -47,6 +47,25 @@ model Admin {
   createdAt    DateTime @default(now())
 }
 
+model ClassroomRequest {
+  id            Int      @id @default(autoincrement())
+  requestNumber String   @unique
+  passwordHash  String
+  applicantName String
+  studentId     String
+  phone         String
+  isGroup       Boolean  @default(false)
+  groupCount    Int?
+  groupMembers  String?
+  startAt       DateTime
+  endAt         DateTime
+  purpose       String
+  monitorAssets String
+  status        String   @default("pending")
+  adminNote     String?
+  createdAt     DateTime @default(now())
+}
+
 model RateLimitAttempt {
   id          Int       @id @default(autoincrement())
   key         String    @unique

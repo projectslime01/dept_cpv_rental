@@ -34,7 +34,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                 <span className="hidden sm:inline">기자재 대여</span>
               </a>
               <a
-                href="/classrooms"
+                href="/classroom"
                 className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-raised transition-all duration-150 min-h-[44px]"
               >
                 <Building2 className="w-4 h-4 shrink-0" />
