@@ -97,6 +97,10 @@ model ClassroomRentalRequest {
   startAt               DateTime
   endAt                 DateTime
   purpose               String?
+  isGroup               Boolean   @default(false)
+  groupCount            Int?
+  groupMembers          String?
+  monitorAssets         String?
   status                String    @default("pending") // pending, approved, rejected, returned
   adminNote             String?
   returnedAt            DateTime?

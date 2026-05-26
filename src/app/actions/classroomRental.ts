@@ -59,6 +59,10 @@ export async function createClassroomRentalRequest(formData: FormData): Promise<
   const phone = (formData.get('phone') as string).trim()
   const password = (formData.get('password') as string)
   const purpose = (formData.get('purpose') as string | null)?.trim() || null
+  const isGroup = formData.get('isGroup') === 'true'
+  const groupCount = isGroup ? parseInt(formData.get('groupCount') as string) : null
+  const groupMembers = isGroup ? ((formData.get('groupMembers') as string | null)?.trim() || null) : null
+  const monitorAssets = (formData.get('monitorAssets') as string | null)?.trim() || null
 
   if (isNaN(classroomId) || classroomId < 1) {
     return { success: false, error: '강의실 정보가 올바르지 않습니다.' }
@@ -135,6 +139,10 @@ export async function createClassroomRentalRequest(formData: FormData): Promise<
         startAt,
         endAt,
         purpose,
+        isGroup,
+        groupCount: groupCount ?? null,
+        groupMembers: groupMembers ?? null,
+        monitorAssets: monitorAssets ?? null,
         hasDepartmentApproval,
       },
     })
