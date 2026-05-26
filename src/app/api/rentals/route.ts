@@ -1,15 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-
-function maskName(name: string): string {
-  if (!name) return ''
-  const trimmed = name.trim()
-  if (trimmed.length <= 1) return trimmed
-  if (trimmed.length === 2) {
-    return trimmed[0] + '*'
-  }
-  return trimmed[0] + '*'.repeat(trimmed.length - 2) + trimmed[trimmed.length - 1]
-}
+import { maskName } from '@/lib/maskName'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl

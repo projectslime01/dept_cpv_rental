@@ -1,7 +1,7 @@
 // src/app/api/classrooms/[id]/availability/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { maskName } from '@/app/actions/classroomRental'
+import { maskName } from '@/lib/maskName'
 
 export async function GET(
   req: NextRequest,
@@ -55,16 +55,14 @@ export async function GET(
       })
 
       // 개인 정보 보장 및 포맷 가공
-      const formattedBookings = await Promise.all(
-        requests.map(async (req) => ({
-          id: req.id,
-          startAt: req.startAt,
-          endAt: req.endAt,
-          applicantName: await maskName(req.applicantName),
-          status: req.status,
-          purpose: req.purpose,
-        }))
-      )
+      const formattedBookings = requests.map((req) => ({
+        id: req.id,
+        startAt: req.startAt,
+        endAt: req.endAt,
+        applicantName: maskName(req.applicantName),
+        status: req.status,
+        purpose: req.purpose,
+      }))
 
 
       return NextResponse.json({

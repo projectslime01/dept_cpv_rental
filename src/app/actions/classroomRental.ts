@@ -18,13 +18,6 @@ export type CreateClassroomRequestResult =
   | { success: true; requestNumber: string }
   | { success: false; error: string }
 
-export function maskName(name: string): string {
-  if (!name) return ''
-  const trimmed = name.trim()
-  if (trimmed.length <= 1) return '*'
-  if (trimmed.length === 2) return `${trimmed[0]}*`
-  return `${trimmed[0]}${'*'.repeat(trimmed.length - 2)}${trimmed[trimmed.length - 1]}`
-}
 
 function generateClassroomRequestNumber(date: Date, id: number): string {
   const dateStr = format(date, 'yyyyMMdd')
