@@ -12,6 +12,7 @@ import {
   includesWeekend,
   isValidWeekendRental,
   getEarliestAllowedStartDate,
+  getAvailableQuantity,
 } from '@/lib/rental'
 import { checkRateLimit, recordFailedAttempt, resetAttempts } from '@/lib/rate-limit'
 import { format } from 'date-fns'
@@ -94,7 +95,7 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
   }
 
   try {
-    const available = await checkAvailability(equipmentId, quantity, startAt, endAt, prisma)
+    const available = await checkAvailability(equipmentId, quantity, startAt, endAt)
     if (!available) {
       return { success: false, error: '선택한 기간에 해당 수량을 대여할 수 없습니다.' }
     }
@@ -203,9 +204,15 @@ export async function createBatchRentalRequest(formData: FormData): Promise<Crea
   if (!items.length) return { success: false, error: '선택한 기자재가 없습니다.' }
 
   try {
-    for (const item of items) {
-      const available = await checkAvailability(item.equipmentId, item.quantity, startAt, endAt, prisma)
-      if (!available) {
+    // 가용성 체크를 병렬로 실행
+    const availabilityResults = await Promise.all(
+      items.map(async item => ({
+        item,
+        available: await getAvailableQuantity(item.equipmentId, startAt, endAt),
+      }))
+    )
+    for (const { item, available } of availabilityResults) {
+      if (available < item.quantity) {
         const eq = await prisma.equipment.findUnique({ where: { id: item.equipmentId }, select: { name: true } })
         return { success: false, error: `'${eq?.name ?? item.equipmentId}': 선택한 기간에 해당 수량을 대여할 수 없습니다.` }
       }
@@ -348,7 +355,7 @@ export async function lookupRequest(formData: FormData): Promise<LookupResult> {
 
   try {
     const rateLimitKey = `status:${requestNumber}`
-    const { allowed, remainingAttempts } = await checkRateLimit(rateLimitKey, prisma)
+    const { allowed, remainingAttempts } = await checkRateLimit(rateLimitKey)
     if (!allowed) {
       return { success: false, error: '시도 횟수 초과로 10분간 잠겼습니다.' }
     }
@@ -360,7 +367,7 @@ export async function lookupRequest(formData: FormData): Promise<LookupResult> {
       })
 
       if (!request) {
-        await recordFailedAttempt(rateLimitKey, prisma)
+        await recordFailedAttempt(rateLimitKey)
         return {
           success: false,
           error: '신청 내역을 찾을 수 없습니다.',
@@ -370,7 +377,7 @@ export async function lookupRequest(formData: FormData): Promise<LookupResult> {
 
       const valid = await verifyPassword(password, request.passwordHash)
       if (!valid) {
-        await recordFailedAttempt(rateLimitKey, prisma)
+        await recordFailedAttempt(rateLimitKey)
         return {
           success: false,
           error: '비밀번호가 올바르지 않습니다.',
@@ -378,7 +385,7 @@ export async function lookupRequest(formData: FormData): Promise<LookupResult> {
         }
       }
 
-      await resetAttempts(rateLimitKey, prisma)
+      await resetAttempts(rateLimitKey)
 
       return {
         success: true,
@@ -402,7 +409,7 @@ export async function lookupRequest(formData: FormData): Promise<LookupResult> {
     })
 
     if (!request) {
-      await recordFailedAttempt(rateLimitKey, prisma)
+      await recordFailedAttempt(rateLimitKey)
       return {
         success: false,
         error: '신청 내역을 찾을 수 없습니다.',
@@ -412,7 +419,7 @@ export async function lookupRequest(formData: FormData): Promise<LookupResult> {
 
     const valid = await verifyPassword(password, request.passwordHash)
     if (!valid) {
-      await recordFailedAttempt(rateLimitKey, prisma)
+      await recordFailedAttempt(rateLimitKey)
       return {
         success: false,
         error: '비밀번호가 올바르지 않습니다.',
@@ -420,7 +427,7 @@ export async function lookupRequest(formData: FormData): Promise<LookupResult> {
       }
     }
 
-    await resetAttempts(rateLimitKey, prisma)
+    await resetAttempts(rateLimitKey)
 
     let groupItems = undefined
     if (request.groupNumber) {

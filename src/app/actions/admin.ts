@@ -89,7 +89,7 @@ export async function approveClassroomRequest(id: number, note?: string) {
     where: { id, status: 'pending' },
     data: { status: 'approved', adminNote: note || null },
   })
-  revalidatePath('/admin/requests')
+  revalidatePath('/admin/classroom')
   revalidatePath('/admin/dashboard')
 }
 
@@ -99,7 +99,7 @@ export async function rejectClassroomRequest(id: number, note: string) {
     where: { id, status: 'pending' },
     data: { status: 'rejected', adminNote: note },
   })
-  revalidatePath('/admin/requests')
+  revalidatePath('/admin/classroom')
   revalidatePath('/admin/dashboard')
 }
 

@@ -30,9 +30,12 @@ export default async function AdminEquipmentPage({
     }))
   )
 
-  const allEquipment = await prisma.equipment.findMany({ select: { category: true }, distinct: ['category'] })
-  const existingCategories = allEquipment.map(e => e.category)
-  const categories = CATEGORY_ORDER.filter(c => existingCategories.includes(c))
+  // 이미 로드된 데이터에서 카테고리 추출 — 별도 DB 쿼리 불필요
+  // (필터링된 경우엔 전체 카테고리 목록을 가져와야 하므로 별도 쿼리 필요)
+  const allCategories = categoryFilter
+    ? await prisma.equipment.findMany({ select: { category: true }, distinct: ['category'] }).then(r => r.map(e => e.category))
+    : Array.from(new Set(equipments.map(e => e.category)))
+  const categories = CATEGORY_ORDER.filter(c => allCategories.includes(c))
 
   const current = searchParams.category ?? 'all'
 

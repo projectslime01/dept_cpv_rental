@@ -18,7 +18,7 @@ export type CreateClassroomRequestResult =
   | { success: true; requestNumber: string }
   | { success: false; error: string }
 
-export async function maskName(name: string): Promise<string> {
+export function maskName(name: string): string {
   if (!name) return ''
   const trimmed = name.trim()
   if (trimmed.length <= 1) return '*'
@@ -26,7 +26,7 @@ export async function maskName(name: string): Promise<string> {
   return `${trimmed[0]}${'*'.repeat(trimmed.length - 2)}${trimmed[trimmed.length - 1]}`
 }
 
-export async function generateClassroomRequestNumber(date: Date, id: number): Promise<string> {
+function generateClassroomRequestNumber(date: Date, id: number): string {
   const dateStr = format(date, 'yyyyMMdd')
   return `ROOM-${dateStr}-${String(id).padStart(4, '0')}`
 }

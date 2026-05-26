@@ -1,5 +1,5 @@
 import { format } from 'date-fns'
-import type { PrismaClient } from '@prisma/client'
+import { prisma } from './prisma'
 
 export function generateRequestNumber(date: Date, id: number): string {
   const dateStr = format(date, 'yyyyMMdd')
@@ -10,15 +10,14 @@ export async function getAvailableQuantity(
   equipmentId: number,
   startAt: Date,
   endAt: Date,
-  prismaClient: Pick<PrismaClient, 'equipment' | 'rentalRequest'>
 ): Promise<number> {
-  const equipment = await (prismaClient.equipment as any).findUnique({
+  const equipment = await prisma.equipment.findUnique({
     where: { id: equipmentId },
     select: { totalQuantity: true, status: true },
   })
   if (!equipment || equipment.status !== 'active') return 0
 
-  const result = await (prismaClient.rentalRequest as any).aggregate({
+  const result = await prisma.rentalRequest.aggregate({
     where: {
       equipmentId,
       status: 'approved',
@@ -36,9 +35,8 @@ export async function checkAvailability(
   requestedQuantity: number,
   startAt: Date,
   endAt: Date,
-  prismaClient: Pick<PrismaClient, 'equipment' | 'rentalRequest'>
 ): Promise<boolean> {
-  const available = await getAvailableQuantity(equipmentId, startAt, endAt, prismaClient)
+  const available = await getAvailableQuantity(equipmentId, startAt, endAt)
   return available >= requestedQuantity
 }
 

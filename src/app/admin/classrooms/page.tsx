@@ -6,26 +6,19 @@ export const dynamic = 'force-dynamic'
 
 export default async function AdminClassroomsPage() {
   const now = new Date()
-  const classrooms = await prisma.classroom.findMany({
-    orderBy: { roomNumber: 'asc' },
-  })
 
-  const stats = await Promise.all(
-    classrooms.map(async (room) => {
-      const activeRentalsCount = await prisma.classroomRentalRequest.count({
-        where: {
-          classroomId: room.id,
-          status: 'approved',
-          startAt: { lte: now },
-          endAt: { gte: now },
-        },
-      })
-      return {
-        ...room,
-        isRentedNow: activeRentalsCount > 0,
-      }
-    })
-  )
+  // 단일 쿼리 2개로 N+1 제거
+  const [classrooms, activeRentals] = await Promise.all([
+    prisma.classroom.findMany({ orderBy: { roomNumber: 'asc' } }),
+    prisma.classroomRentalRequest.groupBy({
+      by: ['classroomId'],
+      where: { status: 'approved', startAt: { lte: now }, endAt: { gte: now } },
+      _count: { id: true },
+    }),
+  ])
+
+  const activeSet = new Set(activeRentals.map(r => r.classroomId))
+  const stats = classrooms.map(room => ({ ...room, isRentedNow: activeSet.has(room.id) }))
 
   return (
     <div className="space-y-5">

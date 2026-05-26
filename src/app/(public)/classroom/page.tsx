@@ -1,20 +1,6 @@
-import { ClassroomForm } from '@/components/classroom/ClassroomForm'
-import { DoorOpen } from 'lucide-react'
+import { redirect } from 'next/navigation'
 
-export default function ClassroomPage() {
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="p-2.5 rounded-2xl bg-[#ffb2ba]/10 border border-[#ffb2ba]/20">
-          <DoorOpen className="w-5 h-5 text-[#ffb2ba]" />
-        </div>
-        <div>
-          <h1 className="text-xl font-bold text-[#e5e2e1]">강의실 대여 신청</h1>
-          <p className="text-xs text-[#6b6468] mt-0.5">영상콘텐츠과 강의실 · 편집실 대여</p>
-        </div>
-      </div>
-
-      <ClassroomForm />
-    </div>
-  )
+// 구 단독 신청 양식 경로 → 강의실 목록으로 리다이렉트
+export default function ClassroomRedirectPage() {
+  redirect('/classrooms')
 }

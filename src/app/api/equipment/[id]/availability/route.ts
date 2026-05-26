@@ -104,7 +104,7 @@ export async function GET(
   }
 
   try {
-    const available = await getAvailableQuantity(id, start, end, prisma)
+    const available = await getAvailableQuantity(id, start, end)
     return NextResponse.json({ available: Math.max(0, available) })
   } catch (err) {
     console.error('[availability] db error', err)
