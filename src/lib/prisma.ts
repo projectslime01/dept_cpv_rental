@@ -1,3 +1,4 @@
+import 'server-only'
 import { PrismaClient } from '@prisma/client'
 import { PrismaNeon } from '@prisma/adapter-neon'
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
