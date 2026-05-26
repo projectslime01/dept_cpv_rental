@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useTransition, useMemo } from 'react'
-import { createClassroomRequest, addWeekdays } from '@/app/actions/classroom'
+import { createClassroomRequest } from '@/app/actions/classroom'
+import { addWeekdays } from '@/lib/dateUtils'
 import { DateTimePicker } from '@/components/ui/DateTimePicker'
 import {
   User, Users, CalendarDays, FileText, Monitor,
