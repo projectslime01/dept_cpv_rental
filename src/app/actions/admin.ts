@@ -12,30 +12,40 @@ async function requireAdmin() {
 
 export async function approveRequest(id: number, note?: string) {
   await requireAdmin()
-  await prisma.rentalRequest.update({
+  const request = await prisma.rentalRequest.update({
     where: { id, status: 'pending' },
     data: { status: 'approved', adminNote: note || null },
+    select: { equipmentId: true },
   })
   revalidatePath('/admin/requests')
+  revalidatePath('/admin/dashboard')
+  revalidatePath('/')
+  revalidatePath(`/equipment/${request.equipmentId}`)
 }
 
 export async function rejectRequest(id: number, note: string) {
   await requireAdmin()
-  await prisma.rentalRequest.update({
+  const request = await prisma.rentalRequest.update({
     where: { id, status: 'pending' },
     data: { status: 'rejected', adminNote: note },
+    select: { equipmentId: true },
   })
   revalidatePath('/admin/requests')
+  revalidatePath('/')
+  revalidatePath(`/equipment/${request.equipmentId}`)
 }
 
 export async function markReturned(id: number) {
   await requireAdmin()
-  await prisma.rentalRequest.update({
+  const request = await prisma.rentalRequest.update({
     where: { id, status: 'approved' },
     data: { status: 'returned', returnedAt: new Date() },
+    select: { equipmentId: true },
   })
   revalidatePath('/admin/requests')
   revalidatePath('/admin/dashboard')
+  revalidatePath('/')
+  revalidatePath(`/equipment/${request.equipmentId}`)
 }
 
 export async function createEquipment(formData: FormData) {
@@ -49,6 +59,7 @@ export async function createEquipment(formData: FormData) {
     },
   })
   revalidatePath('/admin/equipment')
+  revalidatePath('/')
 }
 
 export async function updateEquipment(id: number, formData: FormData) {
@@ -63,6 +74,8 @@ export async function updateEquipment(id: number, formData: FormData) {
     },
   })
   revalidatePath('/admin/equipment')
+  revalidatePath('/')
+  revalidatePath(`/equipment/${id}`)
 }
 
 export async function deactivateEquipment(id: number) {
@@ -72,6 +85,8 @@ export async function deactivateEquipment(id: number) {
     data: { status: 'inactive' },
   })
   revalidatePath('/admin/equipment')
+  revalidatePath('/')
+  revalidatePath(`/equipment/${id}`)
 }
 
 export async function activateEquipment(id: number) {
@@ -81,36 +96,47 @@ export async function activateEquipment(id: number) {
     data: { status: 'active' },
   })
   revalidatePath('/admin/equipment')
+  revalidatePath('/')
+  revalidatePath(`/equipment/${id}`)
 }
 
 export async function approveClassroomRequest(id: number, note?: string) {
   await requireAdmin()
-  await prisma.classroomRentalRequest.update({
+  const request = await prisma.classroomRentalRequest.update({
     where: { id, status: 'pending' },
     data: { status: 'approved', adminNote: note || null },
+    select: { classroomId: true },
   })
   revalidatePath('/admin/classroom')
   revalidatePath('/admin/dashboard')
+  revalidatePath('/classrooms')
+  revalidatePath(`/classrooms/${request.classroomId}`)
 }
 
 export async function rejectClassroomRequest(id: number, note: string) {
   await requireAdmin()
-  await prisma.classroomRentalRequest.update({
+  const request = await prisma.classroomRentalRequest.update({
     where: { id, status: 'pending' },
     data: { status: 'rejected', adminNote: note },
+    select: { classroomId: true },
   })
   revalidatePath('/admin/classroom')
   revalidatePath('/admin/dashboard')
+  revalidatePath('/classrooms')
+  revalidatePath(`/classrooms/${request.classroomId}`)
 }
 
 export async function markClassroomReturned(id: number) {
   await requireAdmin()
-  await prisma.classroomRentalRequest.update({
+  const request = await prisma.classroomRentalRequest.update({
     where: { id, status: 'approved' },
     data: { status: 'returned', returnedAt: new Date() },
+    select: { classroomId: true },
   })
-  revalidatePath('/admin/requests')
+  revalidatePath('/admin/classroom')  // 버그 수정: 이전엔 '/admin/requests' 였음
   revalidatePath('/admin/dashboard')
+  revalidatePath('/classrooms')
+  revalidatePath(`/classrooms/${request.classroomId}`)
 }
 
 export async function createClassroom(formData: FormData) {
@@ -124,6 +150,7 @@ export async function createClassroom(formData: FormData) {
     },
   })
   revalidatePath('/admin/classrooms')
+  revalidatePath('/classrooms')
 }
 
 export async function updateClassroom(id: number, formData: FormData) {
@@ -138,6 +165,8 @@ export async function updateClassroom(id: number, formData: FormData) {
     },
   })
   revalidatePath('/admin/classrooms')
+  revalidatePath('/classrooms')
+  revalidatePath(`/classrooms/${id}`)
 }
 
 export async function deactivateClassroom(id: number) {
@@ -147,6 +176,8 @@ export async function deactivateClassroom(id: number) {
     data: { status: 'inactive' },
   })
   revalidatePath('/admin/classrooms')
+  revalidatePath('/classrooms')
+  revalidatePath(`/classrooms/${id}`)
 }
 
 export async function activateClassroom(id: number) {
@@ -156,6 +187,8 @@ export async function activateClassroom(id: number) {
     data: { status: 'active' },
   })
   revalidatePath('/admin/classrooms')
+  revalidatePath('/classrooms')
+  revalidatePath(`/classrooms/${id}`)
 }
 
 export async function deleteClassroom(id: number) {
@@ -165,6 +198,7 @@ export async function deleteClassroom(id: number) {
     prisma.classroom.delete({ where: { id } }),
   ])
   revalidatePath('/admin/classrooms')
+  revalidatePath('/classrooms')
 }
 
 export async function deleteEquipment(id: number) {
@@ -174,6 +208,7 @@ export async function deleteEquipment(id: number) {
     prisma.equipment.delete({ where: { id } }),
   ])
   revalidatePath('/admin/equipment')
+  revalidatePath('/')
 }
 
 
