@@ -7,6 +7,7 @@ export interface CartItem {
   name: string
   category: string
   totalQuantity: number
+  minRentalQuantity: number
   quantity: number
 }
 
@@ -43,7 +44,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const add = useCallback((item: Omit<CartItem, 'quantity'>) => {
     setItems(prev => {
       if (prev.some(i => i.equipmentId === item.equipmentId)) return prev
-      return [...prev, { ...item, quantity: 1 }]
+      return [...prev, { ...item, quantity: item.minRentalQuantity }]
     })
   }, [])
 
@@ -54,7 +55,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const setQty = useCallback((equipmentId: number, qty: number) => {
     setItems(prev => prev.map(i =>
       i.equipmentId === equipmentId
-        ? { ...i, quantity: Math.max(1, Math.min(qty, i.totalQuantity)) }
+        ? { ...i, quantity: Math.max(i.minRentalQuantity, Math.min(qty, i.totalQuantity)) }
         : i
     ))
   }, [])

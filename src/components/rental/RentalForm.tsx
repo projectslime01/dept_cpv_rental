@@ -22,11 +22,12 @@ interface Props {
   defaultStartAt?: string
   defaultEndAt?: string
   maxQuantity: number
+  minRentalQuantity?: number
 }
 
 const inputCls = 'w-full h-10 px-3.5 rounded-xl border border-base text-sm bg-surface-raised text-base-primary placeholder:text-base-muted/50 focus:outline-none focus:border-brand-rose transition-colors'
 
-export function RentalForm({ equipmentId, equipmentName, defaultStartAt, defaultEndAt, maxQuantity }: Props) {
+export function RentalForm({ equipmentId, equipmentName, defaultStartAt, defaultEndAt, maxQuantity, minRentalQuantity = 1 }: Props) {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [requestNumber, setRequestNumber] = useState<string | null>(null)
@@ -196,8 +197,13 @@ export function RentalForm({ equipmentId, equipmentName, defaultStartAt, default
         </div>
 
         <div className="space-y-1.5">
-          <label htmlFor="quantity" className="block text-xs font-medium text-base-secondary">수량 * <span className="text-base-muted">(최대 {maxQuantity}개)</span></label>
-          <input id="quantity" name="quantity" type="number" min={1} max={maxQuantity} defaultValue={1} required className={inputCls} />
+          <label htmlFor="quantity" className="block text-xs font-medium text-base-secondary">
+            수량 *{' '}
+            <span className="text-base-muted">
+              ({minRentalQuantity > 1 ? `최소 ${minRentalQuantity}개 · ` : ''}최대 {maxQuantity}개)
+            </span>
+          </label>
+          <input id="quantity" name="quantity" type="number" min={minRentalQuantity} max={maxQuantity} defaultValue={minRentalQuantity} required className={inputCls} />
         </div>
 
         {/* 3 & 4. 대여 기간 또는 주말 제약 조건 위반 시 학과장님 승인 확인 박스 */}

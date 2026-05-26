@@ -13,7 +13,8 @@ model Equipment {
   category      String
   description   String?
   imageUrl      String?
-  totalQuantity Int
+  totalQuantity    Int
+  minRentalQuantity Int         @default(1)
   status        String          @default("active")
   createdAt     DateTime        @default(now())
   requests      RentalRequest[]

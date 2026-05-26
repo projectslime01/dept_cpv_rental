@@ -15,6 +15,7 @@ interface Equipment {
   category: string
   description: string | null
   totalQuantity: number
+  minRentalQuantity: number
   status: string
   rentedNow: number
   availableNow: number
@@ -81,6 +82,17 @@ export function CreateEquipmentButton() {
                 required
                 className="bg-surface-raised border-strong text-base-primary focus:border-brand-rose focus:ring-1 focus:ring-brand-rose rounded-xl"
               />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-base-secondary text-xs font-semibold">최소 대여 수량</Label>
+              <Input
+                name="minRentalQuantity"
+                type="number"
+                min={1}
+                defaultValue={1}
+                className="bg-surface-raised border-strong text-base-primary focus:border-brand-rose focus:ring-1 focus:ring-brand-rose rounded-xl"
+              />
+              <p className="text-[11px] text-base-muted">신청 시 최소로 빌려야 하는 수량입니다. 기본값은 1개입니다.</p>
             </div>
             <DialogFooter className="pt-2 gap-2 sm:gap-0">
               <Button
@@ -250,6 +262,17 @@ export function EquipmentActions({ equipment }: { equipment: Equipment }) {
                 required
                 className="bg-surface-raised border-strong text-base-primary focus:border-brand-rose focus:ring-1 focus:ring-brand-rose rounded-xl"
               />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-base-secondary text-xs font-semibold">최소 대여 수량</Label>
+              <Input
+                name="minRentalQuantity"
+                type="number"
+                min={1}
+                defaultValue={equipment.minRentalQuantity}
+                className="bg-surface-raised border-strong text-base-primary focus:border-brand-rose focus:ring-1 focus:ring-brand-rose rounded-xl"
+              />
+              <p className="text-[11px] text-base-muted">신청 시 최소로 빌려야 하는 수량입니다.</p>
             </div>
             <DialogFooter className="pt-2 gap-2 sm:gap-0">
               <Button

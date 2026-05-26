@@ -61,7 +61,7 @@ export default async function EquipmentDetailPage({ params }: { params: { id: st
             </div>
           </div>
           <AddToCartButton
-            item={{ equipmentId: equipment.id, name: equipment.name, category: equipment.category, totalQuantity: equipment.totalQuantity }}
+            item={{ equipmentId: equipment.id, name: equipment.name, category: equipment.category, totalQuantity: equipment.totalQuantity, minRentalQuantity: equipment.minRentalQuantity }}
           />
         </div>
         {equipment.description && (

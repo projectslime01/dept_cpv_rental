@@ -38,10 +38,11 @@ interface Props {
   category: string
   description: string | null
   totalQuantity: number
+  minRentalQuantity: number
   availableNow: number
 }
 
-export function EquipmentCard({ id, name, category, description, totalQuantity, availableNow }: Props) {
+export function EquipmentCard({ id, name, category, description, totalQuantity, minRentalQuantity, availableNow }: Props) {
   const isAvailable = availableNow > 0
   const Icon = CATEGORY_ICONS[category] ?? Package
   const styles = CATEGORY_STYLES[category] ?? CATEGORY_STYLES['기타']
@@ -76,7 +77,14 @@ export function EquipmentCard({ id, name, category, description, totalQuantity, 
       {/* Availability */}
       <div className="px-4 pt-3 pb-3 space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-base-muted">대여 가능</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-base-muted">대여 가능</span>
+            {minRentalQuantity > 1 && (
+              <span className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 px-1.5 py-0.5 rounded-full">
+                최소 {minRentalQuantity}개
+              </span>
+            )}
+          </div>
           <div className="flex items-baseline gap-1">
             <span className={`text-base font-black tabular-nums ${isAvailable ? 'text-emerald-500' : 'text-red-500'}`}>
               {availableNow}
@@ -95,7 +103,7 @@ export function EquipmentCard({ id, name, category, description, totalQuantity, 
       {/* Actions */}
       <div className="px-4 pb-4 flex gap-2 border-t border-base pt-3">
         <AddToCartButton
-          item={{ equipmentId: id, name, category, totalQuantity }}
+          item={{ equipmentId: id, name, category, totalQuantity, minRentalQuantity }}
           disabled={!isAvailable}
         />
         {isAvailable ? (

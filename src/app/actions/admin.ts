@@ -50,12 +50,15 @@ export async function markReturned(id: number) {
 
 export async function createEquipment(formData: FormData) {
   await requireAdmin()
+  const totalQuantity = parseInt(formData.get('totalQuantity') as string)
+  const minRentalQuantity = parseInt(formData.get('minRentalQuantity') as string) || 1
   await prisma.equipment.create({
     data: {
       name: formData.get('name') as string,
       category: formData.get('category') as string,
       description: (formData.get('description') as string) || null,
-      totalQuantity: parseInt(formData.get('totalQuantity') as string),
+      totalQuantity,
+      minRentalQuantity: Math.max(1, Math.min(minRentalQuantity, totalQuantity)),
     },
   })
   revalidatePath('/admin/equipment')
@@ -64,13 +67,16 @@ export async function createEquipment(formData: FormData) {
 
 export async function updateEquipment(id: number, formData: FormData) {
   await requireAdmin()
+  const totalQuantity = parseInt(formData.get('totalQuantity') as string)
+  const minRentalQuantity = parseInt(formData.get('minRentalQuantity') as string) || 1
   await prisma.equipment.update({
     where: { id },
     data: {
       name: formData.get('name') as string,
       category: formData.get('category') as string,
       description: (formData.get('description') as string) || null,
-      totalQuantity: parseInt(formData.get('totalQuantity') as string),
+      totalQuantity,
+      minRentalQuantity: Math.max(1, Math.min(minRentalQuantity, totalQuantity)),
     },
   })
   revalidatePath('/admin/equipment')

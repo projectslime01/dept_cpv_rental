@@ -22,6 +22,7 @@ export default async function ApplyPage({
         defaultStartAt={searchParams.startAt}
         defaultEndAt={searchParams.endAt}
         maxQuantity={equipment.totalQuantity}
+        minRentalQuantity={equipment.minRentalQuantity}
       />
     </div>
   )
