@@ -171,11 +171,13 @@
   .border-strong       { border-color: hsl(var(--border-strong)); }
 
   /* Brand accent: rose (기자재) */
+  .bg-brand-rose          { background-color: hsl(var(--accent-rose)); }
   .text-brand-rose        { color: hsl(var(--accent-rose)); }
   .bg-brand-rose-muted    { background-color: hsl(var(--accent-rose-muted)); }
   .border-brand-rose      { border-color: hsl(var(--accent-rose-border)); }
 
   /* Brand accent: indigo (강의실) */
+  .bg-brand-indigo        { background-color: hsl(var(--accent-indigo)); }
   .text-brand-indigo      { color: hsl(var(--accent-indigo)); }
   .bg-brand-indigo-muted  { background-color: hsl(var(--accent-indigo-muted)); }
   .border-brand-indigo    { border-color: hsl(var(--accent-indigo-border)); }
