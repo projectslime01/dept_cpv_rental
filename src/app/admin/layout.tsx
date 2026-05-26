@@ -28,7 +28,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </div>
           <span className="text-base-primary">
             연성대학교 영상콘텐츠과{' '}
-            <span className="text-brand-rose">기자재 대여</span>
+            <span className="text-brand-rose">통합 대여</span>
           </span>
           <span className="ml-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-rose-muted text-brand-rose border border-brand-rose">
             관리자
