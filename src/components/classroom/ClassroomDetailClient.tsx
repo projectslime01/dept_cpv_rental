@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { ClassroomAvailabilityCalendar } from './ClassroomAvailabilityCalendar'
 import { Building2, Users, Monitor, ChevronRight, CalendarDays, ArrowRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { countWeekdaysInRange } from '@/lib/rental'
+import { countWeekdaysInRange } from '@/lib/rentalUtils'
 
 interface Classroom {
   id: number

@@ -15,7 +15,6 @@ vi.mock('../prisma', () => ({
 }))
 
 import { prisma } from '../prisma'
-const mockRateLimit = prisma.rateLimitAttempt as ReturnType<typeof vi.fn> & typeof prisma.rateLimitAttempt
 
 describe('checkRateLimit', () => {
   beforeEach(() => vi.clearAllMocks())
