@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { maskName } from '@/lib/maskName'
+import { getTimetableOccurrencesForMonth } from '@/lib/timetable'
 
 export async function GET(
   req: NextRequest,
@@ -33,26 +34,27 @@ export async function GET(
       const firstDay = new Date(year, month - 1, 1)
       const lastDay = new Date(year, month, 0, 23, 59, 59, 999)
 
-      // 해당 월에 걸쳐 있는 모든 예약 신청 건 조회 (대기 및 승인 건 모두 반환하되, 승인 건이 독점권을 가짐)
-      const requests = await prisma.classroomRentalRequest.findMany({
-        where: {
-          classroomId: id,
-          status: { in: ['approved', 'pending'] },
-          startAt: { lte: lastDay },
-          endAt: { gte: firstDay },
-        },
-        select: {
-          id: true,
-          startAt: true,
-          endAt: true,
-          applicantName: true,
-          status: true,
-          purpose: true,
-        },
-        orderBy: {
-          startAt: 'asc',
-        },
-      })
+      // 해당 월에 걸쳐 있는 모든 예약 신청 건 + 시간표 조회 (병렬)
+      const [requests, timetables] = await Promise.all([
+        prisma.classroomRentalRequest.findMany({
+          where: {
+            classroomId: id,
+            status: { in: ['approved', 'pending'] },
+            startAt: { lte: lastDay },
+            endAt: { gte: firstDay },
+          },
+          select: {
+            id: true,
+            startAt: true,
+            endAt: true,
+            applicantName: true,
+            status: true,
+            purpose: true,
+          },
+          orderBy: { startAt: 'asc' },
+        }),
+        prisma.classroomTimetable.findMany({ where: { classroomId: id } }),
+      ])
 
       // 개인 정보 보장 및 포맷 가공
       const formattedBookings = requests.map((req) => ({
@@ -64,12 +66,15 @@ export async function GET(
         purpose: req.purpose,
       }))
 
+      // 해당 월의 시간표 발생 슬롯
+      const timetableSlots = getTimetableOccurrencesForMonth(timetables, year, month)
 
       return NextResponse.json({
         year,
         month,
         classroom,
         bookings: formattedBookings,
+        timetableSlots,
       })
     } catch (err) {
       console.error('[classroom availability month] db error', err)

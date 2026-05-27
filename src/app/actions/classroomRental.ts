@@ -11,6 +11,7 @@ import {
   isValidWeekendRental,
   getEarliestAllowedStartDate,
 } from '@/lib/rental'
+import { findTimetableConflict, DOW_LABELS } from '@/lib/timetable'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
@@ -113,6 +114,19 @@ export async function createClassroomRentalRequest(formData: FormData): Promise<
   }
 
   try {
+    // 수업 시간표 충돌 검사
+    const timetables = await prisma.classroomTimetable.findMany({ where: { classroomId } })
+    const conflict = findTimetableConflict(timetables, startAt, endAt)
+    if (conflict) {
+      const { entry, date } = conflict
+      const dateStr = format(date, 'M월 d일', { locale: ko })
+      const courseInfo = entry.courseName ? ` (${entry.courseName})` : ''
+      return {
+        success: false,
+        error: `${dateStr}(${DOW_LABELS[entry.dayOfWeek]}) ${entry.startTime}~${entry.endTime}에 수업이 있어 대여할 수 없습니다.${courseInfo}`,
+      }
+    }
+
     // 독점 가용성 검증
     const isAvailable = await checkClassroomAvailability(classroomId, startAt, endAt)
     if (!isAvailable) {

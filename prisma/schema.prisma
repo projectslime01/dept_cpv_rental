@@ -85,6 +85,20 @@ model Classroom {
   status      String                   @default("active")
   createdAt   DateTime                 @default(now())
   requests    ClassroomRentalRequest[]
+  timetables  ClassroomTimetable[]
+}
+
+model ClassroomTimetable {
+  id            Int       @id @default(autoincrement())
+  classroomId   Int
+  dayOfWeek     Int       // 0=월 1=화 2=수 3=목 4=금 5=토 6=일
+  startTime     String    // "HH:MM" 24시 형식
+  endTime       String    // "HH:MM" 24시 형식
+  courseName    String?
+  semesterStart DateTime
+  semesterEnd   DateTime
+  createdAt     DateTime  @default(now())
+  classroom     Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
 }
 
 model ClassroomRentalRequest {

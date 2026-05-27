@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { Building2 } from 'lucide-react'
+import Link from 'next/link'
 import { CreateClassroomButton, ClassroomActions } from '@/components/admin/ClassroomForm'
 
 export const dynamic = 'force-dynamic'
@@ -95,7 +96,15 @@ export default async function AdminClassroomsPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <ClassroomActions classroom={room} />
+                      <div className="flex flex-col gap-1.5 items-center">
+                        <ClassroomActions classroom={room} />
+                        <Link
+                          href={`/admin/classrooms/${room.id}/timetable`}
+                          className="inline-flex items-center gap-1 text-[10px] font-semibold text-rose-600 dark:text-rose-400 hover:underline underline-offset-2"
+                        >
+                          시간표 관리
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 )
