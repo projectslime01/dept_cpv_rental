@@ -25,30 +25,35 @@ export async function GET(
     !isNaN(endAt.getTime()) &&
     startAt < endAt
 
-  const accessories = await prisma.equipmentAccessory.findMany({
-    where: { equipmentId, status: 'active' },
-    select: { id: true, name: true, description: true, totalQuantity: true },
-    orderBy: { id: 'asc' },
-  })
+  try {
+    const accessories = await prisma.equipmentAccessory.findMany({
+      where: { equipmentId, status: 'active' },
+      select: { id: true, name: true, description: true, totalQuantity: true },
+      orderBy: { id: 'asc' },
+    })
 
-  if (!accessories.length) {
-    return NextResponse.json([])
+    if (!accessories.length) {
+      return NextResponse.json([])
+    }
+
+    const result = await Promise.all(
+      accessories.map(async (acc) => {
+        const available = hasValidDates
+          ? await getAvailableAccessoryQuantity(acc.id, startAt!, endAt!)
+          : acc.totalQuantity
+        return {
+          id: acc.id,
+          name: acc.name,
+          description: acc.description,
+          totalQuantity: acc.totalQuantity,
+          available,
+        }
+      }),
+    )
+
+    return NextResponse.json(result)
+  } catch (error) {
+    console.error('GET /api/equipment/[id]/accessories error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-
-  const result = await Promise.all(
-    accessories.map(async (acc) => {
-      const available = hasValidDates
-        ? await getAvailableAccessoryQuantity(acc.id, startAt!, endAt!)
-        : acc.totalQuantity
-      return {
-        id: acc.id,
-        name: acc.name,
-        description: acc.description,
-        totalQuantity: acc.totalQuantity,
-        available,
-      }
-    }),
-  )
-
-  return NextResponse.json(result)
 }

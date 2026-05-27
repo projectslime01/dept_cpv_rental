@@ -128,7 +128,17 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
     } catch {
       return { success: false, error: '부속 기자재 정보가 올바르지 않습니다.' }
     }
+    if (!Array.isArray(accessories)) {
+      return { success: false, error: '부속 기자재 정보가 올바르지 않습니다.' }
+    }
   }
+
+  // accessoryId 중복 제거 (같은 부속을 두 번 보내는 악의적 요청 방어)
+  const accessoryMap = new Map<number, number>()
+  for (const a of accessories) {
+    accessoryMap.set(a.accessoryId, (accessoryMap.get(a.accessoryId) ?? 0) + a.quantity)
+  }
+  accessories = Array.from(accessoryMap.entries()).map(([accessoryId, quantity]) => ({ accessoryId, quantity }))
 
   // accessories 검증
   if (accessories.length > 0) {

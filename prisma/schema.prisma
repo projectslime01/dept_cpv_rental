@@ -62,6 +62,8 @@ model RentalRequestAccessory {
   quantity        Int
   rentalRequest   RentalRequest      @relation(fields: [rentalRequestId], references: [id], onDelete: Cascade)
   accessory       EquipmentAccessory @relation(fields: [accessoryId], references: [id], onDelete: Restrict)
+
+  @@unique([rentalRequestId, accessoryId])
 }
 
 model Admin {

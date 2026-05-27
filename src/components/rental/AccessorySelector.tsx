@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Package, AlertCircle } from 'lucide-react'
 
 interface AccessoryOption {
@@ -22,25 +22,35 @@ export function AccessorySelector({ equipmentId, startAt, endAt, onChange }: Pro
   const [options, setOptions] = useState<AccessoryOption[]>([])
   const [quantities, setQuantities] = useState<Record<number, number>>({})
   const [loading, setLoading] = useState(false)
+  const [fetchError, setFetchError] = useState(false)
 
   const hasDate = !!(startAt && endAt)
 
+  const stableOnChange = useCallback(onChange, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     setLoading(true)
+    setFetchError(false)
     const url = hasDate
       ? `/api/equipment/${equipmentId}/accessories?startAt=${encodeURIComponent(startAt)}&endAt=${encodeURIComponent(endAt)}`
       : `/api/equipment/${equipmentId}/accessories`
 
     fetch(url)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`)
+        return r.json()
+      })
       .then((data: AccessoryOption[]) => {
-        setOptions(data)
+        setOptions(Array.isArray(data) ? data : [])
         setQuantities({})
-        onChange([])
+        stableOnChange([])
+      })
+      .catch(() => {
+        setFetchError(true)
+        setOptions([])
       })
       .finally(() => setLoading(false))
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [equipmentId, startAt, endAt])
+  }, [equipmentId, startAt, endAt, hasDate, stableOnChange])
 
   function handleQuantityChange(id: number, value: string) {
     const num = Math.max(0, parseInt(value) || 0)
@@ -59,6 +69,12 @@ export function AccessorySelector({ equipmentId, startAt, endAt, onChange }: Pro
   if (loading) {
     return (
       <div className="text-xs text-base-muted py-2">부속 기자재 목록 불러오는 중...</div>
+    )
+  }
+
+  if (fetchError) {
+    return (
+      <div className="text-xs text-base-muted py-2">부속 기자재 목록을 불러오지 못했습니다.</div>
     )
   }
 
