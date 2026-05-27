@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
@@ -24,7 +25,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <header className="bg-surface-header border-b border-base h-14 flex items-center px-4 md:px-6 shrink-0">
         <div className="flex items-center gap-2.5 font-bold text-base tracking-tight">
           <div className="w-7 h-7 flex items-center justify-center shrink-0">
-            <img src="/logo.png" alt="Logo" className="w-6 h-6 object-contain" />
+            <Image src="/logo.png" alt="Logo" width={24} height={24} className="object-contain" />
           </div>
           <span className="text-base-primary">
             연성대학교 영상콘텐츠과{' '}

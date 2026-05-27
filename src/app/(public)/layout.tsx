@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { CartProvider } from '@/lib/useCart'
 import { CartHeaderButton } from '@/components/cart/CartHeaderButton'
 import { ThemeToggle } from '@/components/ThemeToggle'
@@ -16,7 +17,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               className="flex items-center gap-2.5 font-bold text-base tracking-tight hover:opacity-90 transition-opacity min-w-0"
             >
               <div className="w-7 h-7 flex items-center justify-center shrink-0">
-                <img src="/logo.png" alt="Logo" className="w-6 h-6 object-contain" />
+                <Image src="/logo.png" alt="Logo" width={24} height={24} className="object-contain" />
               </div>
               <span className="text-base-primary truncate">
                 연성대학교 영상콘텐츠과{' '}

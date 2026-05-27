@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { signIn } from 'next-auth/react'
 import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
@@ -30,7 +31,7 @@ export default function AdminLoginPage() {
     <>
       <div className="text-center mb-6">
         <div className="inline-flex items-center justify-center w-12 h-12 mb-3">
-          <img src="/logo.png" alt="Logo" className="w-10 h-10 object-contain" />
+          <Image src="/logo.png" alt="Logo" width={40} height={40} className="object-contain" />
         </div>
         <h1 className="text-xl font-bold text-base-primary">관리자 로그인</h1>
         <p className="text-sm text-base-secondary mt-1">연성대학교 영상콘텐츠과 기자재 대여 관리 시스템</p>
