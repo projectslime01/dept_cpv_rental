@@ -19,6 +19,7 @@ model Equipment {
   status        String          @default("active")
   createdAt     DateTime        @default(now())
   requests      RentalRequest[]
+  accessories   EquipmentAccessory[]
 }
 
 model RentalRequest {
@@ -39,6 +40,28 @@ model RentalRequest {
   returnedAt    DateTime?
   createdAt     DateTime  @default(now())
   equipment     Equipment @relation(fields: [equipmentId], references: [id])
+  accessories   RentalRequestAccessory[]
+}
+
+model EquipmentAccessory {
+  id            Int                      @id @default(autoincrement())
+  equipmentId   Int
+  name          String
+  description   String?
+  totalQuantity Int
+  status        String                   @default("active")
+  createdAt     DateTime                 @default(now())
+  equipment     Equipment                @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  rentalItems   RentalRequestAccessory[]
+}
+
+model RentalRequestAccessory {
+  id              Int                @id @default(autoincrement())
+  rentalRequestId Int
+  accessoryId     Int
+  quantity        Int
+  rentalRequest   RentalRequest      @relation(fields: [rentalRequestId], references: [id], onDelete: Cascade)
+  accessory       EquipmentAccessory @relation(fields: [accessoryId], references: [id], onDelete: Restrict)
 }
 
 model Admin {
