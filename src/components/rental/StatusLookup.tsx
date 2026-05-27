@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { lookupRequest, LookupResult } from '@/app/actions/rental'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import { Loader2, CalendarDays, Clock, ClipboardList } from 'lucide-react'
+import { Loader2, CalendarDays, Clock, ClipboardList, Package } from 'lucide-react'
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   pending:  { label: '승인 대기', color: 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/30' },
@@ -121,13 +121,33 @@ export function StatusLookup() {
             </div>
           ) : (
             /* 단건 */
-            <div className="rounded-xl border border-base px-4 py-3.5 flex items-center justify-between gap-3">
-              <div className="space-y-0.5">
-                <p className="text-sm font-semibold text-base-primary">{result.data.equipmentName} <span className="font-normal text-base-muted">× {result.data.quantity}개</span></p>
-                <p className="text-[11px] text-base-muted font-mono">{result.data.requestNumber}</p>
-                {result.data.adminNote && <p className="text-xs text-base-secondary mt-1">메모: {result.data.adminNote}</p>}
+            <div className="rounded-xl border border-base px-4 py-3.5 space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <p className="text-sm font-semibold text-base-primary">{result.data.equipmentName} <span className="font-normal text-base-muted">× {result.data.quantity}개</span></p>
+                  <p className="text-[11px] text-base-muted font-mono">{result.data.requestNumber}</p>
+                  {result.data.adminNote && <p className="text-xs text-base-secondary mt-1">메모: {result.data.adminNote}</p>}
+                </div>
+                <StatusBadge status={result.data.status} />
               </div>
-              <StatusBadge status={result.data.status} />
+              {result.data.accessories && result.data.accessories.length > 0 && (
+                <div className="space-y-1.5">
+                  <div className="text-xs font-semibold text-base-secondary uppercase tracking-wider flex items-center gap-1.5">
+                    <Package className="w-3.5 h-3.5" />
+                    부속 기자재
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {result.data.accessories.map((acc, i) => (
+                      <span
+                        key={i}
+                        className="inline-flex items-center gap-1 text-xs bg-surface-raised border border-base rounded-lg px-2.5 py-1.5 text-base-primary"
+                      >
+                        {acc.name} × {acc.quantity}개
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
