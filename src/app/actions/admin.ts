@@ -223,4 +223,78 @@ export async function deleteEquipment(id: number) {
   revalidatePath('/')
 }
 
+// ─── 부속 기자재 관리 ────────────────────────────────────────────────────────
 
+export interface CreatedAccessoryEntry {
+  id: number
+  equipmentId: number
+  name: string
+  description: string | null
+  totalQuantity: number
+  status: string
+  createdAt: string // ISO string
+}
+
+export type AccessoryResult =
+  | { success: true; entry: CreatedAccessoryEntry }
+  | { success: false; error: string }
+
+export async function createEquipmentAccessory(
+  formData: FormData,
+): Promise<AccessoryResult> {
+  await requireAdmin()
+
+  const equipmentId = parseInt(formData.get('equipmentId') as string)
+  const name = (formData.get('name') as string).trim()
+  const description = (formData.get('description') as string)?.trim() || null
+  const totalQuantity = parseInt(formData.get('totalQuantity') as string)
+
+  if (isNaN(equipmentId) || equipmentId < 1) {
+    return { success: false, error: '기자재 정보가 올바르지 않습니다.' }
+  }
+  if (!name) {
+    return { success: false, error: '부속 기자재 이름을 입력해주세요.' }
+  }
+  if (isNaN(totalQuantity) || totalQuantity < 1) {
+    return { success: false, error: '총 수량은 1 이상이어야 합니다.' }
+  }
+
+  const equipment = await prisma.equipment.findUnique({
+    where: { id: equipmentId },
+    select: { id: true },
+  })
+  if (!equipment) {
+    return { success: false, error: '해당 기자재를 찾을 수 없습니다.' }
+  }
+
+  const entry = await prisma.equipmentAccessory.create({
+    data: { equipmentId, name, description, totalQuantity },
+  })
+
+  revalidatePath(`/admin/equipment/${equipmentId}/accessories`)
+
+  return {
+    success: true,
+    entry: {
+      id: entry.id,
+      equipmentId: entry.equipmentId,
+      name: entry.name,
+      description: entry.description,
+      totalQuantity: entry.totalQuantity,
+      status: entry.status,
+      createdAt: entry.createdAt.toISOString(),
+    },
+  }
+}
+
+export async function deleteEquipmentAccessory(id: number): Promise<void> {
+  await requireAdmin()
+  const entry = await prisma.equipmentAccessory.findUnique({
+    where: { id },
+    select: { equipmentId: true },
+  })
+  if (!entry) return
+  // onDelete: Restrict — 대여 기록 있으면 DB 에러 발생 (호출자가 catch 해야 함)
+  await prisma.equipmentAccessory.delete({ where: { id } })
+  revalidatePath(`/admin/equipment/${entry.equipmentId}/accessories`)
+}
