@@ -14,6 +14,7 @@ import {
   getEarliestAllowedStartDate,
   getAvailableQuantity,
 } from '@/lib/rental'
+import { getAvailableAccessoryQuantity } from '@/lib/accessory'
 import { checkRateLimit, recordFailedAttempt, resetAttempts } from '@/lib/rate-limit'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
@@ -118,33 +119,87 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
     }
   }
 
+  // accessories JSON 파싱
+  let accessories: { accessoryId: number; quantity: number }[] = []
+  const accessoriesRaw = formData.get('accessories')
+  if (accessoriesRaw) {
+    try {
+      accessories = JSON.parse(accessoriesRaw as string)
+    } catch {
+      return { success: false, error: '부속 기자재 정보가 올바르지 않습니다.' }
+    }
+  }
+
+  // accessories 검증
+  if (accessories.length > 0) {
+    const accessoryRecords = await prisma.equipmentAccessory.findMany({
+      where: {
+        id: { in: accessories.map((a) => a.accessoryId) },
+        equipmentId,
+        status: 'active',
+      },
+      select: { id: true, name: true },
+    })
+    const validIds = new Set(accessoryRecords.map((r) => r.id))
+    for (const a of accessories) {
+      if (!validIds.has(a.accessoryId)) {
+        return { success: false, error: '선택한 부속 기자재가 올바르지 않습니다.' }
+      }
+      if (a.quantity < 1) {
+        return { success: false, error: '부속 기자재 수량은 1 이상이어야 합니다.' }
+      }
+      const avail = await getAvailableAccessoryQuantity(a.accessoryId, startAt, endAt)
+      if (avail < a.quantity) {
+        const name = accessoryRecords.find((r) => r.id === a.accessoryId)?.name ?? ''
+        return {
+          success: false,
+          error: `부속 "${name}" 재고가 부족합니다 (가용: ${avail}개)`,
+        }
+      }
+    }
+  }
+
   try {
     const available = await checkAvailability(equipmentId, quantity, startAt, endAt)
     if (!available) {
       return { success: false, error: '선택한 기간에 해당 수량을 대여할 수 없습니다.' }
     }
 
-    const passwordHash = await hashPassword(password)
+    const requestNumber = await prisma.$transaction(async (tx) => {
+      const passwordHash = await hashPassword(password)
 
-    const request = await prisma.rentalRequest.create({
-      data: {
-        requestNumber: `TEMP-${Date.now()}`,
-        passwordHash,
-        applicantName,
-        studentId,
-        phone,
-        equipmentId,
-        quantity,
-        startAt,
-        endAt,
-        purpose,
-      },
-    })
+      const request = await tx.rentalRequest.create({
+        data: {
+          requestNumber: `TEMP-${Date.now()}`,
+          passwordHash,
+          applicantName,
+          studentId,
+          phone,
+          equipmentId,
+          quantity,
+          startAt,
+          endAt,
+          purpose,
+        },
+      })
 
-    const requestNumber = generateRequestNumber(new Date(), request.id)
-    await prisma.rentalRequest.update({
-      where: { id: request.id },
-      data: { requestNumber },
+      const validAccessories = accessories.filter((a) => a.quantity > 0)
+      if (validAccessories.length > 0) {
+        await tx.rentalRequestAccessory.createMany({
+          data: validAccessories.map((a) => ({
+            rentalRequestId: request.id,
+            accessoryId: a.accessoryId,
+            quantity: a.quantity,
+          })),
+        })
+      }
+
+      const rn = generateRequestNumber(new Date(), request.id)
+      await tx.rentalRequest.update({
+        where: { id: request.id },
+        data: { requestNumber: rn },
+      })
+      return rn
     })
 
     return { success: true, requestNumber }
@@ -368,6 +423,7 @@ export type LookupResult =
         endAt: Date
         adminNote: string | null
         createdAt: Date
+        accessories: { name: string; quantity: number }[]
       }
       groupItems?: {
         requestNumber: string
@@ -435,13 +491,19 @@ export async function lookupRequest(formData: FormData): Promise<LookupResult> {
           endAt: request.endAt,
           adminNote: request.adminNote,
           createdAt: request.createdAt,
+          accessories: [],
         },
       }
     }
 
     const request = await prisma.rentalRequest.findUnique({
       where: { requestNumber },
-      include: { equipment: { select: { name: true } } },
+      include: {
+        equipment: { select: { name: true } },
+        accessories: {
+          include: { accessory: { select: { name: true } } },
+        },
+      },
     })
 
     if (!request) {
@@ -493,6 +555,10 @@ export async function lookupRequest(formData: FormData): Promise<LookupResult> {
         endAt: request.endAt,
         adminNote: request.adminNote,
         createdAt: request.createdAt,
+        accessories: request.accessories.map((ra) => ({
+          name: ra.accessory.name,
+          quantity: ra.quantity,
+        })),
       },
       groupItems,
     }
