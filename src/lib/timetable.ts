@@ -9,12 +9,6 @@ export function jsDowToMyDow(jsDay: number): number {
   return (jsDay + 6) % 7
 }
 
-/** "HH:MM" → 자정 기준 분 */
-function timeToMinutes(timeStr: string): number {
-  const [h, m] = timeStr.split(':').map(Number)
-  return h * 60 + m
-}
-
 export interface TimetableEntry {
   id: number
   classroomId: number

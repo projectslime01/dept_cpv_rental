@@ -65,7 +65,6 @@ export default async function ClassroomTimetablePage({ params }: Props) {
 
       <ClassroomTimetableManager
         classroomId={id}
-        roomNumber={classroom.roomNumber}
         initialEntries={entries}
       />
     </div>

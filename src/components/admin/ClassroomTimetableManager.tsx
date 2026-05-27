@@ -21,7 +21,6 @@ export interface TimetableEntryRow {
 
 interface Props {
   classroomId: number
-  roomNumber: string
   initialEntries: TimetableEntryRow[]
 }
 
@@ -33,7 +32,7 @@ function formatDateStr(iso: string): string {
   return `${y}-${m}-${day}`
 }
 
-export function ClassroomTimetableManager({ classroomId, roomNumber, initialEntries }: Props) {
+export function ClassroomTimetableManager({ classroomId, initialEntries }: Props) {
   const [entries, setEntries] = useState<TimetableEntryRow[]>(initialEntries)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
