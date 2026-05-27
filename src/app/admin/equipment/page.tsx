@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { Package } from 'lucide-react'
 import { CreateEquipmentButton, EquipmentActions } from '@/components/admin/EquipmentForm'
@@ -118,6 +119,12 @@ export default async function AdminEquipmentPage({
                     </span>
                   </td>
                   <td className="px-4 py-3 text-center">
+                    <Link
+                      href={`/admin/equipment/${eq.id}/accessories`}
+                      className="inline-flex items-center gap-1 text-xs text-base-secondary hover:text-brand-rose transition-colors px-2 py-1 rounded-lg hover:bg-brand-rose-muted"
+                    >
+                      부속 관리
+                    </Link>
                     <EquipmentActions equipment={eq} />
                   </td>
                 </tr>
