@@ -5,6 +5,7 @@ import { createRentalRequest } from '@/app/actions/rental'
 import { DateTimePicker } from '@/components/ui/DateTimePicker'
 import { CheckCircle2, ArrowRight, AlertTriangle, Clock, CalendarDays } from 'lucide-react'
 import { AvailabilityCalendar } from '@/components/equipment/AvailabilityCalendar'
+import { AccessorySelector } from '@/components/rental/AccessorySelector'
 import {
   isSubmissionTimeValid,
   isValidStartDate,
@@ -35,6 +36,7 @@ export function RentalForm({ equipmentId, equipmentName, defaultStartAt, default
   const [requestNumber, setRequestNumber] = useState<string | null>(null)
   const [startAt, setStartAt] = useState(defaultStartAt ?? '')
   const [endAt, setEndAt] = useState(defaultEndAt ?? '')
+  const [selectedAccessories, setSelectedAccessories] = useState<{ accessoryId: number; quantity: number }[]>([])
 
   // 실시간 제약 검증용 클라이언트 상태
   const [currentTimeValid, setCurrentTimeValid] = useState(true)
@@ -87,6 +89,7 @@ export function RentalForm({ equipmentId, equipmentName, defaultStartAt, default
     formData.set('startAt', startAt)
     formData.set('endAt', endAt)
     formData.set('hasDepartmentApproval', String(hasDepartmentApproval))
+    formData.set('accessories', JSON.stringify(selectedAccessories))
     setError(null)
     startTransition(async () => {
       const result = await createRentalRequest(formData)
@@ -207,6 +210,14 @@ export function RentalForm({ equipmentId, equipmentName, defaultStartAt, default
           </label>
           <input id="quantity" name="quantity" type="number" min={minRentalQuantity} max={effectiveMax} defaultValue={minRentalQuantity} required className={inputCls} />
         </div>
+
+        {/* 부속 기자재 선택 */}
+        <AccessorySelector
+          equipmentId={equipmentId}
+          startAt={startAt}
+          endAt={endAt}
+          onChange={setSelectedAccessories}
+        />
 
         {/* 3 & 4. 대여 기간 또는 주말 제약 조건 위반 시 학과장님 승인 확인 박스 */}
         {startAt && endAt && needsApproval && (
