@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { createTimetableEntry, deleteTimetableEntry } from '@/app/actions/timetable'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Trash2, Plus, CalendarDays, Clock } from 'lucide-react'
+import { Trash2, Plus, CalendarDays, Clock, AlertTriangle } from 'lucide-react'
 import { DOW_LABELS } from '@/lib/timetable'
 
 export interface TimetableEntryRow {
@@ -25,40 +26,54 @@ interface Props {
 }
 
 function formatDateStr(iso: string): string {
-  const d = new Date(iso)
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
+  // "YYYY-MM-DDTHH:..." → "YYYY-MM-DD"
+  return iso.substring(0, 10)
 }
 
 export function ClassroomTimetableManager({ classroomId, initialEntries }: Props) {
+  const router = useRouter()
+  const formRef = useRef<HTMLFormElement>(null)
+
   const [entries, setEntries] = useState<TimetableEntryRow[]>(initialEntries)
-  const [isPending, startTransition] = useTransition()
+  const [addPending, startAddTransition] = useTransition()
+  const [deletePending, startDeleteTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  const [successMsg, setSuccessMsg] = useState<string | null>(null)
+  // id of the row waiting for delete confirmation; null = none
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
 
   function handleAdd(formData: FormData) {
     setError(null)
-    setSuccess(false)
+    setSuccessMsg(null)
     formData.set('classroomId', String(classroomId))
-    startTransition(async () => {
+    startAddTransition(async () => {
       const result = await createTimetableEntry(formData)
       if (!result.success) {
         setError(result.error)
       } else {
-        setSuccess(true)
-        // Reload entries by re-fetching (simple approach: force a page reload via revalidation)
-        // We refresh the entries list by calling a refetch — for now just reload
-        window.location.reload()
+        // 새 항목을 로컬 state에 추가 — 페이지 새로고침 없이 즉시 반영
+        setEntries((prev) => [...prev, result.entry])
+        setSuccessMsg('시간표가 추가되었습니다.')
+        formRef.current?.reset()
+        router.refresh() // 서버 캐시 동기화 (백그라운드)
       }
     })
   }
 
-  function handleDelete(id: number) {
-    startTransition(async () => {
+  function handleDeleteRequest(id: number) {
+    setConfirmDeleteId(id)
+  }
+
+  function handleDeleteCancel() {
+    setConfirmDeleteId(null)
+  }
+
+  function handleDeleteConfirm(id: number) {
+    setConfirmDeleteId(null)
+    startDeleteTransition(async () => {
       await deleteTimetableEntry(id)
       setEntries((prev) => prev.filter((e) => e.id !== id))
+      router.refresh()
     })
   }
 
@@ -111,15 +126,39 @@ export function ClassroomTimetableManager({ classroomId, initialEntries }: Props
                       {formatDateStr(entry.semesterStart)} ~ {formatDateStr(entry.semesterEnd)}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDelete(entry.id)}
-                        disabled={isPending}
-                        className="border-strong text-red-600 hover:bg-red-500/10 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300 rounded-lg h-8 w-8 p-0"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
+                      {confirmDeleteId === entry.id ? (
+                        /* 삭제 확인 인라인 */
+                        <div className="flex items-center justify-center gap-1.5">
+                          <span className="text-[10px] text-red-500 font-semibold whitespace-nowrap">삭제할까요?</span>
+                          <Button
+                            size="sm"
+                            onClick={() => handleDeleteConfirm(entry.id)}
+                            disabled={deletePending}
+                            className="h-7 px-2 text-[10px] font-bold bg-red-600 hover:bg-red-500 text-white rounded-lg"
+                          >
+                            확인
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={handleDeleteCancel}
+                            disabled={deletePending}
+                            className="h-7 px-2 text-[10px] border-strong text-base-secondary hover:bg-surface-overlay rounded-lg"
+                          >
+                            취소
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDeleteRequest(entry.id)}
+                          disabled={deletePending}
+                          className="border-strong text-red-600 hover:bg-red-500/10 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300 rounded-lg h-8 w-8 p-0"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -135,7 +174,7 @@ export function ClassroomTimetableManager({ classroomId, initialEntries }: Props
           <Plus className="w-4 h-4 text-brand-indigo" />
           <h2 className="text-sm font-semibold text-base-secondary">수업 시간표 추가</h2>
         </div>
-        <form action={handleAdd} className="p-5 space-y-4">
+        <form ref={formRef} action={handleAdd} className="p-5 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* 요일 */}
             <div className="space-y-1.5">
@@ -213,19 +252,22 @@ export function ClassroomTimetableManager({ classroomId, initialEntries }: Props
           </div>
 
           {error && (
-            <p className="text-sm text-red-500 font-medium">{error}</p>
+            <div className="flex items-center gap-2 text-sm text-red-500 font-medium">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              <span>{error}</span>
+            </div>
           )}
-          {success && (
-            <p className="text-sm text-emerald-500 font-medium">시간표가 추가되었습니다.</p>
+          {successMsg && (
+            <p className="text-sm text-emerald-500 font-medium">{successMsg}</p>
           )}
 
           <div className="pt-1">
             <Button
               type="submit"
-              disabled={isPending}
+              disabled={addPending}
               className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl h-10 px-5"
             >
-              {isPending ? '추가 중...' : '시간표 추가'}
+              {addPending ? '추가 중...' : '시간표 추가'}
             </Button>
           </div>
         </form>

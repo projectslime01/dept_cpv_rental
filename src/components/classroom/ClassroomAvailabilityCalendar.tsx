@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ChevronLeft, ChevronRight, Loader2, AlertCircle, CalendarDays, Clock, CheckCircle2, HelpCircle } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Loader2, AlertCircle, CalendarDays, Clock, CheckCircle2, HelpCircle, AlertTriangle } from 'lucide-react'
 import { format } from 'date-fns'
 
 interface BookingItem {
@@ -54,6 +54,9 @@ export function ClassroomAvailabilityCalendar({
   const [timetableSlots, setTimetableSlots] = useState<TimetableSlot[]>([])
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+  // 날짜 선택 시 인라인 오류/경고 (alert() 대신)
+  const [rangeError, setRangeError] = useState<string | null>(null)
+  const [rangeWarning, setRangeWarning] = useState<string | null>(null)
   const [selectedDayStr, setSelectedDayStr] = useState<string>(
     `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
   )
@@ -83,9 +86,9 @@ export function ClassroomAvailabilityCalendar({
           setBookings(data.bookings || [])
           setTimetableSlots(data.timetableSlots || [])
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (active) {
-          setErrorMsg(err.message || '일정 조회 중 오류가 발생했습니다.')
+          setErrorMsg(err instanceof Error ? err.message : '일정 조회 중 오류가 발생했습니다.')
         }
       } finally {
         if (active) {
@@ -119,9 +122,10 @@ export function ClassroomAvailabilityCalendar({
 
   // 달력 계산
   const numDaysInMonth = new Date(year, month, 0).getDate()
+  // new Date(year, month-1, 1): 로컬 자정 기준 → 타임존 영향 없음
   const firstDayIndex = new Date(year, month - 1, 1).getDay() // 0(일) ~ 6(토)
   const blanks = Array(firstDayIndex).fill(null)
-  
+
   const dayStrings: string[] = []
   for (let d = 1; d <= numDaysInMonth; d++) {
     dayStrings.push(`${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`)
@@ -143,30 +147,40 @@ export function ClassroomAvailabilityCalendar({
   // 일자 클릭 핸들러
   const handleDayClick = (dayStr: string) => {
     setSelectedDayStr(dayStr)
+    setRangeError(null)
+    setRangeWarning(null)
 
-    // 범위 지정 도우미 (기자재와 호환되는 간편 원터치 선택)
     if (!startOnly || (startOnly && endOnly)) {
-      // 1. 시작일을 해당 일자 09:00으로 세팅
+      // 시작일을 해당 일자 09:00으로 세팅
       onRangeSelect(`${dayStr}T09:00`, '')
     } else {
-      // 2. 시작일이 지정되어 있고 반납일은 빈 상태
+      // 시작일이 지정된 상태 — 반납일 지정
       if (dayStr < startOnly) {
         // 더 과거 클릭 시 시작일 변경
         onRangeSelect(`${dayStr}T09:00`, '')
       } else {
-        // 범위 세팅 및 중복 승인 내역 있는지 체크
-        const hasConflict = bookings.some((b) => {
+        const reqStart = new Date(`${startOnly}T09:00`).getTime()
+        const reqEnd   = new Date(`${dayStr}T18:00`).getTime()
+
+        // 승인 완료 예약 충돌 검사
+        const hasBookingConflict = bookings.some((b) => {
           if (b.status !== 'approved') return false
           const bStart = new Date(b.startAt).getTime()
-          const bEnd = new Date(b.endAt).getTime()
-          const reqStart = new Date(`${startOnly}T09:00`).getTime()
-          const reqEnd = new Date(`${dayStr}T18:00`).getTime()
+          const bEnd   = new Date(b.endAt).getTime()
           return reqStart < bEnd && reqEnd > bStart
         })
 
-        if (hasConflict) {
-          alert('선택하신 기간 사이에 이미 승인 완료된 강의실 예약이 존재하여 선택할 수 없습니다.')
+        if (hasBookingConflict) {
+          setRangeError('선택하신 기간 사이에 이미 승인 완료된 강의실 예약이 존재하여 선택할 수 없습니다.')
           return
+        }
+
+        // 수업 시간표 포함 여부 경고 (차단은 서버에서, 클라이언트는 미리 알림)
+        const hasTimetableInRange = timetableSlots.some(
+          (s) => s.dayStr >= startOnly && s.dayStr <= dayStr
+        )
+        if (hasTimetableInRange) {
+          setRangeWarning('선택하신 기간에 수업이 있는 날이 포함되어 있습니다. 수업 시간과 대여 시간이 겹칠 경우 신청이 자동 차단됩니다.')
         }
 
         onRangeSelect(`${startOnly}T09:00`, `${dayStr}T18:00`)
@@ -242,7 +256,8 @@ export function ClassroomAvailabilityCalendar({
               ))}
               {dayStrings.map((dayStr) => {
                 const dayNum = parseInt(dayStr.substring(8))
-                const dateObj = new Date(dayStr)
+                // new Date(year, month-1, day): 로컬 자정으로 생성해 타임존 영향 제거
+                const dateObj = new Date(year, month - 1, dayNum)
                 const dayOfWeek = dateObj.getDay() // 0: 일, 6: 토
                 const isSelected = selectedDayStr === dayStr
                 const isToday = format(today, 'yyyy-MM-dd') === dayStr
@@ -310,7 +325,21 @@ export function ClassroomAvailabilityCalendar({
             </div>
           )}
         </div>
-        
+
+        {/* 인라인 오류/경고 메시지 (alert() 대체) */}
+        {rangeError && (
+          <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-600 dark:text-red-400 font-medium">
+            <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+            <span>{rangeError}</span>
+          </div>
+        )}
+        {rangeWarning && (
+          <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-400 font-medium">
+            <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+            <span>{rangeWarning}</span>
+          </div>
+        )}
+
         {/* Help tooltip */}
         <div className="text-[10px] text-base-muted flex items-center gap-1.5 border-t border-base pt-2 mt-2">
           <HelpCircle className="w-3.5 h-3.5" />
@@ -414,7 +443,11 @@ export function ClassroomAvailabilityCalendar({
           <div className="grid grid-cols-2 gap-1.5">
             <button
               type="button"
-              onClick={() => onRangeSelect(`${selectedDayStr}T09:00`, endAt ? `${endOnly}T18:00` : '')}
+              onClick={() => {
+                setRangeError(null)
+                setRangeWarning(null)
+                onRangeSelect(`${selectedDayStr}T09:00`, endAt ? `${endOnly}T18:00` : '')
+              }}
               className="py-2 rounded-xl bg-surface-raised border border-strong text-xs font-semibold text-base-primary hover:bg-surface-overlay transition"
             >
               시작일 지정
@@ -424,9 +457,11 @@ export function ClassroomAvailabilityCalendar({
               disabled={!startOnly}
               onClick={() => {
                 if (selectedDayStr < startOnly) {
-                  alert('반납 예정일은 대여 시작일보다 이전일 수 없습니다.')
+                  setRangeError('반납 예정일은 대여 시작일보다 이전일 수 없습니다.')
                   return
                 }
+                setRangeError(null)
+                setRangeWarning(null)
                 onRangeSelect(startAt, `${selectedDayStr}T18:00`)
               }}
               className="py-2 rounded-xl bg-surface-raised border border-strong text-xs font-semibold text-base-primary hover:bg-surface-overlay disabled:opacity-30 transition"

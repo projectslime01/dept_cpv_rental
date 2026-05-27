@@ -17,7 +17,20 @@ export async function getTimetablesForClassroom(classroomId: number) {
   })
 }
 
-export type TimetableResult = { success: true } | { success: false; error: string }
+export interface CreatedTimetableEntry {
+  id: number
+  classroomId: number
+  dayOfWeek: number
+  startTime: string
+  endTime: string
+  courseName: string | null
+  semesterStart: string // ISO string
+  semesterEnd: string   // ISO string
+}
+
+export type TimetableResult =
+  | { success: true; entry: CreatedTimetableEntry }
+  | { success: false; error: string }
 
 export async function createTimetableEntry(formData: FormData): Promise<TimetableResult> {
   await requireAdmin()
@@ -47,12 +60,23 @@ export async function createTimetableEntry(formData: FormData): Promise<Timetabl
   }
 
   try {
-    await prisma.classroomTimetable.create({
+    const created = await prisma.classroomTimetable.create({
       data: { classroomId, dayOfWeek, startTime, endTime, courseName, semesterStart, semesterEnd },
     })
     revalidatePath(`/admin/classrooms/${classroomId}/timetable`)
-    revalidatePath(`/api/classrooms/${classroomId}/availability`)
-    return { success: true }
+    return {
+      success: true,
+      entry: {
+        id: created.id,
+        classroomId: created.classroomId,
+        dayOfWeek: created.dayOfWeek,
+        startTime: created.startTime,
+        endTime: created.endTime,
+        courseName: created.courseName,
+        semesterStart: created.semesterStart.toISOString(),
+        semesterEnd: created.semesterEnd.toISOString(),
+      },
+    }
   } catch (e) {
     console.error('createTimetableEntry error:', e)
     return { success: false, error: '저장 중 오류가 발생했습니다.' }
@@ -63,4 +87,5 @@ export async function deleteTimetableEntry(id: number): Promise<void> {
   await requireAdmin()
   const entry = await prisma.classroomTimetable.delete({ where: { id }, select: { classroomId: true } })
   revalidatePath(`/admin/classrooms/${entry.classroomId}/timetable`)
+  revalidatePath(`/api/classrooms/${entry.classroomId}/availability`)
 }
