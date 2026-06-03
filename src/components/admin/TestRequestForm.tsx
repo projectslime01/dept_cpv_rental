@@ -170,6 +170,7 @@ export function TestRequestForm({ equipments, classrooms }: Props) {
                 수량 * (최소 {minQty} / 최대 {maxQty})
               </label>
               <input
+                key={selectedEquipmentId ?? 'none'}
                 type="number"
                 name="quantity"
                 required
@@ -219,13 +220,17 @@ export function TestRequestForm({ equipments, classrooms }: Props) {
 
           <div>
             <label className={labelClass}>강의실 *</label>
-            <select name="classroomId" required className={inputClass}>
-              {classrooms.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.roomNumber}
-                </option>
-              ))}
-            </select>
+            {classrooms.length === 0 ? (
+              <p className="text-sm text-base-muted py-2">등록된 강의실이 없습니다.</p>
+            ) : (
+              <select name="classroomId" required className={inputClass}>
+                {classrooms.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.roomNumber}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -288,7 +293,7 @@ export function TestRequestForm({ equipments, classrooms }: Props) {
             <div className="grid grid-cols-2 gap-3 pl-6">
               <div>
                 <label className={labelClass}>인원 수 *</label>
-                <input type="number" name="groupCount" required min={2} className={inputClass} />
+                <input type="number" name="groupCount" required={isGroup} min={2} className={inputClass} />
               </div>
               <div>
                 <label className={labelClass}>구성원 (선택)</label>
