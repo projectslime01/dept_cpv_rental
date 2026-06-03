@@ -41,6 +41,9 @@ model RentalRequest {
   createdAt     DateTime  @default(now())
   equipment     Equipment @relation(fields: [equipmentId], references: [id])
   accessories   RentalRequestAccessory[]
+  isTest      Boolean @default(false)
+  testAdminId Int?
+  testAdmin   Admin?  @relation("RentalTestAdmin", fields: [testAdminId], references: [id], onDelete: SetNull)
 }
 
 model EquipmentAccessory {
@@ -72,6 +75,8 @@ model Admin {
   passwordHash String
   createdAt    DateTime @default(now())
   name         String   @default("관리자")
+  testRentalRequests    RentalRequest[]          @relation("RentalTestAdmin")
+  testClassroomRequests ClassroomRentalRequest[] @relation("ClassroomTestAdmin")
 }
 
 model ClassroomRequest {
@@ -147,4 +152,7 @@ model ClassroomRentalRequest {
   isGroup               Boolean   @default(false)
   monitorAssets         String?
   classroom             Classroom @relation(fields: [classroomId], references: [id])
+  isTest      Boolean @default(false)
+  testAdminId Int?
+  testAdmin   Admin?  @relation("ClassroomTestAdmin", fields: [testAdminId], references: [id], onDelete: SetNull)
 }
