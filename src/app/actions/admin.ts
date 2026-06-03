@@ -19,11 +19,12 @@ async function requireAdmin() {
 }
 
 async function requireAdminSession() {
+  // CredentialsProvider only returns users from the Admin table,
+  // so a valid session is sufficient to confirm admin identity.
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) throw new Error('Unauthorized')
   return {
     adminId: parseInt(session.user.id),
-    adminName: session.user.name ?? '관리자',
   }
 }
 
@@ -367,7 +368,7 @@ export async function createTestRentalRequest(formData: FormData): Promise<TestR
       const passwordHash = await hashPassword(password)
       const req = await tx.rentalRequest.create({
         data: {
-          requestNumber: `TEMP-${Date.now()}`,
+          requestNumber: `TEMP-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           passwordHash,
           applicantName,
           studentId,
@@ -434,31 +435,34 @@ export async function createTestClassroomRentalRequest(formData: FormData): Prom
   if (!isAvailable) return { success: false, error: '해당 강의실은 선택한 기간에 이미 예약되어 있습니다.' }
 
   try {
-    const passwordHash = await hashPassword(password)
-    const req = await prisma.classroomRentalRequest.create({
-      data: {
-        requestNumber: `TEMP-${Date.now()}`,
-        passwordHash,
-        applicantName,
-        studentId,
-        phone,
-        classroomId,
-        startAt,
-        endAt,
-        purpose,
-        isGroup,
-        groupCount,
-        groupMembers,
-        monitorAssets,
-        isTest: true,
-        testAdminId: adminId,
-      },
+    const requestNumber = await prisma.$transaction(async (tx) => {
+      const passwordHash = await hashPassword(password)
+      const req = await tx.classroomRentalRequest.create({
+        data: {
+          requestNumber: `TEMP-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          passwordHash,
+          applicantName,
+          studentId,
+          phone,
+          classroomId,
+          startAt,
+          endAt,
+          purpose,
+          isGroup,
+          groupCount,
+          groupMembers,
+          monitorAssets,
+          isTest: true,
+          testAdminId: adminId,
+        },
+      })
+      const rn = generateClassroomRN(new Date(), req.id)
+      await tx.classroomRentalRequest.update({ where: { id: req.id }, data: { requestNumber: rn } })
+      return rn
     })
-    const rn = generateClassroomRN(new Date(), req.id)
-    await prisma.classroomRentalRequest.update({ where: { id: req.id }, data: { requestNumber: rn } })
     revalidatePath('/admin/classroom')
     revalidatePath('/admin/requests')
-    return { success: true, requestNumber: rn }
+    return { success: true, requestNumber }
   } catch (error) {
     console.error('createTestClassroomRentalRequest error:', error)
     return { success: false, error: '신청 처리 중 오류가 발생했습니다.' }
