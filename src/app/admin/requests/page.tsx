@@ -38,7 +38,10 @@ export default async function RequestsPage({
           ...(statusFilter ? { status: statusFilter } : {}),
           ...(categoryFilter ? { equipment: { category: categoryFilter } } : {}),
         },
-        include: { equipment: { select: { name: true, category: true } } },
+        include: {
+          equipment: { select: { name: true, category: true } },
+          testAdmin: { select: { name: true } },
+        },
         orderBy: { createdAt: 'desc' },
       })
     : []
@@ -49,7 +52,10 @@ export default async function RequestsPage({
         where: {
           ...(statusFilter ? { status: statusFilter } : {}),
         },
-        include: { classroom: { select: { roomNumber: true } } },
+        include: {
+          classroom: { select: { roomNumber: true } },
+          testAdmin: { select: { name: true } },
+        },
         orderBy: { createdAt: 'desc' },
       })
     : []
@@ -191,8 +197,24 @@ export default async function RequestsPage({
                   </tr>
                 ) : equipmentRequests.map((r) => (
                   <tr key={r.id} className="hover:bg-surface-overlay transition-colors">
-                    <td className="px-4 py-3 font-mono text-xs text-base-secondary">{r.requestNumber}</td>
-                    <td className="px-4 py-3 text-base-primary">{r.applicantName}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-base-secondary">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span>{r.requestNumber}</span>
+                        {r.isTest && (
+                          <span className="inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-700/50">
+                            테스트
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-base-primary">
+                      <div>{r.applicantName}</div>
+                      {r.isTest && (
+                        <div className="text-[11px] text-base-muted">
+                          생성: {r.testAdmin?.name ?? '삭제된 관리자'}
+                        </div>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-base-secondary">{r.studentId}</td>
                     <td className="px-4 py-3 text-base-primary">{r.equipment.name}</td>
                     <td className="px-4 py-3 text-base-secondary text-xs">{r.equipment.category}</td>
@@ -237,8 +259,24 @@ export default async function RequestsPage({
                   </tr>
                 ) : classroomRequests.map((r) => (
                   <tr key={r.id} className="hover:bg-surface-overlay transition-colors">
-                    <td className="px-4 py-3 font-mono text-xs text-base-secondary">{r.requestNumber}</td>
-                    <td className="px-4 py-3 text-base-primary">{r.applicantName}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-base-secondary">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span>{r.requestNumber}</span>
+                        {r.isTest && (
+                          <span className="inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-700/50">
+                            테스트
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-base-primary">
+                      <div>{r.applicantName}</div>
+                      {r.isTest && (
+                        <div className="text-[11px] text-base-muted">
+                          생성: {r.testAdmin?.name ?? '삭제된 관리자'}
+                        </div>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-base-secondary">{r.studentId}</td>
                     <td className="px-4 py-3 text-base-primary font-semibold">{r.classroom.roomNumber}</td>
                     <td className="px-4 py-3 text-base-secondary max-w-[150px] truncate" title={r.purpose || ''}>

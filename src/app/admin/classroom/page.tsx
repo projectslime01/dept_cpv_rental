@@ -31,7 +31,10 @@ export default async function ClassroomAdminPage({
 
   const requests = await prisma.classroomRentalRequest.findMany({
     where: statusFilter ? { status: statusFilter } : {},
-    include: { classroom: { select: { roomNumber: true } } },
+    include: {
+      classroom: { select: { roomNumber: true } },
+      testAdmin: { select: { name: true } },
+    },
     orderBy: { createdAt: 'desc' },
   })
 
@@ -88,11 +91,25 @@ export default async function ClassroomAdminPage({
                 </tr>
               ) : requests.map(r => (
                 <tr key={r.id} className="hover:bg-surface-raised transition-colors align-top">
-                  <td className="px-4 py-3 font-mono text-xs text-base-muted whitespace-nowrap">{r.requestNumber}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-base-secondary">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="whitespace-nowrap">{r.requestNumber}</span>
+                      {r.isTest && (
+                        <span className="inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-700/50">
+                          테스트
+                        </span>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-4 py-3 text-xs font-bold text-base-primary whitespace-nowrap">{r.classroom.roomNumber}</td>
                   <td className="px-4 py-3">
                     <p className="text-base-primary font-medium">{r.applicantName}</p>
                     <p className="text-xs text-base-muted">{r.phone}</p>
+                    {r.isTest && (
+                      <div className="text-[11px] text-base-muted">
+                        생성: {r.testAdmin?.name ?? '삭제된 관리자'}
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-base-secondary text-xs">{r.studentId}</td>
                   <td className="px-4 py-3 text-xs text-base-secondary whitespace-nowrap">
