@@ -45,3 +45,4 @@ prisma/*.db-journal
 *.db-journal
 test-results/
 playwright-report/
+scripts/.fonts/
