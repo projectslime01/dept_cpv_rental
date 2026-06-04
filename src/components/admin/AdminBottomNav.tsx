@@ -2,16 +2,17 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, ClipboardList, Package, Building2, History, Users, TestTube2 } from 'lucide-react'
+import { LayoutDashboard, ClipboardList, Package, Building2, History, Users, TestTube2, BookOpen } from 'lucide-react'
 
 const NAV_ITEMS = [
-  { href: '/admin/dashboard', label: '대시보드', icon: LayoutDashboard },
-  { href: '/admin/requests', label: '신청', icon: ClipboardList },
-  { href: '/admin/equipment', label: '기자재', icon: Package },
-  { href: '/admin/classrooms', label: '강의실', icon: Building2 },
-  { href: '/admin/history', label: '이력', icon: History },
-  { href: '/admin/accounts', label: '계정', icon: Users },
-  { href: '/admin/test-request', label: '테스트', icon: TestTube2 },
+  { href: '/admin/dashboard',    label: '대시보드', icon: LayoutDashboard },
+  { href: '/admin/requests',     label: '신청',    icon: ClipboardList },
+  { href: '/admin/equipment',    label: '기자재',  icon: Package },
+  { href: '/admin/classrooms',   label: '강의실',  icon: Building2 },
+  { href: '/admin/history',      label: '이력',    icon: History },
+  { href: '/admin/accounts',     label: '계정',    icon: Users },
+  { href: '/admin/test-request', label: '테스트',  icon: TestTube2 },
+  { href: '/admin/guide',        label: '가이드',  icon: BookOpen },
 ]
 
 export function AdminBottomNav() {
