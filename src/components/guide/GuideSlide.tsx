@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import type { GuideStep } from '@/lib/guide-content'
 
@@ -13,6 +13,12 @@ interface Props {
 
 export function GuideSlide({ step, sectionTitle, stepIndex, totalSteps }: Props) {
   const [imgSrc, setImgSrc] = useState(step.imagePath)
+
+  // 슬라이드 전환 시 동일 인스턴스의 step prop만 바뀌므로
+  // imgSrc state를 새 이미지 경로로 동기화한다.
+  useEffect(() => {
+    setImgSrc(step.imagePath)
+  }, [step.imagePath])
 
   return (
     <div className="flex flex-col md:flex-row gap-8 items-center w-full">
