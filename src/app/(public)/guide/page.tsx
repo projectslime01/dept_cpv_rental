@@ -13,6 +13,7 @@ export default function GuidePage() {
       sections={studentGuide}
       title="이용 가이드"
       subtitle="기자재 및 강의실 대여 시스템 사용 방법을 단계별로 안내합니다."
+      pdfPath="/guide/연성대-기자재대여-학생가이드.pdf"
     />
   )
 }
