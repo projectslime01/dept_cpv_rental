@@ -19,6 +19,7 @@ interface Props {
   onChange: (v: string) => void
   placeholder?: string
   disablePast?: boolean
+  minDate?: Date           // disable any day strictly before this date
 }
 
 export function DateTimePicker({
@@ -26,6 +27,7 @@ export function DateTimePicker({
   onChange,
   placeholder = '날짜 선택',
   disablePast = false,
+  minDate,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)
@@ -47,6 +49,21 @@ export function DateTimePicker({
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
+
+  // Prop인 value가 외부에서 갱신될 때 내부 상태와 동기화
+  useEffect(() => {
+    const d = value ? new Date(value) : null
+    if (d && isValid(d)) {
+      setSelectedDate(d)
+      setViewDate(d)
+      setHour(d.getHours())
+      setMinute(d.getMinutes())
+    } else {
+      setSelectedDate(null)
+      setHour(9)
+      setMinute(0)
+    }
+  }, [value])
 
   // Calendar grid
   const gridDays = eachDayOfInterval({
@@ -95,41 +112,41 @@ export function DateTimePicker({
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
-        className={`w-full flex items-center gap-2.5 px-3.5 py-3 rounded-xl border text-sm transition-all duration-150 bg-[#1a191b]
+        className={`w-full flex items-center gap-2.5 px-3.5 py-3 rounded-xl border text-sm transition-all duration-150 bg-surface-raised
           ${open
-            ? 'border-[#7d7173] ring-2 ring-[#ffb2ba]/10'
-            : 'border-[#3a3640] hover:border-[#7d7173]'}`}
+            ? 'border-brand-rose ring-2 ring-brand-rose/10'
+            : 'border-strong hover:border-brand-rose/50'}`}
       >
-        <CalendarDays className={`w-4 h-4 shrink-0 ${displayText ? 'text-[#c8c4c3]' : 'text-[#4a4448]'}`} />
-        <span className={`flex-1 text-left ${displayText ? 'text-[#e5e2e1] font-medium' : 'text-[#4a4448]'}`}>
+        <CalendarDays className={`w-4 h-4 shrink-0 ${displayText ? 'text-base-primary' : 'text-base-faint'}`} />
+        <span className={`flex-1 text-left ${displayText ? 'text-base-primary font-medium' : 'text-base-faint'}`}>
           {displayText ?? placeholder}
         </span>
       </button>
 
       {/* Dropdown panel */}
       {open && (
-        <div className="absolute z-50 top-full mt-2 left-0 bg-[#201f21] rounded-2xl shadow-2xl shadow-black/50 border border-[#3a3640] w-72 overflow-hidden">
+        <div className="absolute z-50 top-full mt-2 left-0 bg-surface-base rounded-2xl shadow-2xl border border-strong w-72 overflow-hidden">
 
           {/* Month navigation */}
-          <div className="bg-[#0f0e11] text-[#e5e2e1] px-3 py-2.5 flex items-center justify-between">
+          <div className="bg-surface border-b border-base text-base-primary px-3 py-2.5 flex items-center justify-between">
             <button type="button" onClick={() => setViewDate(subMonths(viewDate, 1))}
-              className="p-1.5 rounded-lg hover:bg-[#ffb2ba]/10 transition-colors">
+              className="p-1.5 rounded-lg hover:bg-brand-rose-muted transition-colors">
               <ChevronLeft className="w-3.5 h-3.5" />
             </button>
             <span className="text-sm font-semibold">
               {format(viewDate, 'yyyy년 M월', { locale: ko })}
             </span>
             <button type="button" onClick={() => setViewDate(addMonths(viewDate, 1))}
-              className="p-1.5 rounded-lg hover:bg-[#ffb2ba]/10 transition-colors">
+              className="p-1.5 rounded-lg hover:bg-brand-rose-muted transition-colors">
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
           {/* Weekday labels */}
-          <div className="grid grid-cols-7 bg-[#252228] border-b border-[#2e2b2f]">
+          <div className="grid grid-cols-7 bg-surface-raised border-b border-base">
             {WEEKDAYS.map((d, i) => (
               <div key={d} className={`text-center text-[11px] font-semibold py-1.5
-                ${i === 0 ? 'text-rose-400' : i === 6 ? 'text-sky-400' : 'text-[#6b6468]'}`}>
+                ${i === 0 ? 'text-rose-500' : i === 6 ? 'text-sky-500' : 'text-base-muted'}`}>
                 {d}
               </div>
             ))}
@@ -140,7 +157,8 @@ export function DateTimePicker({
             {gridDays.map(day => {
               const sel      = selectedDate ? isSameDay(day, selectedDate) : false
               const thisMonth = isSameMonth(day, viewDate)
-              const disabled  = disablePast && isBefore(startOfDay(day), todayStart)
+              const disabled  = (disablePast && isBefore(startOfDay(day), todayStart))
+                             || (minDate != null && isBefore(startOfDay(day), startOfDay(minDate)))
               const nowDay    = isToday(day)
               const sun = day.getDay() === 0
               const sat = day.getDay() === 6
@@ -152,14 +170,14 @@ export function DateTimePicker({
                   disabled={disabled}
                   onClick={() => !disabled && selectDay(day)}
                   className={[
-                    'aspect-square flex items-center justify-center text-xs rounded-lg transition-all duration-100 text-[#c8c4c3]',
-                    sel      ? 'bg-[#ff4f73] text-white font-bold scale-95' : '',
-                    nowDay && !sel ? 'ring-1 ring-[#ffb2ba] font-semibold' : '',
-                    !sel && !disabled && thisMonth ? 'hover:bg-[#2e2b33] active:scale-95' : '',
+                    'aspect-square flex items-center justify-center text-xs rounded-lg transition-all duration-100 text-base-primary',
+                    sel      ? 'bg-brand-rose text-white font-bold scale-95' : '',
+                    nowDay && !sel ? 'ring-1 ring-brand-rose font-semibold' : '',
+                    !sel && !disabled && thisMonth ? 'hover:bg-surface-overlay active:scale-95' : '',
                     !thisMonth ? 'opacity-20' : '',
                     disabled  ? 'opacity-20 cursor-not-allowed' : 'cursor-pointer',
-                    sun && !sel && thisMonth ? 'text-rose-400' : '',
-                    sat && !sel && thisMonth ? 'text-sky-400' : '',
+                    sun && !sel && thisMonth ? 'text-rose-500' : '',
+                    sat && !sel && thisMonth ? 'text-sky-500' : '',
                   ].join(' ')}
                 >
                   {day.getDate()}
@@ -169,16 +187,16 @@ export function DateTimePicker({
           </div>
 
           {/* Time picker */}
-          <div className="border-t border-[#2e2b2f] bg-[#1a191b] px-3 py-3 space-y-2.5">
+          <div className="border-t border-base bg-surface-raised px-3 py-3 space-y-2.5">
             <div className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-[#6b6468]" />
-              <span className="text-[10px] font-bold text-[#6b6468] uppercase tracking-wider">시간 선택</span>
+              <Clock className="w-3.5 h-3.5 text-base-muted" />
+              <span className="text-[10px] font-bold text-base-muted uppercase tracking-wider">시간 선택</span>
             </div>
 
             <div className="flex items-center gap-2">
               {/* Hour input */}
               <div className="flex flex-col items-center gap-1">
-                <span className="text-[10px] text-[#6b6468] font-semibold">시</span>
+                <span className="text-[10px] text-base-muted font-semibold">시</span>
                 <input
                   type="number"
                   min={0}
@@ -186,15 +204,15 @@ export function DateTimePicker({
                   value={String(hour).padStart(2, '0')}
                   onChange={e => handleHourInput(e.target.value)}
                   onFocus={e => e.target.select()}
-                  className="w-14 h-11 text-center bg-[#252228] rounded-xl border-2 border-[#3a3640] font-mono text-lg font-bold text-[#e5e2e1] focus:outline-none focus:border-[#ffb2ba]/50 transition-colors"
+                  className="w-14 h-11 text-center bg-surface-base rounded-xl border-2 border-strong font-mono text-lg font-bold text-base-primary focus:outline-none focus:border-brand-rose transition-colors"
                 />
               </div>
 
-              <span className="text-2xl font-black text-[#3a3640] mt-4 select-none">:</span>
+              <span className="text-2xl font-black text-base-muted mt-4 select-none">:</span>
 
               {/* Minute input */}
               <div className="flex flex-col items-center gap-1">
-                <span className="text-[10px] text-[#6b6468] font-semibold">분</span>
+                <span className="text-[10px] text-base-muted font-semibold">분</span>
                 <input
                   type="number"
                   min={0}
@@ -202,7 +220,7 @@ export function DateTimePicker({
                   value={String(minute).padStart(2, '0')}
                   onChange={e => handleMinuteInput(e.target.value)}
                   onFocus={e => e.target.select()}
-                  className="w-14 h-11 text-center bg-[#252228] rounded-xl border-2 border-[#3a3640] font-mono text-lg font-bold text-[#e5e2e1] focus:outline-none focus:border-[#ffb2ba]/50 transition-colors"
+                  className="w-14 h-11 text-center bg-surface-base rounded-xl border-2 border-strong font-mono text-lg font-bold text-base-primary focus:outline-none focus:border-brand-rose transition-colors"
                 />
               </div>
             </div>
@@ -211,7 +229,7 @@ export function DateTimePicker({
           {/* Confirm button */}
           <div className="px-3 pb-3">
             <button type="button" onClick={() => setOpen(false)} disabled={!selectedDate}
-              className="w-full py-2.5 bg-[#ff4f73] text-white text-sm font-semibold rounded-xl hover:bg-[#e03d61] transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+              className="w-full py-2.5 bg-brand-rose text-white text-sm font-semibold rounded-xl hover:bg-brand-rose/90 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
               {selectedDate
                 ? `${format(selectedDate, 'M.d(EEE) HH:mm', { locale: ko })} 확정`
                 : '날짜를 선택해주세요'}

@@ -13,10 +13,13 @@ model Equipment {
   category      String
   description   String?
   imageUrl      String?
-  totalQuantity Int
+  totalQuantity     Int
+  minRentalQuantity Int          @default(1)
+  maxRentalQuantity Int?
   status        String          @default("active")
-  requests      RentalRequest[]
   createdAt     DateTime        @default(now())
+  requests      RentalRequest[]
+  accessories   EquipmentAccessory[]
 }
 
 model RentalRequest {
@@ -28,7 +31,6 @@ model RentalRequest {
   studentId     String
   phone         String
   equipmentId   Int
-  equipment     Equipment @relation(fields: [equipmentId], references: [id])
   quantity      Int
   startAt       DateTime
   endAt         DateTime
@@ -37,12 +39,63 @@ model RentalRequest {
   adminNote     String?
   returnedAt    DateTime?
   createdAt     DateTime  @default(now())
+  equipment     Equipment @relation(fields: [equipmentId], references: [id])
+  accessories   RentalRequestAccessory[]
+  isTest      Boolean @default(false)
+  testAdminId Int?
+  testAdmin   Admin?  @relation("RentalTestAdmin", fields: [testAdminId], references: [id], onDelete: SetNull)
+}
+
+model EquipmentAccessory {
+  id            Int                      @id @default(autoincrement())
+  equipmentId   Int
+  name          String
+  description   String?
+  totalQuantity Int
+  status        String                   @default("active")
+  createdAt     DateTime                 @default(now())
+  equipment     Equipment                @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  rentalItems   RentalRequestAccessory[]
+}
+
+model RentalRequestAccessory {
+  id              Int                @id @default(autoincrement())
+  rentalRequestId Int
+  accessoryId     Int
+  quantity        Int
+  rentalRequest   RentalRequest      @relation(fields: [rentalRequestId], references: [id], onDelete: Cascade)
+  accessory       EquipmentAccessory @relation(fields: [accessoryId], references: [id], onDelete: Restrict)
+
+  @@unique([rentalRequestId, accessoryId])
 }
 
 model Admin {
-  id           Int    @id @default(autoincrement())
-  username     String @unique
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
   passwordHash String
+  createdAt    DateTime @default(now())
+  name         String   @default("관리자")
+  testRentalRequests    RentalRequest[]          @relation("RentalTestAdmin")
+  testClassroomRequests ClassroomRentalRequest[] @relation("ClassroomTestAdmin")
+}
+
+model ClassroomRequest {
+  id            Int      @id @default(autoincrement())
+  requestNumber String   @unique
+  passwordHash  String
+  applicantName String
+  studentId     String
+  phone         String
+  isGroup       Boolean  @default(false)
+  groupCount    Int?
+  groupMembers  String?
+  startAt       DateTime
+  endAt         DateTime
+  purpose       String
+  monitorAssets String
+  status        String   @default("pending")
+  adminNote     String?
+  createdAt     DateTime @default(now())
 }
 
 model RateLimitAttempt {
@@ -51,4 +104,55 @@ model RateLimitAttempt {
   attempts    Int       @default(0)
   lockedUntil DateTime?
   updatedAt   DateTime  @updatedAt
+}
+
+model Classroom {
+  id          Int                      @id @default(autoincrement())
+  roomNumber  String                   @unique
+  capacity    Int
+  description String?
+  equipment   String?
+  status      String                   @default("active")
+  createdAt   DateTime                 @default(now())
+  requests    ClassroomRentalRequest[]
+  timetables  ClassroomTimetable[]
+}
+
+model ClassroomTimetable {
+  id            Int       @id @default(autoincrement())
+  classroomId   Int
+  dayOfWeek     Int       // 0=월 1=화 2=수 3=목 4=금 5=토 6=일
+  startTime     String    // "HH:MM" 24시 형식
+  endTime       String    // "HH:MM" 24시 형식
+  courseName    String?
+  semesterStart DateTime
+  semesterEnd   DateTime
+  createdAt     DateTime  @default(now())
+  classroom     Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+}
+
+model ClassroomRentalRequest {
+  id                    Int       @id @default(autoincrement())
+  requestNumber         String    @unique
+  passwordHash          String
+  applicantName         String
+  studentId             String
+  phone                 String
+  classroomId           Int
+  startAt               DateTime
+  endAt                 DateTime
+  purpose               String?
+  status                String    @default("pending")
+  adminNote             String?
+  returnedAt            DateTime?
+  hasDepartmentApproval Boolean   @default(false)
+  createdAt             DateTime  @default(now())
+  groupCount            Int?
+  groupMembers          String?
+  isGroup               Boolean   @default(false)
+  monitorAssets         String?
+  classroom             Classroom @relation(fields: [classroomId], references: [id])
+  isTest      Boolean @default(false)
+  testAdminId Int?
+  testAdmin   Admin?  @relation("ClassroomTestAdmin", fields: [testAdminId], references: [id], onDelete: SetNull)
 }

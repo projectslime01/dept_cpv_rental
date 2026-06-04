@@ -1,15 +1,27 @@
 import { prisma } from '@/lib/prisma'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import { Clock, Package } from 'lucide-react'
+import { Clock, Package, Building } from 'lucide-react'
 import { sortByCategory } from '@/lib/categories'
 
 export default async function DashboardPage() {
   const now = new Date()
 
-  const [pendingCount, activeRentals, dueSoon, equipmentStats] = await Promise.all([
+  const [
+    eqPendingCount,
+    roomPendingCount,
+    eqActiveRentals,
+    roomActiveRentals,
+    eqDueSoon,
+    roomDueSoon,
+    equipmentStats,
+  ] = await Promise.all([
     prisma.rentalRequest.count({ where: { status: 'pending' } }),
+    prisma.classroomRentalRequest.count({ where: { status: 'pending' } }),
     prisma.rentalRequest.count({
+      where: { status: 'approved', startAt: { lte: now }, endAt: { gte: now } },
+    }),
+    prisma.classroomRentalRequest.count({
       where: { status: 'approved', startAt: { lte: now }, endAt: { gte: now } },
     }),
     prisma.rentalRequest.findMany({
@@ -18,6 +30,14 @@ export default async function DashboardPage() {
         endAt: { gte: now, lte: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000) },
       },
       include: { equipment: { select: { name: true } } },
+      orderBy: { endAt: 'asc' },
+    }),
+    prisma.classroomRentalRequest.findMany({
+      where: {
+        status: 'approved',
+        endAt: { gte: now, lte: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000) },
+      },
+      include: { classroom: { select: { roomNumber: true } } },
       orderBy: { endAt: 'asc' },
     }),
     prisma.equipment.findMany({
@@ -40,83 +60,138 @@ export default async function DashboardPage() {
   )
 
   const fmt = (d: Date) => format(d, 'MM/dd HH:mm', { locale: ko })
-  const diffDays = (d: Date) => Math.ceil((d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+  const diffDays = (d: Date) => Math.max(0, Math.ceil((d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold text-[#e5e2e1]">대시보드</h1>
+      <h1 className="text-xl font-bold text-base-primary">대시보드</h1>
 
       {/* 요약 카드 */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-[#201f21] rounded-2xl border border-[#2e2b2f] p-5">
-          <p className="text-xs font-semibold text-[#6b6468] uppercase tracking-wider">승인 대기</p>
-          <p className="text-3xl font-black text-amber-400 mt-2">{pendingCount}</p>
-          <p className="text-xs text-[#6b6468] mt-1">건</p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-surface-base rounded-2xl border border-base p-5">
+          <p className="text-xs font-semibold text-base-muted uppercase tracking-wider">기자재 승인 대기</p>
+          <p className="text-3xl font-black text-amber-500 dark:text-amber-400 mt-2">{eqPendingCount}</p>
+          <p className="text-xs text-base-muted mt-1">건</p>
         </div>
-        <div className="bg-[#201f21] rounded-2xl border border-[#2e2b2f] p-5">
-          <p className="text-xs font-semibold text-[#6b6468] uppercase tracking-wider">현재 대여 중</p>
-          <p className="text-3xl font-black text-[#ffb2ba] mt-2">{activeRentals}</p>
-          <p className="text-xs text-[#6b6468] mt-1">건</p>
+        <div className="bg-surface-base rounded-2xl border border-brand-indigo/30 p-5">
+          <p className="text-xs font-semibold text-base-muted uppercase tracking-wider">강의실 승인 대기</p>
+          <p className="text-3xl font-black text-brand-indigo mt-2">{roomPendingCount}</p>
+          <p className="text-xs text-base-muted mt-1">건</p>
+        </div>
+        <div className="bg-surface-base rounded-2xl border border-base p-5">
+          <p className="text-xs font-semibold text-base-muted uppercase tracking-wider">기자재 대여 중</p>
+          <p className="text-3xl font-black text-brand-rose mt-2">{eqActiveRentals}</p>
+          <p className="text-xs text-base-muted mt-1">건</p>
+        </div>
+        <div className="bg-surface-base rounded-2xl border border-brand-indigo/30 p-5">
+          <p className="text-xs font-semibold text-base-muted uppercase tracking-wider">강의실 대여 중</p>
+          <p className="text-3xl font-black text-brand-indigo mt-2">{roomActiveRentals}</p>
+          <p className="text-xs text-base-muted mt-1">건</p>
         </div>
       </div>
 
-      {/* 반납 예정 */}
-      {dueSoon.length > 0 && (
-        <div className="bg-[#201f21] rounded-2xl border border-[#2e2b2f] overflow-hidden">
-          <div className="flex items-center gap-2 px-5 py-3.5 border-b border-[#252228]">
-            <Clock className="w-4 h-4 text-[#6b6468]" />
-            <h2 className="text-sm font-semibold text-[#c8c4c3]">반납 예정 (3일 이내)</h2>
+      {/* 반납 / 사용 종료 예정 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* 기자재 반납 예정 */}
+        <div className="bg-surface-base rounded-2xl border border-base overflow-hidden">
+          <div className="flex items-center gap-2 px-5 py-3.5 border-b border-base">
+            <Clock className="w-4 h-4 text-brand-rose" />
+            <h2 className="text-sm font-semibold text-base-primary">기자재 반납 예정 (3일 이내)</h2>
+            <span className="ml-auto text-xs text-base-muted">{eqDueSoon.length}건</span>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[480px]">
+            <table className="w-full text-sm min-w-[360px]">
               <thead>
-                <tr className="bg-[#252228] border-b border-[#2e2b2f]">
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">기자재</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">신청자</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">반납 예정</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">D-Day</th>
+                <tr className="bg-surface-raised border-b border-base">
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">기자재</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">신청자</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">반납 예정</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">D-Day</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#252228]">
-                {dueSoon.map((r) => (
-                  <tr key={r.id} className="hover:bg-[#252228] transition-colors">
-                    <td className="px-4 py-3 text-[#e5e2e1]">{r.equipment.name}</td>
-                    <td className="px-4 py-3 text-[#c8c4c3]">{r.applicantName}</td>
-                    <td className="px-4 py-3 text-[#9b8f91] text-xs">{fmt(r.endAt)}</td>
-                    <td className="px-4 py-3 font-bold text-red-400 whitespace-nowrap">D-{diffDays(r.endAt)}</td>
+              <tbody className="divide-y divide-base">
+                {eqDueSoon.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="text-center py-6 text-xs text-base-muted">예정된 내역이 없습니다.</td>
+                  </tr>
+                ) : eqDueSoon.map((r) => (
+                  <tr key={r.id} className="hover:bg-surface-overlay transition-colors">
+                    <td className="px-4 py-3 text-base-primary">{r.equipment.name}</td>
+                    <td className="px-4 py-3 text-base-secondary">{r.applicantName}</td>
+                    <td className="px-4 py-3 text-base-muted text-xs">{fmt(r.endAt)}</td>
+                    <td className="px-4 py-3 font-bold text-brand-rose whitespace-nowrap">
+                      {diffDays(r.endAt) === 0 ? 'D-Day' : `D-${diffDays(r.endAt)}`}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         </div>
-      )}
+
+        {/* 강의실 사용 종료 예정 */}
+        <div className="bg-surface-base rounded-2xl border border-base overflow-hidden">
+          <div className="flex items-center gap-2 px-5 py-3.5 border-b border-base">
+            <Building className="w-4 h-4 text-brand-indigo" />
+            <h2 className="text-sm font-semibold text-base-primary">강의실 반납/종료 예정 (3일 이내)</h2>
+            <span className="ml-auto text-xs text-base-muted">{roomDueSoon.length}건</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[360px]">
+              <thead>
+                <tr className="bg-surface-raised border-b border-base">
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">강의실</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">신청자</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">사용 종료</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">D-Day</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-base">
+                {roomDueSoon.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="text-center py-6 text-xs text-base-muted">예정된 내역이 없습니다.</td>
+                  </tr>
+                ) : roomDueSoon.map((r) => (
+                  <tr key={r.id} className="hover:bg-surface-overlay transition-colors">
+                    <td className="px-4 py-3 text-base-primary font-semibold">{r.classroom.roomNumber}</td>
+                    <td className="px-4 py-3 text-base-secondary">{r.applicantName}</td>
+                    <td className="px-4 py-3 text-base-muted text-xs">{fmt(r.endAt)}</td>
+                    <td className="px-4 py-3 font-bold text-brand-indigo whitespace-nowrap">
+                      {diffDays(r.endAt) === 0 ? 'D-Day' : `D-${diffDays(r.endAt)}`}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
 
       {/* 기자재별 수량 현황 */}
-      <div className="bg-[#201f21] rounded-2xl border border-[#2e2b2f] overflow-hidden">
-        <div className="flex items-center gap-2 px-5 py-3.5 border-b border-[#252228]">
-          <Package className="w-4 h-4 text-[#6b6468]" />
-          <h2 className="text-sm font-semibold text-[#c8c4c3]">기자재 수량 현황</h2>
+      <div className="bg-surface-base rounded-2xl border border-base overflow-hidden">
+        <div className="flex items-center gap-2 px-5 py-3.5 border-b border-base">
+          <Package className="w-4 h-4 text-base-muted" />
+          <h2 className="text-sm font-semibold text-base-primary">기자재 수량 현황</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[480px]">
             <thead>
-              <tr className="bg-[#252228] border-b border-[#2e2b2f]">
-                <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">기자재명</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">카테고리</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">전체</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">대여 중</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-[#6b6468] whitespace-nowrap">대여 가능</th>
+              <tr className="bg-surface-raised border-b border-base">
+                <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">기자재명</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">카테고리</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">전체</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">대여 중</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">대여 가능</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#252228]">
+            <tbody className="divide-y divide-base">
               {stats.map((eq) => (
-                <tr key={eq.id} className="hover:bg-[#252228] transition-colors">
-                  <td className="px-4 py-3 font-medium text-[#e5e2e1]">{eq.name}</td>
-                  <td className="px-4 py-3 text-[#9b8f91] text-xs">{eq.category}</td>
-                  <td className="px-4 py-3 text-center text-[#9b8f91]">{eq.totalQuantity}</td>
-                  <td className="px-4 py-3 text-center text-[#ffb2ba] font-medium">{eq.rentedNow}</td>
-                  <td className={`px-4 py-3 text-center font-bold ${eq.availableNow > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                <tr key={eq.id} className="hover:bg-surface-overlay transition-colors">
+                  <td className="px-4 py-3 font-medium text-base-primary">{eq.name}</td>
+                  <td className="px-4 py-3 text-base-secondary text-xs">{eq.category}</td>
+                  <td className="px-4 py-3 text-center text-base-secondary">{eq.totalQuantity}</td>
+                  <td className="px-4 py-3 text-center text-brand-rose font-medium">{eq.rentedNow}</td>
+                  <td className={`px-4 py-3 text-center font-bold ${eq.availableNow > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
                     {eq.availableNow}
                   </td>
                 </tr>

@@ -1,20 +1,29 @@
 import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
 import { PrismaNeon } from '@prisma/adapter-neon'
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 import bcrypt from 'bcryptjs'
 
 const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/db'
-const adapter = new PrismaNeon({ connectionString })
-const prisma = new PrismaClient({ adapter })
+let prisma: PrismaClient
+if (connectionString.startsWith('file:')) {
+  const dbPath = connectionString.replace('file:', '')
+  const adapter = new PrismaBetterSqlite3({ url: dbPath })
+  prisma = new PrismaClient({ adapter, log: ['error'] })
+} else {
+  const adapter = new PrismaNeon({ connectionString })
+  prisma = new PrismaClient({ adapter, log: ['error'] })
+}
 
 async function main() {
   const adminHash = await bcrypt.hash('admin1234', 10)
   await prisma.admin.upsert({
     where: { username: 'admin' },
     update: {},
-    create: { username: 'admin', passwordHash: adminHash },
+    create: { username: 'admin', passwordHash: adminHash, name: '최고관리자' },
   })
 
+  // ── 2026-05-26 프로덕션 DB 현황 기준 (관리자 수정 반영) ───────────────────
   const equipmentData = [
     // 카메라 바디
     { name: '소니 FX3', category: '카메라 바디', totalQuantity: 10, description: '풀프레임 시네마 카메라' },
@@ -31,7 +40,8 @@ async function main() {
     { name: '소니 50mm', category: '렌즈', totalQuantity: 4, description: 'SEL50F12GM 단렌즈' },
     { name: '소니 85mm', category: '렌즈', totalQuantity: 3, description: 'SEL85F14GM 단렌즈' },
     { name: '소니 100mm', category: '렌즈', totalQuantity: 2, description: 'SEL100F28GM 단렌즈' },
-    { name: '소니 100-400mm', category: '렌즈', totalQuantity: 1, description: 'SEL100400GM 초망원 줌 렌즈' },
+    // 소니 100-400mm은 관리자가 비활성화 처리 (status: inactive)
+    { name: '소니 100-400mm', category: '렌즈', totalQuantity: 1, description: 'SEL100400GM 초망원 줌 렌즈', status: 'inactive' },
 
     // 영상 장비
     { name: '짐벌', category: '영상 장비', totalQuantity: 3, description: '3축 카메라 짐벌 스태빌라이저' },
@@ -40,9 +50,9 @@ async function main() {
     { name: 'VR', category: '영상 장비', totalQuantity: 12, description: 'VR 헤드셋' },
     { name: '5.5인치 모니터', category: '영상 장비', totalQuantity: 10, description: '5.5인치 소형 외장 모니터' },
 
-    // 조명
+    // 조명 (관리자: "조명 스탠드" → "조명 세트 (본품, 스탠드 포함)"으로 변경)
     { name: '조명 배터리', category: '조명', totalQuantity: 10, description: '조명용 외장 배터리' },
-    { name: '조명 스탠드', category: '조명', totalQuantity: 6, description: '조명 스탠드 (샌트)' },
+    { name: '조명 세트 (본품, 스탠드 포함)', category: '조명', totalQuantity: 6, description: '조명 본품 및 스탠드 포함 세트' },
 
     // 저장 매체
     { name: 'SD카드', category: '저장 매체', totalQuantity: 12, description: 'UHS-II SD 메모리 카드' },
@@ -56,7 +66,7 @@ async function main() {
     { name: '스몰리그 삼각대', category: '삼각대/지지대', totalQuantity: 13, description: '스몰리그(SmallRig) 경량 삼각대' },
     { name: '매직암', category: '삼각대/지지대', totalQuantity: 20, description: '마운트용 매직암' },
 
-    // 필터
+    // 필터 (관리자: IRND 필터 수량 6 → 1 변경)
     { name: '매트박스/가변 ND', category: '필터', totalQuantity: 10, description: '매트박스 + 가변 ND 필터' },
     { name: 'XLR 탑핸들', category: '필터', totalQuantity: 6, description: 'XLR 입력 탑핸들' },
     { name: 'ND 0.3 필터', category: '필터', totalQuantity: 6, description: 'ND 0.3 (1스탑) 필터' },
@@ -64,11 +74,11 @@ async function main() {
     { name: 'ND 0.9 필터', category: '필터', totalQuantity: 6, description: 'ND 0.9 (3스탑) 필터' },
     { name: 'ND 1.2 필터', category: '필터', totalQuantity: 6, description: 'ND 1.2 (4스탑) 필터' },
     { name: 'ND 1.5 필터', category: '필터', totalQuantity: 6, description: 'ND 1.5 (5스탑) 필터' },
-    { name: 'IRND 0.3 필터', category: '필터', totalQuantity: 6, description: 'IR 차단 ND 0.3 필터' },
-    { name: 'IRND 0.6 필터', category: '필터', totalQuantity: 6, description: 'IR 차단 ND 0.6 필터' },
-    { name: 'IRND 0.9 필터', category: '필터', totalQuantity: 6, description: 'IR 차단 ND 0.9 필터' },
-    { name: 'IRND 1.2 필터', category: '필터', totalQuantity: 6, description: 'IR 차단 ND 1.2 필터' },
-    { name: 'IRND 1.5 필터', category: '필터', totalQuantity: 6, description: 'IR 차단 ND 1.5 필터' },
+    { name: 'IRND 0.3 필터', category: '필터', totalQuantity: 1, description: 'IR 차단 ND 0.3 필터' },
+    { name: 'IRND 0.6 필터', category: '필터', totalQuantity: 1, description: 'IR 차단 ND 0.6 필터' },
+    { name: 'IRND 0.9 필터', category: '필터', totalQuantity: 1, description: 'IR 차단 ND 0.9 필터' },
+    { name: 'IRND 1.2 필터', category: '필터', totalQuantity: 1, description: 'IR 차단 ND 1.2 필터' },
+    { name: 'IRND 1.5 필터', category: '필터', totalQuantity: 1, description: 'IR 차단 ND 1.5 필터' },
 
     // 배터리
     { name: 'FX3/A7M4 배터리', category: '배터리', totalQuantity: 30, description: 'FX3/A7M4 대용량 교체 배터리' },
@@ -93,6 +103,31 @@ async function main() {
   const existingCount = await prisma.equipment.count()
   if (existingCount === 0) {
     await prisma.equipment.createMany({ data: equipmentData })
+  }
+
+  // ── 2026-05-26 프로덕션 DB 현황 기준 (관리자가 301호·302호·멀티미디어실 삭제) ──
+  const classroomData = [
+    { roomNumber: '공동실습실', capacity: 15, description: '소규모 세미나 및 스터디룸', equipment: '화이트보드' },
+    { roomNumber: '402호', capacity: 40, description: '실습 및 강의 공간', equipment: '빔프로젝터, 화이트보드, 전자교탁' },
+    { roomNumber: '405호', capacity: 40, description: '실습 및 강의 공간', equipment: '빔프로젝터, 화이트보드, 전자교탁' },
+    { roomNumber: '408호', capacity: 40, description: '실습 및 강의 공간', equipment: '빔프로젝터, 화이트보드, 전자교탁' },
+    { roomNumber: '408-1호', capacity: 30, description: '실습 및 강의 공간', equipment: '빔프로젝터, 화이트보드, 전자교탁' },
+    { roomNumber: '503호', capacity: 40, description: '실습 및 강의 공간', equipment: '빔프로젝터, 화이트보드, 전자교탁' },
+    { roomNumber: '507-1호', capacity: 20, description: '실습 및 강의 공간', equipment: '빔프로젝터, 화이트보드, 전자교탁' },
+    { roomNumber: '507-2호', capacity: 20, description: '실습 및 강의 공간', equipment: '빔프로젝터, 화이트보드, 전자교탁' },
+    { roomNumber: '507-3호', capacity: 20, description: '실습 및 강의 공간', equipment: '빔프로젝터, 화이트보드, 전자교탁' },
+    { roomNumber: '507-4호', capacity: 20, description: '실습 및 강의 공간', equipment: '빔프로젝터, 화이트보드, 전자교탁' },
+    { roomNumber: '507-5호', capacity: 20, description: '실습 및 강의 공간', equipment: '빔프로젝터, 화이트보드, 전자교탁' },
+    { roomNumber: '507-6호', capacity: 20, description: '실습 및 강의 공간', equipment: '빔프로젝터, 화이트보드, 전자교탁' },
+    { roomNumber: '공학1관 201호', capacity: 50, description: '실습 및 강의 공간', equipment: '빔프로젝터, 화이트보드, 전자교탁, 음향 시스템' },
+  ]
+
+  for (const c of classroomData) {
+    await prisma.classroom.upsert({
+      where: { roomNumber: c.roomNumber },
+      update: {},
+      create: c,
+    })
   }
 
   console.log('Seed complete.')

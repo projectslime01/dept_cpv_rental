@@ -1,0 +1,329 @@
+'use client'
+
+import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
+import { format } from 'date-fns'
+import { ko } from 'date-fns/locale'
+import {
+  createAdminAccount,
+  deleteAdminAccount,
+  changeAdminPassword,
+} from '@/app/actions/admin-accounts'
+import { Users, Plus, Trash2, KeyRound, X, CheckCircle2, Shield } from 'lucide-react'
+
+type AdminRow = { id: number; username: string; name: string | null; createdAt: Date }
+type ModalType = 'create' | 'delete' | 'changePassword' | null
+
+interface Props {
+  admins: AdminRow[]
+  currentAdminId: number
+}
+
+const inputCls =
+  'w-full h-10 px-3.5 rounded-xl border border-strong text-sm bg-surface-raised text-base-primary placeholder:text-base-faint focus:outline-none focus:border-brand-rose transition-colors'
+
+export function AccountManagement({ admins, currentAdminId }: Props) {
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+  const [modal, setModal] = useState<ModalType>(null)
+  const [targetAdmin, setTargetAdmin] = useState<AdminRow | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
+
+  function closeModal() {
+    if (isPending) return
+    setModal(null)
+    setTargetAdmin(null)
+    setError(null)
+  }
+
+  function showToast(msg: string) {
+    setToast(msg)
+    setTimeout(() => setToast(null), 3000)
+  }
+
+  function openDelete(admin: AdminRow) {
+    setTargetAdmin(admin)
+    setError(null)
+    setModal('delete')
+  }
+
+  function openChangePassword() {
+    setError(null)
+    setModal('changePassword')
+  }
+
+  // ── 생성 ────────────────────────────────────────────────────────────────────
+  function handleCreate(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setError(null)
+    const fd = new FormData(e.currentTarget)
+    const pw = fd.get('password') as string
+    const confirm = fd.get('confirmPassword') as string
+    if (pw !== confirm) { setError('비밀번호가 일치하지 않습니다.'); return }
+
+    startTransition(async () => {
+      const res = await createAdminAccount(fd)
+      if (res.success) {
+        closeModal()
+        showToast('계정이 생성됐습니다.')
+        router.refresh()
+      } else {
+        setError(res.error)
+      }
+    })
+  }
+
+  // ── 삭제 ────────────────────────────────────────────────────────────────────
+  function handleDelete() {
+    if (!targetAdmin) return
+    startTransition(async () => {
+      const res = await deleteAdminAccount(targetAdmin.id)
+      if (res.success) {
+        closeModal()
+        showToast('계정이 삭제됐습니다.')
+        router.refresh()
+      } else {
+        setError(res.error)
+      }
+    })
+  }
+
+  // ── 비밀번호 변경 ────────────────────────────────────────────────────────────
+  function handleChangePassword(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setError(null)
+    const fd = new FormData(e.currentTarget)
+    const np = fd.get('newPassword') as string
+    const confirm = fd.get('confirmPassword') as string
+    if (np !== confirm) { setError('새 비밀번호가 일치하지 않습니다.'); return }
+
+    startTransition(async () => {
+      const res = await changeAdminPassword(fd)
+      if (res.success) {
+        closeModal()
+        showToast('비밀번호가 변경됐습니다.')
+      } else {
+        setError(res.error)
+      }
+    })
+  }
+
+  const fmt = (d: Date) => format(new Date(d), 'yy.MM.dd', { locale: ko })
+
+  return (
+    <>
+      {/* 성공 토스트 */}
+      {toast && (
+        <div className="fixed top-6 right-6 z-50 flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-sm font-semibold px-4 py-3 rounded-xl shadow-xl">
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
+          {toast}
+        </div>
+      )}
+
+      {/* 계정 목록 카드 */}
+      <div className="bg-surface-base rounded-2xl border border-base overflow-hidden">
+        <div className="flex items-center gap-2 px-5 py-3.5 border-b border-base">
+          <Users className="w-4 h-4 text-base-muted" />
+          <h2 className="text-sm font-semibold text-base-primary">관리자 계정</h2>
+          <span className="ml-auto text-xs text-base-muted">{admins.length}명</span>
+          <button
+            onClick={() => { setError(null); setModal('create') }}
+            className="ml-3 flex items-center gap-1.5 h-8 px-3.5 rounded-xl bg-brand-rose hover:bg-brand-rose/90 text-white text-xs font-semibold transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            계정 추가
+          </button>
+        </div>
+
+        <div className="divide-y divide-base">
+          {admins.map(admin => {
+            const isSelf = admin.id === currentAdminId
+            return (
+              <div key={admin.id} className="flex items-center gap-3 px-5 py-3.5">
+                {/* 아이콘 */}
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${isSelf ? 'bg-brand-rose-muted' : 'bg-surface-raised'}`}>
+                  <Shield className={`w-4 h-4 ${isSelf ? 'text-brand-rose' : 'text-base-muted'}`} />
+                </div>
+
+                {/* 아이디 & 이름 */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-base-primary">{admin.name || '이름 없음'}</span>
+                    <span className="text-xs text-base-muted">({admin.username})</span>
+                    {isSelf && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-brand-rose-muted text-brand-rose border border-brand-rose/25">
+                        나
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-base-muted mt-0.5">생성일 {fmt(admin.createdAt)}</p>
+                </div>
+
+                {/* 액션 */}
+                <div className="flex items-center gap-2 shrink-0">
+                  {isSelf && (
+                    <button
+                      onClick={openChangePassword}
+                      className="flex items-center gap-1.5 h-8 px-3 rounded-xl border border-strong text-xs font-medium text-base-secondary hover:bg-surface-overlay hover:text-base-primary transition-colors"
+                    >
+                      <KeyRound className="w-3.5 h-3.5" />
+                      비번 변경
+                    </button>
+                  )}
+                  {!isSelf && (
+                    <button
+                      onClick={() => openDelete(admin)}
+                      className="flex items-center gap-1.5 h-8 px-3 rounded-xl border border-strong text-xs font-medium text-base-muted hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-600 dark:hover:text-red-400 hover:border-red-200 dark:border-red-900/50 transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      삭제
+                    </button>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* ── 모달 오버레이 ─────────────────────────────────────────────────────── */}
+      {modal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/70" onClick={closeModal} />
+
+          {/* ── 계정 생성 모달 ─────────────────────────────────────────────── */}
+          {modal === 'create' && (
+            <div className="relative bg-surface-base rounded-2xl border border-base w-full max-w-md shadow-2xl">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-base">
+                <h3 className="text-base font-bold text-base-primary">새 관리자 계정 추가</h3>
+                <button onClick={closeModal} className="text-base-muted hover:text-base-primary transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <form onSubmit={handleCreate} className="p-6 space-y-4">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-base-secondary">이름 *</label>
+                  <input
+                    name="name"
+                    required
+                    autoComplete="off"
+                    placeholder="실명 입력 (예: 김조교)"
+                    className={inputCls}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-base-secondary">아이디 *</label>
+                  <input
+                    name="username"
+                    required
+                    autoComplete="off"
+                    placeholder="영문 소문자, 숫자, _ (3~20자)"
+                    className={inputCls}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-base-secondary">비밀번호 * <span className="text-base-faint">(6~20자리)</span></label>
+                  <input name="password" type="password" required minLength={6} maxLength={20} autoComplete="new-password" className={inputCls} />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-base-secondary">비밀번호 확인 *</label>
+                  <input name="confirmPassword" type="password" required autoComplete="new-password" className={inputCls} />
+                </div>
+
+                {error && (
+                  <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 rounded-xl px-4 py-2.5">{error}</p>
+                )}
+
+                <div className="flex gap-2 pt-1">
+                  <button type="button" onClick={closeModal} disabled={isPending}
+                    className="flex-1 h-10 rounded-xl border border-strong text-sm font-semibold text-base-secondary hover:bg-surface-overlay hover:text-base-primary transition-colors disabled:opacity-40">
+                    취소
+                  </button>
+                  <button type="submit" disabled={isPending}
+                    className="flex-1 h-10 rounded-xl bg-brand-rose hover:bg-brand-rose/90 text-white text-sm font-bold transition-colors disabled:opacity-40">
+                    {isPending ? '생성 중...' : '계정 생성'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* ── 삭제 확인 모달 ─────────────────────────────────────────────── */}
+          {modal === 'delete' && targetAdmin && (
+            <div className="relative bg-surface-base rounded-2xl border border-base w-full max-w-sm shadow-2xl">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-base">
+                <h3 className="text-base font-bold text-base-primary">계정 삭제</h3>
+                <button onClick={closeModal} className="text-base-muted hover:text-base-primary transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="p-6 space-y-4">
+                <p className="text-sm text-base-secondary">
+                  <span className="font-bold text-base-primary">{targetAdmin.username}</span> 계정을 삭제합니다.
+                  <br />이 작업은 되돌릴 수 없습니다.
+                </p>
+
+                {error && (
+                  <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 rounded-xl px-4 py-2.5">{error}</p>
+                )}
+
+                <div className="flex gap-2">
+                  <button type="button" onClick={closeModal} disabled={isPending}
+                    className="flex-1 h-10 rounded-xl border border-strong text-sm font-semibold text-base-secondary hover:bg-surface-overlay hover:text-base-primary transition-colors disabled:opacity-40">
+                    취소
+                  </button>
+                  <button type="button" onClick={handleDelete} disabled={isPending}
+                    className="flex-1 h-10 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-bold transition-colors disabled:opacity-40">
+                    {isPending ? '삭제 중...' : '삭제 확인'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── 비밀번호 변경 모달 ─────────────────────────────────────────── */}
+          {modal === 'changePassword' && (
+            <div className="relative bg-surface-base rounded-2xl border border-base w-full max-w-md shadow-2xl">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-base">
+                <h3 className="text-base font-bold text-base-primary">비밀번호 변경</h3>
+                <button onClick={closeModal} className="text-base-muted hover:text-base-primary transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <form onSubmit={handleChangePassword} className="p-6 space-y-4">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-base-secondary">현재 비밀번호 *</label>
+                  <input name="currentPassword" type="password" required autoComplete="current-password" className={inputCls} />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-base-secondary">새 비밀번호 * <span className="text-base-faint">(6~20자리)</span></label>
+                  <input name="newPassword" type="password" required minLength={6} maxLength={20} autoComplete="new-password" className={inputCls} />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-base-secondary">새 비밀번호 확인 *</label>
+                  <input name="confirmPassword" type="password" required autoComplete="new-password" className={inputCls} />
+                </div>
+
+                {error && (
+                  <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 rounded-xl px-4 py-2.5">{error}</p>
+                )}
+
+                <div className="flex gap-2 pt-1">
+                  <button type="button" onClick={closeModal} disabled={isPending}
+                    className="flex-1 h-10 rounded-xl border border-strong text-sm font-semibold text-base-secondary hover:bg-surface-overlay hover:text-base-primary transition-colors disabled:opacity-40">
+                    취소
+                  </button>
+                  <button type="submit" disabled={isPending}
+                    className="flex-1 h-10 rounded-xl bg-brand-rose hover:bg-brand-rose/90 text-white text-sm font-bold transition-colors disabled:opacity-40">
+                    {isPending ? '변경 중...' : '비밀번호 변경'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  )
+}

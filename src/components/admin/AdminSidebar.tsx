@@ -2,22 +2,27 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, ClipboardList, Package, History } from 'lucide-react'
+import { LayoutDashboard, ClipboardList, Package, Building2, DoorOpen, History, Users, TestTube2, BookOpen } from 'lucide-react'
 
 const NAV_ITEMS = [
-  { href: '/admin/dashboard', label: '대시보드', icon: LayoutDashboard },
-  { href: '/admin/requests', label: '신청 관리', icon: ClipboardList },
-  { href: '/admin/equipment', label: '기자재 관리', icon: Package },
-  { href: '/admin/history', label: '대여 이력', icon: History },
+  { href: '/admin/dashboard',    label: '대시보드',    icon: LayoutDashboard },
+  { href: '/admin/requests',     label: '기자재 신청', icon: ClipboardList },
+  { href: '/admin/classroom',    label: '강의실 신청', icon: DoorOpen },
+  { href: '/admin/equipment',    label: '기자재 관리', icon: Package },
+  { href: '/admin/classrooms',   label: '강의실 관리', icon: Building2 },
+  { href: '/admin/history',      label: '대여 이력',   icon: History },
+  { href: '/admin/test-request', label: '테스트 신청', icon: TestTube2 },
+  { href: '/admin/guide',        label: '이용 가이드', icon: BookOpen },
+  { href: '/admin/accounts',     label: '계정 관리',   icon: Users },
 ]
 
 export function AdminSidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="hidden md:block w-52 shrink-0 border-r border-[#2a2830] bg-[#1a191b]">
+    <aside className="hidden md:block w-52 shrink-0 border-r border-base bg-surface-raised">
       <nav className="p-3 space-y-0.5">
-        <p className="text-[10px] font-bold text-[#6b6468] uppercase tracking-wider px-3 py-2">메뉴</p>
+        <p className="text-[10px] font-bold text-base-faint uppercase tracking-wider px-3 py-2">메뉴</p>
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + '/')
           return (
@@ -26,8 +31,8 @@ export function AdminSidebar() {
               href={href}
               className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
                 active
-                  ? 'bg-[#ffb2ba]/15 text-[#ffb2ba]'
-                  : 'text-[#9b8f91] hover:bg-[#252228] hover:text-[#e5e2e1]'
+                  ? 'bg-brand-rose-muted text-brand-rose'
+                  : 'text-base-secondary hover:bg-surface-overlay hover:text-base-primary'
               }`}
             >
               <Icon className="w-4 h-4 shrink-0" />

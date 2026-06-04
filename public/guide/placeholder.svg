@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">
+  <rect width="960" height="540" fill="#f4f4f6"/>
+  <rect x="400" y="220" width="160" height="120" rx="12" fill="#e2e2e8"/>
+  <text x="480" y="370" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="18" fill="#9090a0">스크린샷 준비 중</text>
+  <text x="480" y="398" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" fill="#b0b0bc">실제 스크린샷으로 교체 예정</text>
+</svg>

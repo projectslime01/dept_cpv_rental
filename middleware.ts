@@ -9,5 +9,6 @@ export const config = {
     '/admin/requests/:path*',
     '/admin/equipment/:path*',
     '/admin/history/:path*',
+    '/admin/accounts/:path*',
   ],
 }

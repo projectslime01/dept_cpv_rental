@@ -15,13 +15,15 @@ export default async function ApplyPage({
 
   return (
     <div className="max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold text-[#e5e2e1] mb-6">대여 신청</h1>
+      <h1 className="text-2xl font-bold text-base-primary mb-6">대여 신청</h1>
       <RentalForm
         equipmentId={equipment.id}
         equipmentName={equipment.name}
         defaultStartAt={searchParams.startAt}
         defaultEndAt={searchParams.endAt}
         maxQuantity={equipment.totalQuantity}
+        minRentalQuantity={equipment.minRentalQuantity}
+        maxRentalQuantity={equipment.maxRentalQuantity}
       />
     </div>
   )
