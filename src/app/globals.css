@@ -208,3 +208,41 @@
 [data-no-theme-transition] * {
   transition: none !important;
 }
+
+/* ============================================================
+   Guide: Print / PDF 저장 스타일
+   ============================================================ */
+@media print {
+  /* 일반 UI 요소 숨김 */
+  header,
+  footer,
+  nav,
+  .no-print {
+    display: none !important;
+  }
+
+  /* 인쇄 전용 컨테이너 표시 */
+  .guide-print-container {
+    display: block !important;
+  }
+
+  /* 슬라이드 1장 = 인쇄 1페이지 */
+  .guide-print-slide {
+    page-break-after: always;
+    break-after: page;
+    padding: 1.5cm 2cm;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  /* 섹션 레이블 */
+  .guide-print-section-label {
+    font-size: 11pt;
+    color: #888;
+    font-weight: 600;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e2e2e8;
+    margin-bottom: 0.5rem;
+  }
+}
