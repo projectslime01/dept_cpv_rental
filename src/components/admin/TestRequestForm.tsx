@@ -58,6 +58,10 @@ export function TestRequestForm({ equipments, classrooms }: Props) {
 
   function handleEquipmentSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    if (!equipStartAt || !equipEndAt) {
+      setEquipmentResult({ success: false, error: '대여 시작일과 종료일을 선택해주세요.' })
+      return
+    }
     const fd = new FormData(e.currentTarget)
     fd.set('startAt', equipStartAt)
     fd.set('endAt', equipEndAt)
@@ -75,6 +79,10 @@ export function TestRequestForm({ equipments, classrooms }: Props) {
 
   function handleClassroomSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    if (!classStartAt || !classEndAt) {
+      setClassroomResult({ success: false, error: '대여 시작일과 종료일을 선택해주세요.' })
+      return
+    }
     const fd = new FormData(e.currentTarget)
     fd.set('startAt', classStartAt)
     fd.set('endAt', classEndAt)

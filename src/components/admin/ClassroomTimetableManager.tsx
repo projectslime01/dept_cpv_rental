@@ -50,6 +50,14 @@ export function ClassroomTimetableManager({ classroomId, initialEntries }: Props
 
   function handleAddSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    if (!startTime || !endTime) {
+      setError('시작 시간과 종료 시간을 선택해주세요.')
+      return
+    }
+    if (!semesterStart || !semesterEnd) {
+      setError('학기 시작일과 종료일을 선택해주세요.')
+      return
+    }
     const formData = new FormData(e.currentTarget)
     formData.set('classroomId', String(classroomId))
     formData.set('startTime', startTime)

@@ -116,7 +116,7 @@ export function TimePicker({ value, onChange, placeholder = '시간 선택' }: P
             </div>
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={() => { emit(hour, minute); setOpen(false) }}
               className="w-full py-2.5 bg-brand-rose text-white text-sm font-semibold rounded-xl hover:bg-brand-rose/90 transition-colors"
             >
               {`${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')} 확정`}
