@@ -2,6 +2,7 @@
 
 import { useTransition, useRef, useState } from 'react'
 import { createTestRentalRequest, createTestClassroomRentalRequest } from '@/app/actions/admin'
+import { DateTimePicker } from '@/components/ui/DateTimePicker'
 
 interface Equipment {
   id: number
@@ -40,6 +41,10 @@ export function TestRequestForm({ equipments, classrooms }: Props) {
   const [classroomResult, setClassroomResult] = useState<
     { success: true; requestNumber: string } | { success: false; error: string } | null
   >(null)
+  const [equipStartAt, setEquipStartAt] = useState('')
+  const [equipEndAt, setEquipEndAt] = useState('')
+  const [classStartAt, setClassStartAt] = useState('')
+  const [classEndAt, setClassEndAt] = useState('')
   const equipmentFormRef = useRef<HTMLFormElement>(null)
   const classroomFormRef = useRef<HTMLFormElement>(null)
 
@@ -54,17 +59,25 @@ export function TestRequestForm({ equipments, classrooms }: Props) {
   function handleEquipmentSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const fd = new FormData(e.currentTarget)
+    fd.set('startAt', equipStartAt)
+    fd.set('endAt', equipEndAt)
     setEquipmentResult(null)
     startEquipmentTransition(async () => {
       const result = await createTestRentalRequest(fd)
       setEquipmentResult(result)
-      if (result.success) equipmentFormRef.current?.reset()
+      if (result.success) {
+        equipmentFormRef.current?.reset()
+        setEquipStartAt('')
+        setEquipEndAt('')
+      }
     })
   }
 
   function handleClassroomSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const fd = new FormData(e.currentTarget)
+    fd.set('startAt', classStartAt)
+    fd.set('endAt', classEndAt)
     setClassroomResult(null)
     startClassroomTransition(async () => {
       const result = await createTestClassroomRentalRequest(fd)
@@ -72,6 +85,8 @@ export function TestRequestForm({ equipments, classrooms }: Props) {
       if (result.success) {
         classroomFormRef.current?.reset()
         setIsGroup(false)
+        setClassStartAt('')
+        setClassEndAt('')
       }
     })
   }
@@ -141,11 +156,11 @@ export function TestRequestForm({ equipments, classrooms }: Props) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelClass}>대여 시작 *</label>
-              <input type="datetime-local" name="startAt" required className={inputClass} />
+              <DateTimePicker value={equipStartAt} onChange={setEquipStartAt} placeholder="대여 시작" />
             </div>
             <div>
               <label className={labelClass}>대여 종료 *</label>
-              <input type="datetime-local" name="endAt" required className={inputClass} />
+              <DateTimePicker value={equipEndAt} onChange={setEquipEndAt} placeholder="대여 종료" />
             </div>
           </div>
 
@@ -236,11 +251,11 @@ export function TestRequestForm({ equipments, classrooms }: Props) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelClass}>대여 시작 *</label>
-              <input type="datetime-local" name="startAt" required className={inputClass} />
+              <DateTimePicker value={classStartAt} onChange={setClassStartAt} placeholder="대여 시작" />
             </div>
             <div>
               <label className={labelClass}>대여 종료 *</label>
-              <input type="datetime-local" name="endAt" required className={inputClass} />
+              <DateTimePicker value={classEndAt} onChange={setClassEndAt} placeholder="대여 종료" />
             </div>
           </div>
 
