@@ -3,6 +3,7 @@ import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { Clock, Package, Building } from 'lucide-react'
 import { sortByCategory } from '@/lib/categories'
+import { groupRequests, formatItemList } from '@/lib/requestGrouping'
 
 export default async function DashboardPage() {
   const now = new Date()
@@ -29,7 +30,7 @@ export default async function DashboardPage() {
         status: 'approved',
         endAt: { gte: now, lte: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000) },
       },
-      include: { equipment: { select: { name: true } } },
+      include: { equipment: { select: { name: true, category: true } } },
       orderBy: { endAt: 'asc' },
     }),
     prisma.classroomRentalRequest.findMany({
@@ -103,7 +104,7 @@ export default async function DashboardPage() {
             <table className="w-full text-sm min-w-[360px]">
               <thead>
                 <tr className="bg-surface-raised border-b border-base">
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">기자재</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted">대여 품목</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">신청자</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">반납 예정</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">D-Day</th>
@@ -114,16 +115,20 @@ export default async function DashboardPage() {
                   <tr>
                     <td colSpan={4} className="text-center py-6 text-xs text-base-muted">예정된 내역이 없습니다.</td>
                   </tr>
-                ) : eqDueSoon.map((r) => (
-                  <tr key={r.id} className="hover:bg-surface-overlay transition-colors">
-                    <td className="px-4 py-3 text-base-primary">{r.equipment.name}</td>
-                    <td className="px-4 py-3 text-base-secondary">{r.applicantName}</td>
-                    <td className="px-4 py-3 text-base-muted text-xs">{fmt(r.endAt)}</td>
+                ) : groupRequests(eqDueSoon).map((group) => {
+                  const head = group.rows[0]
+                  const itemText = formatItemList(group.rows.map((r) => ({ name: r.equipment.name, category: r.equipment.category, quantity: r.quantity })))
+                  return (
+                  <tr key={group.key} className="hover:bg-surface-overlay transition-colors align-top">
+                    <td className="px-4 py-3 text-base-primary max-w-[280px]"><p className="leading-relaxed break-keep">{itemText}</p></td>
+                    <td className="px-4 py-3 text-base-secondary whitespace-nowrap">{head.applicantName}</td>
+                    <td className="px-4 py-3 text-base-muted text-xs whitespace-nowrap">{fmt(head.endAt)}</td>
                     <td className="px-4 py-3 font-bold text-brand-rose whitespace-nowrap">
-                      {diffDays(r.endAt) === 0 ? 'D-Day' : `D-${diffDays(r.endAt)}`}
+                      {diffDays(head.endAt) === 0 ? 'D-Day' : `D-${diffDays(head.endAt)}`}
                     </td>
                   </tr>
-                ))}
+                  )
+                })}
               </tbody>
             </table>
           </div>

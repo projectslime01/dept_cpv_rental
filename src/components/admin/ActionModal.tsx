@@ -1,41 +1,43 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { approveRequest, rejectRequest, markReturned, approveClassroomRequest, rejectClassroomRequest, markClassroomReturned } from '@/app/actions/admin'
+import { approveRequestGroup, rejectRequestGroup, markReturnedGroup, approveClassroomRequest, rejectClassroomRequest, markClassroomReturned } from '@/app/actions/admin'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 
 interface Props {
-  id: number
+  /** 묶음(신청)에 포함된 모든 RentalRequest id */
+  ids: number[]
   status: string
   applicantName: string
+  /** 품목 요약 텍스트 — "소니 FX3 1대, 소니 24-105 1개 …" */
   equipmentName: string
 }
 
-export function ActionButtons({ id, status, applicantName, equipmentName }: Props) {
+export function ActionButtons({ ids, status, applicantName, equipmentName }: Props) {
   const [isPending, startTransition] = useTransition()
   const [modal, setModal] = useState<'approve' | 'reject' | null>(null)
   const [note, setNote] = useState('')
 
   function handleApprove() {
     startTransition(async () => {
-      await approveRequest(id, note)
+      await approveRequestGroup(ids, note)
       setModal(null)
     })
   }
 
   function handleReject() {
     startTransition(async () => {
-      await rejectRequest(id, note)
+      await rejectRequestGroup(ids, note)
       setModal(null)
     })
   }
 
   function handleReturn() {
     startTransition(async () => {
-      await markReturned(id)
+      await markReturnedGroup(ids)
     })
   }
 

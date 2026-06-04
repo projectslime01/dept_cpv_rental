@@ -70,6 +70,63 @@ export async function markReturned(id: number) {
   revalidatePath(`/equipment/${request.equipmentId}`)
 }
 
+// ── 묶음(신청 통째) 일괄 처리 ──────────────────────────────
+export async function approveRequestGroup(ids: number[], note?: string) {
+  await requireAdmin()
+  if (!ids?.length) return
+  const affected = await prisma.rentalRequest.findMany({
+    where: { id: { in: ids }, status: 'pending' },
+    select: { equipmentId: true },
+  })
+  await prisma.rentalRequest.updateMany({
+    where: { id: { in: ids }, status: 'pending' },
+    data: { status: 'approved', adminNote: note || null },
+  })
+  revalidatePath('/admin/requests')
+  revalidatePath('/admin/dashboard')
+  revalidatePath('/')
+  for (const eqId of Array.from(new Set(affected.map((a) => a.equipmentId)))) {
+    revalidatePath(`/equipment/${eqId}`)
+  }
+}
+
+export async function rejectRequestGroup(ids: number[], note: string) {
+  await requireAdmin()
+  if (!ids?.length) return
+  const affected = await prisma.rentalRequest.findMany({
+    where: { id: { in: ids }, status: 'pending' },
+    select: { equipmentId: true },
+  })
+  await prisma.rentalRequest.updateMany({
+    where: { id: { in: ids }, status: 'pending' },
+    data: { status: 'rejected', adminNote: note },
+  })
+  revalidatePath('/admin/requests')
+  revalidatePath('/')
+  for (const eqId of Array.from(new Set(affected.map((a) => a.equipmentId)))) {
+    revalidatePath(`/equipment/${eqId}`)
+  }
+}
+
+export async function markReturnedGroup(ids: number[]) {
+  await requireAdmin()
+  if (!ids?.length) return
+  const affected = await prisma.rentalRequest.findMany({
+    where: { id: { in: ids }, status: 'approved' },
+    select: { equipmentId: true },
+  })
+  await prisma.rentalRequest.updateMany({
+    where: { id: { in: ids }, status: 'approved' },
+    data: { status: 'returned', returnedAt: new Date() },
+  })
+  revalidatePath('/admin/requests')
+  revalidatePath('/admin/dashboard')
+  revalidatePath('/')
+  for (const eqId of Array.from(new Set(affected.map((a) => a.equipmentId)))) {
+    revalidatePath(`/equipment/${eqId}`)
+  }
+}
+
 export async function createEquipment(formData: FormData) {
   await requireAdmin()
   const totalQuantity = parseInt(formData.get('totalQuantity') as string)

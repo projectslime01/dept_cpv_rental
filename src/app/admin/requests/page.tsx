@@ -4,6 +4,7 @@ import { ko } from 'date-fns/locale'
 import { ClipboardList } from 'lucide-react'
 import { ActionButtons, ClassroomActionButtons } from '@/components/admin/ActionModal'
 import { CATEGORY_ORDER } from '@/lib/categories'
+import { groupRequests, formatItemList } from '@/lib/requestGrouping'
 
 const STATUS_STYLES: Record<string, string> = {
   pending:  'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/30',
@@ -176,15 +177,13 @@ export default async function RequestsPage({
         </div>
         <div className="overflow-x-auto">
           {currentType === 'equipment' ? (
-            <table className="w-full text-sm min-w-[720px]">
+            <table className="w-full text-sm min-w-[820px]">
               <thead>
                 <tr className="bg-surface-raised border-b border-base">
                   <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">신청번호</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">신청자</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">학번</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">기자재</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">카테고리</th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">수량</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted">대여 품목</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">기간</th>
                   <th className="text-center px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">상태</th>
                   <th className="text-center px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">처리</th>
@@ -193,48 +192,56 @@ export default async function RequestsPage({
               <tbody className="divide-y divide-base">
                 {equipmentRequests.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="text-center py-12 text-sm text-base-muted">신청 내역이 없습니다.</td>
+                    <td colSpan={7} className="text-center py-12 text-sm text-base-muted">신청 내역이 없습니다.</td>
                   </tr>
-                ) : equipmentRequests.map((r) => (
-                  <tr key={r.id} className="hover:bg-surface-overlay transition-colors">
+                ) : groupRequests(equipmentRequests).map((group) => {
+                  const head = group.rows[0]
+                  const items = group.rows.map((r) => ({ name: r.equipment.name, category: r.equipment.category, quantity: r.quantity }))
+                  const itemText = formatItemList(items)
+                  return (
+                  <tr key={group.key} className="hover:bg-surface-overlay transition-colors align-top">
                     <td className="px-4 py-3 font-mono text-xs text-base-secondary">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span>{r.requestNumber}</span>
-                        {r.isTest && (
+                        <span>{group.groupNumber ?? head.requestNumber}</span>
+                        {head.isTest && (
                           <span className="inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-700/50">
                             테스트
                           </span>
                         )}
                       </div>
+                      {group.rows.length > 1 && (
+                        <div className="text-[11px] text-base-muted mt-0.5">{group.rows.length}개 품목</div>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-base-primary">
-                      <div>{r.applicantName}</div>
-                      {r.isTest && (
+                      <div>{head.applicantName}</div>
+                      {head.isTest && (
                         <div className="text-[11px] text-base-muted">
-                          생성: {r.testAdmin?.name ?? '삭제된 관리자'}
+                          생성: {head.testAdmin?.name ?? '삭제된 관리자'}
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-base-secondary">{r.studentId}</td>
-                    <td className="px-4 py-3 text-base-primary">{r.equipment.name}</td>
-                    <td className="px-4 py-3 text-base-secondary text-xs">{r.equipment.category}</td>
-                    <td className="px-4 py-3 text-center text-base-secondary">{r.quantity}</td>
-                    <td className="px-4 py-3 text-xs text-base-secondary whitespace-nowrap">{fmt(r.startAt)}<br />~ {fmt(r.endAt)}</td>
+                    <td className="px-4 py-3 text-base-secondary">{head.studentId}</td>
+                    <td className="px-4 py-3 text-base-primary max-w-[360px]">
+                      <p className="leading-relaxed break-keep">{itemText}</p>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-base-secondary whitespace-nowrap">{fmt(head.startAt)}<br />~ {fmt(head.endAt)}</td>
                     <td className="px-4 py-3 text-center">
-                      <span className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full border ${STATUS_STYLES[r.status] ?? STATUS_STYLES.pending}`}>
-                        {STATUS_LABELS[r.status] ?? r.status}
+                      <span className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full border ${STATUS_STYLES[head.status] ?? STATUS_STYLES.pending}`}>
+                        {STATUS_LABELS[head.status] ?? head.status}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-center">
                       <ActionButtons
-                        id={r.id}
-                        status={r.status}
-                        applicantName={r.applicantName}
-                        equipmentName={r.equipment.name}
+                        ids={group.ids}
+                        status={head.status}
+                        applicantName={head.applicantName}
+                        equipmentName={itemText}
                       />
                     </td>
                   </tr>
-                ))}
+                  )
+                })}
               </tbody>
             </table>
           ) : (
