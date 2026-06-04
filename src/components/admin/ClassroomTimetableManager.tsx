@@ -6,6 +6,8 @@ import { createTimetableEntry, deleteTimetableEntry } from '@/app/actions/timeta
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { DatePicker } from '@/components/ui/DatePicker'
+import { TimePicker } from '@/components/ui/TimePicker'
 import { Trash2, Plus, CalendarDays, Clock, AlertTriangle } from 'lucide-react'
 import { DOW_LABELS } from '@/lib/timetable'
 
@@ -41,11 +43,21 @@ export function ClassroomTimetableManager({ classroomId, initialEntries }: Props
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
   // id of the row waiting for delete confirmation; null = none
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
+  const [startTime, setStartTime] = useState('')
+  const [endTime, setEndTime] = useState('')
+  const [semesterStart, setSemesterStart] = useState('')
+  const [semesterEnd, setSemesterEnd] = useState('')
 
-  function handleAdd(formData: FormData) {
+  function handleAddSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    formData.set('classroomId', String(classroomId))
+    formData.set('startTime', startTime)
+    formData.set('endTime', endTime)
+    formData.set('semesterStart', semesterStart)
+    formData.set('semesterEnd', semesterEnd)
     setError(null)
     setSuccessMsg(null)
-    formData.set('classroomId', String(classroomId))
     startAddTransition(async () => {
       const result = await createTimetableEntry(formData)
       if (!result.success) {
@@ -55,6 +67,10 @@ export function ClassroomTimetableManager({ classroomId, initialEntries }: Props
         setEntries((prev) => [...prev, result.entry])
         setSuccessMsg('시간표가 추가되었습니다.')
         formRef.current?.reset()
+        setStartTime('')
+        setEndTime('')
+        setSemesterStart('')
+        setSemesterEnd('')
         router.refresh() // 서버 캐시 동기화 (백그라운드)
       }
     })
@@ -174,7 +190,7 @@ export function ClassroomTimetableManager({ classroomId, initialEntries }: Props
           <Plus className="w-4 h-4 text-brand-indigo" />
           <h2 className="text-sm font-semibold text-base-secondary">수업 시간표 추가</h2>
         </div>
-        <form ref={formRef} action={handleAdd} className="p-5 space-y-4">
+        <form ref={formRef} onSubmit={handleAddSubmit} className="p-5 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* 요일 */}
             <div className="space-y-1.5">
@@ -206,12 +222,7 @@ export function ClassroomTimetableManager({ classroomId, initialEntries }: Props
                 <Clock className="inline w-3 h-3 mr-1" />
                 수업 시작 시간 *
               </Label>
-              <Input
-                name="startTime"
-                type="time"
-                required
-                className="bg-surface-raised border-strong text-base-primary focus:border-brand-indigo focus:ring-1 focus:ring-brand-indigo rounded-xl"
-              />
+              <TimePicker value={startTime} onChange={setStartTime} placeholder="시작 시간 선택" />
             </div>
 
             {/* 종료 시간 */}
@@ -220,34 +231,19 @@ export function ClassroomTimetableManager({ classroomId, initialEntries }: Props
                 <Clock className="inline w-3 h-3 mr-1" />
                 수업 종료 시간 *
               </Label>
-              <Input
-                name="endTime"
-                type="time"
-                required
-                className="bg-surface-raised border-strong text-base-primary focus:border-brand-indigo focus:ring-1 focus:ring-brand-indigo rounded-xl"
-              />
+              <TimePicker value={endTime} onChange={setEndTime} placeholder="종료 시간 선택" />
             </div>
 
             {/* 학기 시작일 */}
             <div className="space-y-1.5">
               <Label className="text-base-secondary text-xs font-semibold">학기 시작일 *</Label>
-              <Input
-                name="semesterStart"
-                type="date"
-                required
-                className="bg-surface-raised border-strong text-base-primary focus:border-brand-indigo focus:ring-1 focus:ring-brand-indigo rounded-xl"
-              />
+              <DatePicker value={semesterStart} onChange={setSemesterStart} placeholder="시작일 선택" />
             </div>
 
             {/* 학기 종료일 */}
             <div className="space-y-1.5">
               <Label className="text-base-secondary text-xs font-semibold">학기 종료일 *</Label>
-              <Input
-                name="semesterEnd"
-                type="date"
-                required
-                className="bg-surface-raised border-strong text-base-primary focus:border-brand-indigo focus:ring-1 focus:ring-brand-indigo rounded-xl"
-              />
+              <DatePicker value={semesterEnd} onChange={setSemesterEnd} placeholder="종료일 선택" />
             </div>
           </div>
 
