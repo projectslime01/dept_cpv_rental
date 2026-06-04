@@ -59,6 +59,7 @@ function fontFaceCSS(): string {
   const faces: Array<[string, number]> = [
     ['Pretendard-Regular.woff2', 400],
     ['Pretendard-Medium.woff2', 500],
+    ['Pretendard-SemiBold.woff2', 600],
     ['Pretendard-Bold.woff2', 700],
     ['Pretendard-ExtraBold.woff2', 800],
     ['Pretendard-Black.woff2', 900],
@@ -176,29 +177,29 @@ function pageCSS(): string {
   .cover { align-items:flex-start; justify-content:center; padding:0 96px; background:${BG_SOFT}; }
   .cover-inner { max-width:900px; }
   .cover-logo { width:84px; height:84px; object-fit:contain; margin-bottom:28px; }
-  .cover-kicker { font-size:22px; font-weight:700; color:var(--accent); letter-spacing:-0.01em; margin-bottom:18px; }
-  .cover-title { font-size:68px; font-weight:900; line-height:1.1; letter-spacing:-0.025em; }
-  .cover-sub { font-size:26px; color:${SUB}; margin-top:24px; font-weight:500; letter-spacing:-0.02em; }
-  .cover-meta { font-size:18px; color:${FAINT}; margin-top:40px; font-weight:600; letter-spacing:-0.012em; }
+  .cover-kicker { font-size:22px; font-weight:600; color:var(--accent); letter-spacing:-0.01em; margin-bottom:18px; }
+  .cover-title { font-size:68px; font-weight:800; line-height:1.1; letter-spacing:-0.025em; }
+  .cover-sub { font-size:26px; color:${SUB}; margin-top:24px; font-weight:400; letter-spacing:-0.02em; }
+  .cover-meta { font-size:18px; color:${FAINT}; margin-top:40px; font-weight:500; letter-spacing:-0.012em; }
   .cover-bar { position:absolute; left:0; bottom:0; width:100%; height:16px; background:var(--accent); }
 
   /* 섹션 구분 */
   .divider { align-items:flex-start; justify-content:center; padding:0 96px; background:#fff; }
-  .divider-num { font-size:120px; font-weight:900; color:var(--accent); opacity:.18; line-height:1; letter-spacing:-0.025em; }
-  .divider-title { font-size:56px; font-weight:900; margin-top:8px; letter-spacing:-0.025em; }
+  .divider-num { font-size:120px; font-weight:800; color:var(--accent); opacity:.18; line-height:1; letter-spacing:-0.025em; }
+  .divider-title { font-size:56px; font-weight:800; margin-top:8px; letter-spacing:-0.025em; }
   .divider-rule { width:120px; height:8px; background:var(--accent); border-radius:8px; margin-top:32px; }
-  .divider-count { font-size:20px; color:${SUB}; margin-top:24px; font-weight:600; letter-spacing:-0.012em; }
+  .divider-count { font-size:20px; color:${SUB}; margin-top:24px; font-weight:500; letter-spacing:-0.012em; }
 
   /* 콘텐츠 */
   .content { padding:48px 64px 0; }
   .content-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; }
   .chip {
-    font-size:18px; font-weight:800; color:var(--accent);
+    font-size:18px; font-weight:700; color:var(--accent);
     background:color-mix(in srgb, var(--accent) 10%, white);
     border:1.5px solid color-mix(in srgb, var(--accent) 28%, white);
     padding:8px 18px; border-radius:999px; letter-spacing:-0.015em;
   }
-  .page-no { font-size:18px; font-weight:700; color:${FAINT}; font-variant-numeric:tabular-nums; letter-spacing:-0.01em; }
+  .page-no { font-size:18px; font-weight:600; color:${FAINT}; font-variant-numeric:tabular-nums; letter-spacing:-0.01em; }
   .content-body { flex:1; display:flex; gap:48px; align-items:center; }
   .shot-wrap {
     flex:0 0 58%; height:430px; border-radius:20px; overflow:hidden;
@@ -209,11 +210,11 @@ function pageCSS(): string {
   .shot { width:100%; height:100%; object-fit:cover; object-position:top center; }
   .text-col { flex:1; }
   .step-badge {
-    display:inline-block; font-size:16px; font-weight:800; color:#fff;
+    display:inline-block; font-size:16px; font-weight:700; color:#fff;
     background:var(--accent); padding:6px 16px; border-radius:8px; letter-spacing:-0.01em;
   }
-  .step-title { font-size:40px; font-weight:900; line-height:1.2; margin-top:20px; letter-spacing:-0.025em; }
-  .step-desc { font-size:23px; line-height:1.7; color:${SUB}; margin-top:24px; font-weight:500; letter-spacing:-0.018em; }
+  .step-title { font-size:40px; font-weight:800; line-height:1.2; margin-top:20px; letter-spacing:-0.025em; }
+  .step-desc { font-size:23px; line-height:1.7; color:${SUB}; margin-top:24px; font-weight:400; letter-spacing:-0.018em; }
   .foot-bar { height:10px; background:var(--accent); margin:40px -64px 0; }
   `
 }
