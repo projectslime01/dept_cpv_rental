@@ -16,6 +16,7 @@ import { studentGuide, adminGuide, GuideSection } from '../src/lib/guide-content
 const PROJECT_ROOT = path.resolve(__dirname, '..')
 const PUBLIC_DIR = path.join(PROJECT_ROOT, 'public')
 const OUT_DIR = path.join(PUBLIC_DIR, 'guide')
+const FONT_DIR = path.join(__dirname, '.fonts')
 
 // ─── 브랜드 ───────────────────────────────────────────────────
 const ROSE = '#e11d48'
@@ -47,6 +48,29 @@ function esc(s: string): string {
 
 const logoUri = dataUri(path.join(PUBLIC_DIR, 'logo.png'))
 const placeholderUri = dataUri(path.join(PUBLIC_DIR, 'guide', 'placeholder.svg'))
+
+/** Pretendard woff2 → base64 data URI */
+function fontUri(weightFile: string): string {
+  return dataUri(path.join(FONT_DIR, weightFile))
+}
+
+/** Pretendard @font-face 정의 (PDF에 폰트 임베드) */
+function fontFaceCSS(): string {
+  const faces: Array<[string, number]> = [
+    ['Pretendard-Regular.woff2', 400],
+    ['Pretendard-Medium.woff2', 500],
+    ['Pretendard-Bold.woff2', 700],
+    ['Pretendard-ExtraBold.woff2', 800],
+    ['Pretendard-Black.woff2', 900],
+  ]
+  return faces
+    .map(([file, weight]) => {
+      const uri = fontUri(file)
+      if (!uri) throw new Error(`폰트 파일 누락: ${file} — scripts/.fonts/ 확인 필요`)
+      return `@font-face{font-family:'Pretendard';font-style:normal;font-weight:${weight};font-display:block;src:url(${uri}) format('woff2');}`
+    })
+    .join('\n')
+}
 
 /** 표지 슬라이드 */
 function coverSlide(title: string, subtitle: string, accent: string, totalSlides: number): string {
@@ -134,8 +158,12 @@ function buildSlides(sections: GuideSection[], dir: string, accent: string): str
 
 function pageCSS(): string {
   return `
-  * { margin:0; padding:0; box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  html,body { font-family:'Apple SD Gothic Neo','Pretendard','Noto Sans KR',system-ui,sans-serif; color:${INK}; }
+  ${fontFaceCSS()}
+  /* 모든 요소를 Pretendard로 강제. 숫자(tabular 영역 포함)도 동일 폰트 사용 */
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact;
+      font-family:'Pretendard',sans-serif !important; }
+  /* 자간: 본문 기준 -10 (=-0.010em), 제목류는 개별로 -25까지 */
+  html,body { font-family:'Pretendard',sans-serif; color:${INK}; letter-spacing:-0.012em; }
   @page { size:1280px 720px; margin:0; }
   .slide {
     position:relative; width:1280px; height:720px; overflow:hidden;
@@ -144,22 +172,22 @@ function pageCSS(): string {
   }
   .slide:last-child { page-break-after:auto; }
 
-  /* 표지 */
+  /* 표지 — 자간 -10~-25 범위 적용 */
   .cover { align-items:flex-start; justify-content:center; padding:0 96px; background:${BG_SOFT}; }
   .cover-inner { max-width:900px; }
   .cover-logo { width:84px; height:84px; object-fit:contain; margin-bottom:28px; }
-  .cover-kicker { font-size:22px; font-weight:700; color:var(--accent); letter-spacing:2px; margin-bottom:18px; }
-  .cover-title { font-size:68px; font-weight:900; line-height:1.1; letter-spacing:-1px; }
-  .cover-sub { font-size:26px; color:${SUB}; margin-top:24px; font-weight:500; }
-  .cover-meta { font-size:18px; color:${FAINT}; margin-top:40px; font-weight:600; }
+  .cover-kicker { font-size:22px; font-weight:700; color:var(--accent); letter-spacing:-0.01em; margin-bottom:18px; }
+  .cover-title { font-size:68px; font-weight:900; line-height:1.1; letter-spacing:-0.025em; }
+  .cover-sub { font-size:26px; color:${SUB}; margin-top:24px; font-weight:500; letter-spacing:-0.02em; }
+  .cover-meta { font-size:18px; color:${FAINT}; margin-top:40px; font-weight:600; letter-spacing:-0.012em; }
   .cover-bar { position:absolute; left:0; bottom:0; width:100%; height:16px; background:var(--accent); }
 
   /* 섹션 구분 */
   .divider { align-items:flex-start; justify-content:center; padding:0 96px; background:#fff; }
-  .divider-num { font-size:120px; font-weight:900; color:var(--accent); opacity:.18; line-height:1; }
-  .divider-title { font-size:56px; font-weight:900; margin-top:8px; letter-spacing:-1px; }
+  .divider-num { font-size:120px; font-weight:900; color:var(--accent); opacity:.18; line-height:1; letter-spacing:-0.025em; }
+  .divider-title { font-size:56px; font-weight:900; margin-top:8px; letter-spacing:-0.025em; }
   .divider-rule { width:120px; height:8px; background:var(--accent); border-radius:8px; margin-top:32px; }
-  .divider-count { font-size:20px; color:${SUB}; margin-top:24px; font-weight:600; }
+  .divider-count { font-size:20px; color:${SUB}; margin-top:24px; font-weight:600; letter-spacing:-0.012em; }
 
   /* 콘텐츠 */
   .content { padding:48px 64px 0; }
@@ -168,9 +196,9 @@ function pageCSS(): string {
     font-size:18px; font-weight:800; color:var(--accent);
     background:color-mix(in srgb, var(--accent) 10%, white);
     border:1.5px solid color-mix(in srgb, var(--accent) 28%, white);
-    padding:8px 18px; border-radius:999px;
+    padding:8px 18px; border-radius:999px; letter-spacing:-0.015em;
   }
-  .page-no { font-size:18px; font-weight:700; color:${FAINT}; font-variant-numeric:tabular-nums; }
+  .page-no { font-size:18px; font-weight:700; color:${FAINT}; font-variant-numeric:tabular-nums; letter-spacing:-0.01em; }
   .content-body { flex:1; display:flex; gap:48px; align-items:center; }
   .shot-wrap {
     flex:0 0 58%; height:430px; border-radius:20px; overflow:hidden;
@@ -182,10 +210,10 @@ function pageCSS(): string {
   .text-col { flex:1; }
   .step-badge {
     display:inline-block; font-size:16px; font-weight:800; color:#fff;
-    background:var(--accent); padding:6px 16px; border-radius:8px; letter-spacing:1px;
+    background:var(--accent); padding:6px 16px; border-radius:8px; letter-spacing:-0.01em;
   }
-  .step-title { font-size:40px; font-weight:900; line-height:1.2; margin-top:20px; letter-spacing:-.5px; }
-  .step-desc { font-size:23px; line-height:1.7; color:${SUB}; margin-top:24px; font-weight:500; }
+  .step-title { font-size:40px; font-weight:900; line-height:1.2; margin-top:20px; letter-spacing:-0.025em; }
+  .step-desc { font-size:23px; line-height:1.7; color:${SUB}; margin-top:24px; font-weight:500; letter-spacing:-0.018em; }
   .foot-bar { height:10px; background:var(--accent); margin:40px -64px 0; }
   `
 }
@@ -198,6 +226,8 @@ async function renderPDF(html: string, outPath: string) {
   const browser = await chromium.launch({ headless: true })
   const page = await browser.newPage()
   await page.setContent(html, { waitUntil: 'networkidle' })
+  // 임베드된 Pretendard 폰트 로딩 완료 대기 (async 변환 회피 위해 문자열 평가)
+  await page.evaluate('document.fonts.ready')
   await page.pdf({
     path: outPath,
     width: '1280px',
