@@ -13,6 +13,7 @@ export default function AdminGuidePage() {
       sections={adminGuide}
       title="관리자 이용 가이드"
       subtitle="기자재·강의실 신청 관리, 기자재 관리, 테스트 신청 등 관리자 기능을 안내합니다."
+      pdfPath="/guide/연성대-기자재대여-관리자가이드.pdf"
     />
   )
 }

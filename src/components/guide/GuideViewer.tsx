@@ -6,7 +6,7 @@ import {
   Package, Building2, Search, CalendarDays,
   LayoutDashboard, ClipboardList, DoorOpen, History,
   Users, TestTube2, BookOpen,
-  Presentation, X, ChevronLeft, ChevronRight, Printer,
+  Presentation, X, ChevronLeft, ChevronRight, Printer, Download,
 } from 'lucide-react'
 import type { ComponentType } from 'react'
 import { GuideSlide } from './GuideSlide'
@@ -83,9 +83,10 @@ interface Props {
   sections: GuideSection[]
   title: string
   subtitle: string
+  pdfPath?: string  // 발표용 PDF 다운로드 경로 (예: /guide/연성대-...학생가이드.pdf)
 }
 
-export function GuideViewer({ sections, title, subtitle }: Props) {
+export function GuideViewer({ sections, title, subtitle, pdfPath }: Props) {
   const [slideMode, setSlideMode] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0)
 
@@ -136,14 +137,26 @@ export function GuideViewer({ sections, title, subtitle }: Props) {
               <p className="text-sm text-base-secondary mt-0.5">{subtitle}</p>
             </div>
           </div>
-          {/* 슬라이드 모드 버튼 */}
-          <button
-            onClick={openSlide}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-rose text-white text-sm font-medium hover:opacity-90 transition-opacity shrink-0"
-          >
-            <Presentation className="w-4 h-4" />
-            슬라이드 모드
-          </button>
+          {/* 액션 버튼 */}
+          <div className="flex items-center gap-2 shrink-0">
+            {pdfPath && (
+              <a
+                href={pdfPath}
+                download
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-surface-raised border border-base text-base-secondary text-sm font-medium hover:bg-surface-overlay hover:text-base-primary transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                PDF 다운로드
+              </a>
+            )}
+            <button
+              onClick={openSlide}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-rose text-white text-sm font-medium hover:opacity-90 transition-opacity"
+            >
+              <Presentation className="w-4 h-4" />
+              슬라이드 모드
+            </button>
+          </div>
         </div>
       </div>
 
