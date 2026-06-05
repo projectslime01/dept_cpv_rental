@@ -125,16 +125,16 @@ export function GuideViewer({ sections, title, subtitle, pdfPath }: Props) {
     <div>
       {/* ─── 페이지 헤더 ─── */}
       <div className="border-b border-base pb-6 mb-8 no-print">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-center gap-3 min-w-0">
             <div className="w-12 h-12 rounded-2xl bg-brand-rose-muted border border-brand-rose flex items-center justify-center text-brand-rose shrink-0">
               <BookOpen className="w-6 h-6" />
             </div>
-            <div>
-              <h1 className="text-2xl font-extrabold text-base-primary tracking-tight">
+            <div className="min-w-0">
+              <h1 className="text-2xl font-extrabold text-base-primary tracking-tight break-keep">
                 {title}
               </h1>
-              <p className="text-sm text-base-secondary mt-0.5">{subtitle}</p>
+              <p className="text-sm text-base-secondary mt-0.5 break-keep">{subtitle}</p>
             </div>
           </div>
           {/* 액션 버튼 */}
@@ -143,17 +143,17 @@ export function GuideViewer({ sections, title, subtitle, pdfPath }: Props) {
               <a
                 href={pdfPath}
                 download
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-surface-raised border border-base text-base-secondary text-sm font-medium hover:bg-surface-overlay hover:text-base-primary transition-colors"
+                className="flex flex-1 sm:flex-none items-center justify-center gap-2 px-4 py-2 rounded-xl bg-surface-raised border border-base text-base-secondary text-sm font-medium hover:bg-surface-overlay hover:text-base-primary transition-colors whitespace-nowrap"
               >
-                <Download className="w-4 h-4" />
+                <Download className="w-4 h-4 shrink-0" />
                 PDF 다운로드
               </a>
             )}
             <button
               onClick={openSlide}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-rose text-white text-sm font-medium hover:opacity-90 transition-opacity"
+              className="flex flex-1 sm:flex-none items-center justify-center gap-2 px-4 py-2 rounded-xl bg-brand-rose text-white text-sm font-medium hover:opacity-90 transition-opacity whitespace-nowrap"
             >
-              <Presentation className="w-4 h-4" />
+              <Presentation className="w-4 h-4 shrink-0" />
               슬라이드 모드
             </button>
           </div>
