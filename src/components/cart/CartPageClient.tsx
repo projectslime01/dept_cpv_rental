@@ -376,9 +376,10 @@ export function CartPageClient() {
               <p className="text-[11px] text-base-muted">신청 후 조회 시 사용합니다. 분실 시 복구 불가.</p>
             </div>
             <div className="space-y-1.5">
-              <label htmlFor="purpose" className="block text-xs font-medium text-base-secondary">사용 목적 <span className="text-base-muted">(선택)</span></label>
-              <textarea id="purpose" name="purpose" rows={2}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-base text-sm bg-surface-raised text-base-primary focus:outline-none focus:border-brand-rose transition-colors resize-none" />
+              <label htmlFor="purpose" className="block text-xs font-medium text-base-secondary">사용 목적 <span className="text-brand-rose">*</span></label>
+              <textarea id="purpose" name="purpose" rows={2} required
+                placeholder="예) 과제 촬영, 팀 프로젝트 등"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-base text-sm bg-surface-raised text-base-primary placeholder:text-base-faint focus:outline-none focus:border-brand-rose transition-colors resize-none" />
             </div>
           </div>
         </SectionCard>

@@ -43,6 +43,9 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
   if (!applicantName || !studentId || !phone || !password) {
     return { success: false, error: '필수 항목을 모두 입력해주세요.' }
   }
+  if (!purpose) {
+    return { success: false, error: '사용 목적을 입력해주세요.' }
+  }
   if (password.length < 4 || password.length > 8) {
     return { success: false, error: '비밀번호는 4~8자리여야 합니다.' }
   }
@@ -234,6 +237,9 @@ export async function createBatchRentalRequest(formData: FormData): Promise<Crea
 
   if (!applicantName || !studentId || !phone || !password) {
     return { success: false, error: '필수 항목을 모두 입력해주세요.' }
+  }
+  if (!purpose) {
+    return { success: false, error: '사용 목적을 입력해주세요.' }
   }
   if (password.length < 4 || password.length > 8) {
     return { success: false, error: '비밀번호는 4~8자리여야 합니다.' }
