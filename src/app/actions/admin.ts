@@ -133,6 +133,8 @@ export async function createEquipment(formData: FormData) {
   const minRentalQuantity = parseInt(formData.get('minRentalQuantity') as string) || 1
   const maxRaw = parseInt(formData.get('maxRentalQuantity') as string)
   const maxRentalQuantity = isNaN(maxRaw) || maxRaw < 1 ? null : Math.min(maxRaw, totalQuantity)
+  const gradeRaw = parseInt(formData.get('minGrade') as string)
+  const minGrade = [1, 2, 3].includes(gradeRaw) ? gradeRaw : 1
   await prisma.equipment.create({
     data: {
       name: formData.get('name') as string,
@@ -141,6 +143,7 @@ export async function createEquipment(formData: FormData) {
       totalQuantity,
       minRentalQuantity: Math.max(1, Math.min(minRentalQuantity, totalQuantity)),
       maxRentalQuantity,
+      minGrade,
     },
   })
   revalidatePath('/admin/equipment')
@@ -153,6 +156,8 @@ export async function updateEquipment(id: number, formData: FormData) {
   const minRentalQuantity = parseInt(formData.get('minRentalQuantity') as string) || 1
   const maxRaw = parseInt(formData.get('maxRentalQuantity') as string)
   const maxRentalQuantity = isNaN(maxRaw) || maxRaw < 1 ? null : Math.min(maxRaw, totalQuantity)
+  const gradeRaw = parseInt(formData.get('minGrade') as string)
+  const minGrade = [1, 2, 3].includes(gradeRaw) ? gradeRaw : 1
   await prisma.equipment.update({
     where: { id },
     data: {
@@ -162,6 +167,7 @@ export async function updateEquipment(id: number, formData: FormData) {
       totalQuantity,
       minRentalQuantity: Math.max(1, Math.min(minRentalQuantity, totalQuantity)),
       maxRentalQuantity,
+      minGrade,
     },
   })
   revalidatePath('/admin/equipment')
