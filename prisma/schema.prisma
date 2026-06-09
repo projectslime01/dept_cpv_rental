@@ -16,6 +16,7 @@ model Equipment {
   totalQuantity     Int
   minRentalQuantity Int          @default(1)
   maxRentalQuantity Int?
+  minGrade      Int             @default(1)  // 대여 가능 최소 학년 (1/2/3)
   status        String          @default("active")
   createdAt     DateTime        @default(now())
   requests      RentalRequest[]
@@ -32,6 +33,7 @@ model RentalRequest {
   phone         String
   equipmentId   Int
   quantity      Int
+  grade         Int?      // 신청자 학년 (1/2/3). 레거시/이전 데이터는 null
   startAt       DateTime
   endAt         DateTime
   purpose       String?

@@ -20,6 +20,7 @@ import { ko } from 'date-fns/locale'
 interface Props {
   equipmentId: number
   equipmentName: string
+  equipmentMinGrade?: number
   defaultStartAt?: string
   defaultEndAt?: string
   maxQuantity: number
@@ -29,14 +30,18 @@ interface Props {
 
 const inputCls = 'w-full h-10 px-3.5 rounded-xl border border-base text-sm bg-surface-raised text-base-primary placeholder:text-base-muted/50 focus:outline-none focus:border-brand-rose transition-colors'
 
-export function RentalForm({ equipmentId, equipmentName, defaultStartAt, defaultEndAt, maxQuantity, minRentalQuantity = 1, maxRentalQuantity }: Props) {
+export function RentalForm({ equipmentId, equipmentName, equipmentMinGrade = 1, defaultStartAt, defaultEndAt, maxQuantity, minRentalQuantity = 1, maxRentalQuantity }: Props) {
   const effectiveMax = Math.min(maxRentalQuantity ?? maxQuantity, maxQuantity)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [requestNumber, setRequestNumber] = useState<string | null>(null)
   const [startAt, setStartAt] = useState(defaultStartAt ?? '')
   const [endAt, setEndAt] = useState(defaultEndAt ?? '')
+  const [grade, setGrade] = useState<number | null>(null)
   const [selectedAccessories, setSelectedAccessories] = useState<{ accessoryId: number; quantity: number }[]>([])
+
+  // 학년 자격 검증 (선택한 학년이 기자재 최소 학년 미만이면 불가)
+  const gradeInsufficient = grade != null && grade < equipmentMinGrade
 
   // 실시간 제약 검증용 클라이언트 상태
   const [currentTimeValid, setCurrentTimeValid] = useState(true)
@@ -80,6 +85,8 @@ export function RentalForm({ equipmentId, equipmentName, defaultStartAt, default
     isPending ||
     !startAt ||
     !endAt ||
+    grade == null ||
+    gradeInsufficient ||
     !currentTimeValid ||
     !isStartAtValid ||
     (needsApproval && !hasDepartmentApproval)
@@ -88,6 +95,7 @@ export function RentalForm({ equipmentId, equipmentName, defaultStartAt, default
     formData.set('equipmentId', String(equipmentId))
     formData.set('startAt', startAt)
     formData.set('endAt', endAt)
+    formData.set('grade', grade != null ? String(grade) : '')
     formData.set('hasDepartmentApproval', String(hasDepartmentApproval))
     formData.set('accessories', JSON.stringify(selectedAccessories))
     setError(null)
@@ -160,6 +168,36 @@ export function RentalForm({ equipmentId, equipmentName, defaultStartAt, default
         <div className="space-y-1.5">
           <label htmlFor="phone" className="block text-xs font-medium text-base-secondary">연락처 *</label>
           <input id="phone" name="phone" type="tel" placeholder="010-0000-0000" required className={inputCls} />
+        </div>
+
+        {/* 학년 선택 (학년별 대여 자격 제한) */}
+        <div className="space-y-1.5">
+          <label className="block text-xs font-medium text-base-secondary">
+            학년 <span className="text-brand-rose">*</span>
+            <span className="ml-1 text-base-muted">이 기자재는 {equipmentMinGrade}학년 이상 대여 가능</span>
+          </label>
+          <div className="grid grid-cols-3 gap-2">
+            {[1, 2, 3].map((g) => (
+              <button
+                key={g}
+                type="button"
+                onClick={() => setGrade(g)}
+                className={`h-10 rounded-xl border text-sm font-semibold transition-colors ${
+                  grade === g
+                    ? 'bg-brand-rose text-white border-brand-rose'
+                    : 'bg-surface-raised border-base text-base-secondary hover:border-brand-rose/50'
+                }`}
+              >
+                {g}학년
+              </button>
+            ))}
+          </div>
+          {gradeInsufficient && (
+            <div className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-xl px-3 py-2 flex items-center gap-1.5 mt-1">
+              <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+              <span>{equipmentMinGrade}학년 이상부터 대여 가능한 기자재입니다.</span>
+            </div>
+          )}
         </div>
 
         <div className="space-y-1.5">

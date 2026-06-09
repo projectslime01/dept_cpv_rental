@@ -100,9 +100,20 @@ async function main() {
     { name: '릴선', category: '기타', totalQuantity: 4, description: '릴 연장 케이블' },
   ]
 
+  // 규정 제5조 기준 최소 학년 매핑 (1=기초/2=심화/3=전체)
+  const gradeFor = (name: string, category: string): number => {
+    if (category === '카메라 바디') return name.includes('Z90') ? 1 : name.includes('A7M4') ? 2 : 3
+    if (category === '렌즈') return name.includes('24-105') ? 2 : 3
+    if (category === '영상 장비') return name.includes('짐벌') ? 2 : 3
+    if (category === '필터') return 3
+    return 1
+  }
+
   const existingCount = await prisma.equipment.count()
   if (existingCount === 0) {
-    await prisma.equipment.createMany({ data: equipmentData })
+    await prisma.equipment.createMany({
+      data: equipmentData.map((e) => ({ ...e, minGrade: gradeFor(e.name, e.category) })),
+    })
   }
 
   // ── 2026-05-26 프로덕션 DB 현황 기준 (관리자가 301호·302호·멀티미디어실 삭제) ──
