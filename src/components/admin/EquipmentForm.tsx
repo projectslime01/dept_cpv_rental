@@ -17,10 +17,14 @@ interface Equipment {
   totalQuantity: number
   minRentalQuantity: number
   maxRentalQuantity: number | null
+  minGrade: number
   status: string
   rentedNow: number
   availableNow: number
 }
+
+const GRADE_SELECT_CLS =
+  'w-full h-10 px-3.5 rounded-xl border border-strong bg-surface-raised text-sm text-base-primary focus:border-brand-rose focus:ring-1 focus:ring-brand-rose focus:outline-none'
 
 export function CreateEquipmentButton() {
   const [open, setOpen] = useState(false)
@@ -107,6 +111,15 @@ export function CreateEquipmentButton() {
               </div>
             </div>
             <p className="text-[11px] text-base-muted -mt-2">최대 대여 수량을 비워두면 재고 내에서 자유롭게 신청 가능합니다.</p>
+            <div className="space-y-1.5">
+              <Label className="text-base-secondary text-xs font-semibold">대여 가능 학년 *</Label>
+              <select name="minGrade" defaultValue={1} className={GRADE_SELECT_CLS}>
+                <option value={1}>1학년 이상 (전체)</option>
+                <option value={2}>2학년 이상</option>
+                <option value={3}>3학년 이상</option>
+              </select>
+              <p className="text-[11px] text-base-muted">선택한 학년 이상만 이 기자재를 대여할 수 있습니다.</p>
+            </div>
             <DialogFooter className="pt-2 gap-2 sm:gap-0">
               <Button
                 variant="outline"
@@ -300,6 +313,15 @@ export function EquipmentActions({ equipment }: { equipment: Equipment }) {
               </div>
             </div>
             <p className="text-[11px] text-base-muted -mt-2">최대 대여 수량을 비워두면 재고 내에서 자유롭게 신청 가능합니다.</p>
+            <div className="space-y-1.5">
+              <Label className="text-base-secondary text-xs font-semibold">대여 가능 학년 *</Label>
+              <select name="minGrade" defaultValue={equipment.minGrade} className={GRADE_SELECT_CLS}>
+                <option value={1}>1학년 이상 (전체)</option>
+                <option value={2}>2학년 이상</option>
+                <option value={3}>3학년 이상</option>
+              </select>
+              <p className="text-[11px] text-base-muted">선택한 학년 이상만 이 기자재를 대여할 수 있습니다.</p>
+            </div>
             <DialogFooter className="pt-2 gap-2 sm:gap-0">
               <Button
                 variant="outline"
