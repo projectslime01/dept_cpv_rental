@@ -100,6 +100,22 @@ model ClassroomRequest {
   createdAt     DateTime @default(now())
 }
 
+model RentalRestriction {
+  id          Int       @id @default(autoincrement())
+  studentId   String    // 제한 대상 학번
+  studentName String?   // 이름(선택, 식별용)
+  reason      String    // 노쇼 / 손망실 / 연체 / 기타
+  detail      String?   // 상세 사유 메모
+  startAt     DateTime  @default(now())
+  endAt       DateTime  // 제한 종료 시각 (이 시각 이후 자동 해제)
+  releasedAt  DateTime? // 관리자 수동 해제 시각 (값이 있으면 즉시 해제됨)
+  createdBy   Int?      // 등록한 관리자 id
+  createdAt   DateTime  @default(now())
+
+  @@index([studentId])
+  @@index([endAt])
+}
+
 model RateLimitAttempt {
   id          Int       @id @default(autoincrement())
   key         String    @unique

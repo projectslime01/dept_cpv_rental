@@ -1,7 +1,8 @@
 import { prisma } from '@/lib/prisma'
+import Link from 'next/link'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import { Clock, Package, Building } from 'lucide-react'
+import { Clock, Package, Building, Ban, ChevronRight } from 'lucide-react'
 import { sortByCategory } from '@/lib/categories'
 import { groupRequests, formatItemList } from '@/lib/requestGrouping'
 
@@ -16,6 +17,7 @@ export default async function DashboardPage() {
     eqDueSoon,
     roomDueSoon,
     equipmentStats,
+    activeRestrictionCount,
   ] = await Promise.all([
     prisma.rentalRequest.count({ where: { status: 'pending' } }),
     prisma.classroomRentalRequest.count({ where: { status: 'pending' } }),
@@ -49,6 +51,9 @@ export default async function DashboardPage() {
           select: { quantity: true },
         },
       },
+    }),
+    prisma.rentalRestriction.count({
+      where: { releasedAt: null, startAt: { lte: now }, endAt: { gt: now } },
     }),
   ])
 
@@ -90,6 +95,27 @@ export default async function DashboardPage() {
           <p className="text-xs text-base-muted mt-1">건</p>
         </div>
       </div>
+
+      {/* 대여 제한자 알림 */}
+      {activeRestrictionCount > 0 && (
+        <Link
+          href="/admin/restrictions"
+          className="flex items-center gap-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 rounded-2xl px-5 py-4 hover:bg-red-100 dark:hover:bg-red-950/60 transition-colors"
+        >
+          <div className="w-9 h-9 rounded-xl bg-red-100 dark:bg-red-900/50 flex items-center justify-center shrink-0">
+            <Ban className="w-4 h-4 text-red-600 dark:text-red-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-red-700 dark:text-red-300">
+              현재 대여 제한 중인 학번 {activeRestrictionCount}명
+            </p>
+            <p className="text-xs text-red-600/80 dark:text-red-400/80 mt-0.5">
+              제한 기간 내에는 해당 학번의 대여 신청이 자동 차단됩니다. 클릭하여 관리
+            </p>
+          </div>
+          <ChevronRight className="w-5 h-5 text-red-500 shrink-0" />
+        </Link>
+      )}
 
       {/* 반납 / 사용 종료 예정 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

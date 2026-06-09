@@ -16,6 +16,8 @@ import {
 } from '@/lib/rental'
 import { getAvailableAccessoryQuantity } from '@/lib/accessory'
 import { checkRateLimit, recordFailedAttempt, resetAttempts } from '@/lib/rate-limit'
+import { restrictionBlockMessage } from '@/lib/restriction'
+import { getActiveRestriction } from '@/lib/restriction.server'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
@@ -59,6 +61,12 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
   }
   if (quantity < 1) {
     return { success: false, error: '수량은 1 이상이어야 합니다.' }
+  }
+
+  // 대여 제한자(패널티) 검증 — 제한 기간 내 학번은 신청 차단
+  const restriction = await getActiveRestriction(studentId)
+  if (restriction) {
+    return { success: false, error: restrictionBlockMessage(restriction) }
   }
 
   // 최소·최대 대여 수량 서버사이드 검증
@@ -263,6 +271,12 @@ export async function createBatchRentalRequest(formData: FormData): Promise<Crea
   }
   if (isNaN(startAt.getTime()) || isNaN(endAt.getTime()) || startAt >= endAt) {
     return { success: false, error: '대여 기간이 올바르지 않습니다.' }
+  }
+
+  // 대여 제한자(패널티) 검증 — 제한 기간 내 학번은 신청 차단
+  const restriction = await getActiveRestriction(studentId)
+  if (restriction) {
+    return { success: false, error: restrictionBlockMessage(restriction) }
   }
 
   // 대여 신청 및 기간 규칙 유효성 검증
