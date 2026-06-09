@@ -30,7 +30,7 @@ describe('getAvailableQuantity', () => {
 
   it('returns totalQuantity minus overlapping approved quantity', async () => {
     vi.mocked(prisma.equipment.findUnique).mockResolvedValue({
-      id: 1, totalQuantity: 5, minRentalQuantity: 1, maxRentalQuantity: null, status: 'active',
+      id: 1, totalQuantity: 5, minRentalQuantity: 1, maxRentalQuantity: null, status: 'active', minGrade: 1,
       name: '', category: '', description: null, imageUrl: null, createdAt: new Date(),
     })
     vi.mocked(prisma.rentalRequest.aggregate).mockResolvedValue({ _sum: { quantity: 2 }, _avg: {}, _count: {}, _max: {}, _min: {} } as any)
@@ -45,7 +45,7 @@ describe('getAvailableQuantity', () => {
 
   it('returns totalQuantity when no overlapping requests', async () => {
     vi.mocked(prisma.equipment.findUnique).mockResolvedValue({
-      id: 1, totalQuantity: 5, minRentalQuantity: 1, maxRentalQuantity: null, status: 'active',
+      id: 1, totalQuantity: 5, minRentalQuantity: 1, maxRentalQuantity: null, status: 'active', minGrade: 1,
       name: '', category: '', description: null, imageUrl: null, createdAt: new Date(),
     })
     vi.mocked(prisma.rentalRequest.aggregate).mockResolvedValue({ _sum: { quantity: null }, _avg: {}, _count: {}, _max: {}, _min: {} } as any)
@@ -64,7 +64,7 @@ describe('checkAvailability', () => {
 
   it('returns true when enough quantity available', async () => {
     vi.mocked(prisma.equipment.findUnique).mockResolvedValue({
-      id: 1, totalQuantity: 5, minRentalQuantity: 1, maxRentalQuantity: null, status: 'active',
+      id: 1, totalQuantity: 5, minRentalQuantity: 1, maxRentalQuantity: null, status: 'active', minGrade: 1,
       name: '', category: '', description: null, imageUrl: null, createdAt: new Date(),
     })
     vi.mocked(prisma.rentalRequest.aggregate).mockResolvedValue({ _sum: { quantity: 2 }, _avg: {}, _count: {}, _max: {}, _min: {} } as any)
@@ -78,7 +78,7 @@ describe('checkAvailability', () => {
 
   it('returns false when quantity exceeds availability', async () => {
     vi.mocked(prisma.equipment.findUnique).mockResolvedValue({
-      id: 1, totalQuantity: 5, minRentalQuantity: 1, maxRentalQuantity: null, status: 'active',
+      id: 1, totalQuantity: 5, minRentalQuantity: 1, maxRentalQuantity: null, status: 'active', minGrade: 1,
       name: '', category: '', description: null, imageUrl: null, createdAt: new Date(),
     })
     vi.mocked(prisma.rentalRequest.aggregate).mockResolvedValue({ _sum: { quantity: 3 }, _avg: {}, _count: {}, _max: {}, _min: {} } as any)
@@ -92,7 +92,7 @@ describe('checkAvailability', () => {
 
   it('returns false when equipment is inactive', async () => {
     vi.mocked(prisma.equipment.findUnique).mockResolvedValue({
-      id: 1, totalQuantity: 5, minRentalQuantity: 1, maxRentalQuantity: null, status: 'inactive',
+      id: 1, totalQuantity: 5, minRentalQuantity: 1, maxRentalQuantity: null, status: 'inactive', minGrade: 1,
       name: '', category: '', description: null, imageUrl: null, createdAt: new Date(),
     })
 

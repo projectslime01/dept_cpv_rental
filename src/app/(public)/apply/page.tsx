@@ -19,6 +19,7 @@ export default async function ApplyPage({
       <RentalForm
         equipmentId={equipment.id}
         equipmentName={equipment.name}
+        equipmentMinGrade={equipment.minGrade}
         defaultStartAt={searchParams.startAt}
         defaultEndAt={searchParams.endAt}
         maxQuantity={equipment.totalQuantity}

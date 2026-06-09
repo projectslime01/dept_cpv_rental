@@ -89,6 +89,7 @@ export function CartPageClient() {
   const [result, setResult] = useState<{ groupNumber: string; requestNumbers: string[] } | null>(null)
   const [availability, setAvailability] = useState<AvailabilityMap | null>(null)
   const [isChecking, setIsChecking] = useState(false)
+  const [grade, setGrade] = useState<number | null>(null)
 
   // 실시간 제약 검증용 클라이언트 상태
   const [currentTimeValid, setCurrentTimeValid] = useState(true)
@@ -127,11 +128,18 @@ export function CartPageClient() {
     }
   }
 
+  // 학년 자격 미달 품목 (availability 로딩 후 minGrade 기준)
+  const gradeBlockedItems = grade != null && availability
+    ? items.filter(i => (availability[i.equipmentId]?.minGrade ?? 1) > grade)
+    : []
+
   // 제출 비활성화 계산
   const isSubmitDisabled =
     isPending ||
     !startAt ||
     !endAt ||
+    grade == null ||
+    gradeBlockedItems.length > 0 ||
     !currentTimeValid ||
     !isStartAtValid ||
     (needsApproval && !hasDepartmentApproval)
@@ -183,6 +191,7 @@ export function CartPageClient() {
     formData.set('endAt', endAt)
     formData.set('items', JSON.stringify(items.map(i => ({ equipmentId: i.equipmentId, quantity: i.quantity }))))
     formData.set('hasDepartmentApproval', String(hasDepartmentApproval))
+    formData.set('grade', grade != null ? String(grade) : '')
     setError(null)
     startTransition(async () => {
       const res = await createBatchRentalRequest(formData)
@@ -369,6 +378,36 @@ export function CartPageClient() {
             <div className="space-y-1.5">
               <label htmlFor="phone" className="block text-xs font-medium text-base-secondary">연락처 *</label>
               <input id="phone" name="phone" type="tel" placeholder="010-0000-0000" required className={inputCls} />
+            </div>
+            {/* 학년 선택 (학년별 대여 자격 제한) */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-medium text-base-secondary">학년 <span className="text-brand-rose">*</span></label>
+              <div className="grid grid-cols-3 gap-2">
+                {[1, 2, 3].map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => setGrade(g)}
+                    className={`h-10 rounded-xl border text-sm font-semibold transition-colors ${
+                      grade === g
+                        ? 'bg-brand-rose text-white border-brand-rose'
+                        : 'bg-surface-raised border-base text-base-secondary hover:border-brand-rose/50'
+                    }`}
+                  >
+                    {g}학년
+                  </button>
+                ))}
+              </div>
+              {gradeBlockedItems.length > 0 && (
+                <div className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-xl px-3 py-2 flex items-start gap-1.5 mt-1">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                  <span>
+                    선택한 학년으로 대여할 수 없는 품목이 있습니다:{' '}
+                    <b>{gradeBlockedItems.map(i => `${i.name}(${availability?.[i.equipmentId]?.minGrade}학년~)`).join(', ')}</b>
+                    {' '}— 해당 품목을 빼거나 학년을 확인해주세요.
+                  </span>
+                </div>
+              )}
             </div>
             <div className="space-y-1.5">
               <label htmlFor="password" className="block text-xs font-medium text-base-secondary">조회용 비밀번호 * <span className="text-base-muted">(4~8자리)</span></label>

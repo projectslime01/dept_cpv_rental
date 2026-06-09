@@ -40,10 +40,11 @@ interface Props {
   totalQuantity: number
   minRentalQuantity: number
   maxRentalQuantity: number | null
+  minGrade?: number
   availableNow: number
 }
 
-export function EquipmentCard({ id, name, category, description, totalQuantity, minRentalQuantity, maxRentalQuantity, availableNow }: Props) {
+export function EquipmentCard({ id, name, category, description, totalQuantity, minRentalQuantity, maxRentalQuantity, minGrade = 1, availableNow }: Props) {
   const isAvailable = availableNow > 0
   const Icon = CATEGORY_ICONS[category] ?? Package
   const styles = CATEGORY_STYLES[category] ?? CATEGORY_STYLES['기타']
@@ -60,9 +61,16 @@ export function EquipmentCard({ id, name, category, description, totalQuantity, 
           <h3 className="text-sm font-semibold text-base-primary leading-snug truncate group-hover:text-brand-rose transition-colors">
             {name}
           </h3>
-          <span className={`inline-block mt-1 text-[11px] font-medium px-2 py-0.5 rounded-full border ${styles.badge}`}>
-            {category}
-          </span>
+          <div className="flex items-center gap-1 mt-1 flex-wrap">
+            <span className={`inline-block text-[11px] font-medium px-2 py-0.5 rounded-full border ${styles.badge}`}>
+              {category}
+            </span>
+            {minGrade > 1 && (
+              <span className="inline-block text-[11px] font-semibold px-2 py-0.5 rounded-full border text-rose-600 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900/50">
+                {minGrade}학년 이상
+              </span>
+            )}
+          </div>
         </div>
       </div>
 

@@ -33,6 +33,8 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
   const phone = (formData.get('phone') as string).trim()
   const password = (formData.get('password') as string)
   const purpose = (formData.get('purpose') as string | null)?.trim() || null
+  const gradeRaw = parseInt(formData.get('grade') as string)
+  const grade = [1, 2, 3].includes(gradeRaw) ? gradeRaw : null
 
   if (isNaN(equipmentId) || equipmentId < 1) {
     return { success: false, error: '기자재 정보가 올바르지 않습니다.' }
@@ -42,6 +44,9 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
   }
   if (!applicantName || !studentId || !phone || !password) {
     return { success: false, error: '필수 항목을 모두 입력해주세요.' }
+  }
+  if (!grade) {
+    return { success: false, error: '학년을 선택해주세요.' }
   }
   if (!purpose) {
     return { success: false, error: '사용 목적을 입력해주세요.' }
@@ -59,10 +64,16 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
   // 최소·최대 대여 수량 서버사이드 검증
   const equipmentForLimit = await prisma.equipment.findUnique({
     where: { id: equipmentId },
-    select: { minRentalQuantity: true, maxRentalQuantity: true, totalQuantity: true, status: true },
+    select: { minRentalQuantity: true, maxRentalQuantity: true, totalQuantity: true, status: true, minGrade: true, name: true },
   })
   if (!equipmentForLimit || equipmentForLimit.status !== 'active') {
     return { success: false, error: '해당 기자재를 찾을 수 없습니다.' }
+  }
+  if (grade < equipmentForLimit.minGrade) {
+    return {
+      success: false,
+      error: `'${equipmentForLimit.name}'은(는) ${equipmentForLimit.minGrade}학년 이상부터 대여 가능합니다.`,
+    }
   }
   if (quantity < equipmentForLimit.minRentalQuantity) {
     return {
@@ -190,6 +201,7 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
           phone,
           equipmentId,
           quantity,
+          grade,
           startAt,
           endAt,
           purpose,
@@ -234,9 +246,14 @@ export async function createBatchRentalRequest(formData: FormData): Promise<Crea
   const phone = (formData.get('phone') as string).trim()
   const password = formData.get('password') as string
   const purpose = (formData.get('purpose') as string | null)?.trim() || null
+  const gradeRaw = parseInt(formData.get('grade') as string)
+  const grade = [1, 2, 3].includes(gradeRaw) ? gradeRaw : null
 
   if (!applicantName || !studentId || !phone || !password) {
     return { success: false, error: '필수 항목을 모두 입력해주세요.' }
+  }
+  if (!grade) {
+    return { success: false, error: '학년을 선택해주세요.' }
   }
   if (!purpose) {
     return { success: false, error: '사용 목적을 입력해주세요.' }
@@ -304,7 +321,7 @@ export async function createBatchRentalRequest(formData: FormData): Promise<Crea
       items.map(async item => {
         const [available, eq] = await Promise.all([
           getAvailableQuantity(item.equipmentId, startAt, endAt),
-          prisma.equipment.findUnique({ where: { id: item.equipmentId }, select: { name: true, minRentalQuantity: true, maxRentalQuantity: true, totalQuantity: true } }),
+          prisma.equipment.findUnique({ where: { id: item.equipmentId }, select: { name: true, minRentalQuantity: true, maxRentalQuantity: true, totalQuantity: true, minGrade: true } }),
         ])
         return { item, available, eq }
       })
@@ -314,6 +331,9 @@ export async function createBatchRentalRequest(formData: FormData): Promise<Crea
       const effectiveMax = eq?.maxRentalQuantity !== null && eq?.maxRentalQuantity !== undefined
         ? Math.min(eq.maxRentalQuantity, eq.totalQuantity)
         : (eq?.totalQuantity ?? item.quantity)
+      if (eq && grade < eq.minGrade) {
+        return { success: false, error: `'${eq.name}'은(는) ${eq.minGrade}학년 이상부터 대여 가능합니다.` }
+      }
       if (item.quantity < minQty) {
         return { success: false, error: `'${eq?.name ?? item.equipmentId}': 이 기자재는 최소 ${minQty}개 이상 신청해야 합니다.` }
       }
@@ -341,6 +361,7 @@ export async function createBatchRentalRequest(formData: FormData): Promise<Crea
           phone,
           equipmentId: item.equipmentId,
           quantity: item.quantity,
+          grade,
           startAt,
           endAt,
           purpose,
@@ -371,6 +392,7 @@ export type CartAvailabilityItem = {
   available: number
   totalQuantity: number
   requested: number
+  minGrade: number
 }
 
 export async function checkCartAvailability(
@@ -389,7 +411,7 @@ export async function checkCartAvailability(
   const [equipments, overlapping] = await Promise.all([
     prisma.equipment.findMany({
       where: { id: { in: ids } },
-      select: { id: true, totalQuantity: true, status: true },
+      select: { id: true, totalQuantity: true, status: true, minGrade: true },
     }),
     prisma.rentalRequest.groupBy({
       by: ['equipmentId'],
@@ -408,19 +430,19 @@ export async function checkCartAvailability(
     usedMap[r.equipmentId] = r._sum.quantity ?? 0
   }
 
-  const eqMap: Record<number, { totalQuantity: number; status: string }> = {}
+  const eqMap: Record<number, { totalQuantity: number; status: string; minGrade: number }> = {}
   for (const eq of equipments) {
-    eqMap[eq.id] = { totalQuantity: eq.totalQuantity, status: eq.status }
+    eqMap[eq.id] = { totalQuantity: eq.totalQuantity, status: eq.status, minGrade: eq.minGrade }
   }
 
   return items.map(item => {
     const eq = eqMap[item.equipmentId]
     if (!eq || eq.status !== 'active') {
-      return { equipmentId: item.equipmentId, available: 0, totalQuantity: eq?.totalQuantity ?? 0, requested: item.quantity }
+      return { equipmentId: item.equipmentId, available: 0, totalQuantity: eq?.totalQuantity ?? 0, requested: item.quantity, minGrade: eq?.minGrade ?? 1 }
     }
     const used = usedMap[item.equipmentId] ?? 0
     const available = Math.max(0, eq.totalQuantity - used)
-    return { equipmentId: item.equipmentId, available, totalQuantity: eq.totalQuantity, requested: item.quantity }
+    return { equipmentId: item.equipmentId, available, totalQuantity: eq.totalQuantity, requested: item.quantity, minGrade: eq.minGrade }
   })
 }
 
