@@ -2,6 +2,7 @@ import Image from 'next/image'
 import { CartProvider } from '@/lib/useCart'
 import { CartHeaderButton } from '@/components/cart/CartHeaderButton'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { MobileMenu } from '@/components/MobileMenu'
 import { List, Search, CalendarDays, Building2, BookOpen, FileText } from 'lucide-react'
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -25,53 +26,38 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               </span>
             </a>
 
-            {/* Nav */}
-            <nav className="flex items-center gap-0.5 text-sm font-medium shrink-0 ml-2">
-              <a
-                href="/"
-                className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-raised transition-all duration-150 min-h-[44px]"
-              >
+            {/* 데스크톱 Nav (sm 이상) */}
+            <nav className="hidden sm:flex items-center gap-0.5 text-sm font-medium shrink-0 ml-2">
+              <a href="/" className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-raised transition-all duration-150 min-h-[44px]">
                 <List className="w-4 h-4 shrink-0" />
-                <span className="hidden sm:inline">기자재 대여</span>
+                <span>기자재 대여</span>
               </a>
-              <a
-                href="/classrooms"
-                className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-raised transition-all duration-150 min-h-[44px]"
-              >
+              <a href="/classrooms" className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-raised transition-all duration-150 min-h-[44px]">
                 <Building2 className="w-4 h-4 shrink-0" />
-                <span className="hidden sm:inline">강의실 대여</span>
+                <span>강의실 대여</span>
               </a>
-              <a
-                href="/rental-status"
-                className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-raised transition-all duration-150 min-h-[44px]"
-              >
+              <a href="/rental-status" className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-raised transition-all duration-150 min-h-[44px]">
                 <CalendarDays className="w-4 h-4 shrink-0" />
-                <span className="hidden sm:inline">전체 대여 현황</span>
+                <span>전체 대여 현황</span>
               </a>
-              <a
-                href="/status"
-                className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-raised transition-all duration-150 min-h-[44px]"
-              >
+              <a href="/status" className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-raised transition-all duration-150 min-h-[44px]">
                 <Search className="w-4 h-4 shrink-0" />
-                <span className="hidden sm:inline">신청 조회</span>
+                <span>신청 조회</span>
               </a>
-              <a
-                href="/guide"
-                className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-raised transition-all duration-150 min-h-[44px]"
-              >
+              <a href="/guide" className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-raised transition-all duration-150 min-h-[44px]">
                 <BookOpen className="w-4 h-4 shrink-0" />
-                <span className="hidden sm:inline">이용 가이드</span>
+                <span>이용 가이드</span>
               </a>
-              <a
-                href="/regulations"
-                className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-raised transition-all duration-150 min-h-[44px]"
-              >
+              <a href="/regulations" className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-raised transition-all duration-150 min-h-[44px]">
                 <FileText className="w-4 h-4 shrink-0" />
-                <span className="hidden sm:inline">대여 규정</span>
+                <span>대여 규정</span>
               </a>
               <CartHeaderButton />
               <ThemeToggle className="ml-1" />
             </nav>
+
+            {/* 모바일 Nav — 장바구니 + 햄버거 */}
+            <MobileMenu />
           </div>
         </header>
 
