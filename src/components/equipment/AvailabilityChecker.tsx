@@ -92,18 +92,40 @@ export function AvailabilityChecker({ equipmentId, totalQuantity }: Props) {
       </button>
 
       {available !== null && (
-        <div className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium border
-          ${isAvailable
-            ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/30 text-emerald-700 dark:text-emerald-400'
-            : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/30 text-red-700 dark:text-red-400'}`}>
-          {isAvailable
-            ? <CheckCircle2 className="w-4 h-4 shrink-0" />
-            : <XCircle className="w-4 h-4 shrink-0" />}
-          <span>
-            {isAvailable
-              ? `${available}개 대여 가능 (전체 ${totalQuantity}개)`
-              : '해당 기간에 대여 가능한 수량이 없습니다.'}
-          </span>
+        <div className={`rounded-2xl px-5 py-4 border ${
+          isAvailable
+            ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/30'
+            : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/30'
+        }`}>
+          <div className="flex items-center gap-4">
+            <div className={`flex items-center justify-center w-11 h-11 rounded-xl shrink-0 ${
+              isAvailable ? 'bg-emerald-100 dark:bg-emerald-900/50' : 'bg-red-100 dark:bg-red-900/50'
+            }`}>
+              {isAvailable
+                ? <CheckCircle2 className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                : <XCircle className="w-6 h-6 text-red-600 dark:text-red-400" />}
+            </div>
+            <div>
+              {isAvailable ? (
+                <>
+                  <p className="text-2xl font-extrabold leading-none text-emerald-700 dark:text-emerald-300">
+                    {available}개{' '}
+                    <span className="text-base font-semibold">대여 가능</span>
+                  </p>
+                  <p className="text-xs text-emerald-600/80 dark:text-emerald-500 mt-1.5">
+                    전체 보유 {totalQuantity}개 중 {available}개 이용 가능
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-base font-bold text-red-700 dark:text-red-400">대여 불가</p>
+                  <p className="text-xs text-red-600/80 dark:text-red-500 mt-1">
+                    해당 기간에 대여 가능한 수량이 없습니다.
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
