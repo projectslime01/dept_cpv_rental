@@ -2,7 +2,7 @@ import Image from 'next/image'
 import { CartProvider } from '@/lib/useCart'
 import { CartHeaderButton } from '@/components/cart/CartHeaderButton'
 import { ThemeToggle } from '@/components/ThemeToggle'
-import { List, Search, CalendarDays, Building2, BookOpen } from 'lucide-react'
+import { List, Search, CalendarDays, Building2, BookOpen, FileText } from 'lucide-react'
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -61,6 +61,13 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               >
                 <BookOpen className="w-4 h-4 shrink-0" />
                 <span className="hidden sm:inline">이용 가이드</span>
+              </a>
+              <a
+                href="/regulations"
+                className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-raised transition-all duration-150 min-h-[44px]"
+              >
+                <FileText className="w-4 h-4 shrink-0" />
+                <span className="hidden sm:inline">대여 규정</span>
               </a>
               <CartHeaderButton />
               <ThemeToggle className="ml-1" />
