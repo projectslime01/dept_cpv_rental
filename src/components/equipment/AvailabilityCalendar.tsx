@@ -247,7 +247,7 @@ export function AvailabilityCalendar({
                 className={`aspect-square rounded-xl border flex flex-col items-center justify-between p-1.5 transition-all text-left ${bgStyle}`}
               >
                 <span className="text-xs font-bold self-start">{dayNum}</span>
-                <span className={`text-[8px] font-medium tracking-tight ${statusColor} self-end`}>
+                <span className={`text-[11px] font-semibold ${statusColor} self-end`}>
                   {statusText}
                 </span>
               </button>
