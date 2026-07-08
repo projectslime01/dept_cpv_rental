@@ -244,10 +244,10 @@ export function AvailabilityCalendar({
                 type="button"
                 disabled={isPast || isSoldOut}
                 onClick={() => handleDateClick(dayItem.date, dayItem.available)}
-                className={`aspect-square rounded-xl border flex flex-col items-center justify-between p-1.5 transition-all text-left ${bgStyle}`}
+                className={`aspect-square rounded-xl border flex flex-col items-center justify-between p-1 sm:p-1.5 transition-all text-left ${bgStyle}`}
               >
                 <span className="text-xs font-bold self-start">{dayNum}</span>
-                <span className={`text-[11px] font-semibold ${statusColor} self-end`}>
+                <span className={`text-[10px] sm:text-[11px] font-semibold whitespace-nowrap ${statusColor} self-end`}>
                   {statusText}
                 </span>
               </button>

@@ -53,11 +53,11 @@ export default async function EquipmentDetailPage({ params }: { params: { id: st
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-bold text-base-primary tracking-tight">{equipment.name}</h1>
-            <div className="flex items-center gap-2.5 mt-2">
-              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${catStyle}`}>
+            <div className="flex flex-wrap items-center gap-2.5 mt-2">
+              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border whitespace-nowrap ${catStyle}`}>
                 {equipment.category}
               </span>
-              <span className="text-sm text-base-muted">총 {equipment.totalQuantity}개 보유</span>
+              <span className="text-sm text-base-muted whitespace-nowrap">총 {equipment.totalQuantity}개 보유</span>
             </div>
           </div>
           <AddToCartButton
