@@ -5,9 +5,10 @@ import { ko } from 'date-fns/locale'
 import { Clock, Package, Building, Ban, ChevronRight } from 'lucide-react'
 import { sortByCategory } from '@/lib/categories'
 import { groupRequests, formatItemList } from '@/lib/requestGrouping'
+import { nowKST } from '@/lib/rentalUtils'
 
 export default async function DashboardPage() {
-  const now = new Date()
+  const now = nowKST()
 
   const [
     eqPendingCount,

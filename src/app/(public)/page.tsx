@@ -2,9 +2,10 @@ import { prisma } from '@/lib/prisma'
 import { EquipmentCard } from '@/components/equipment/EquipmentCard'
 import { CATEGORY_ORDER, sortByCategory } from '@/lib/categories'
 import { Search } from 'lucide-react'
+import { nowKST } from '@/lib/rentalUtils'
 
 async function getEquipmentList(category?: string, search?: string) {
-  const now = new Date()
+  const now = nowKST()
   const equipments = await prisma.equipment.findMany({
     where: {
       status: 'active',

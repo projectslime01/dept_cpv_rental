@@ -60,6 +60,18 @@ export function getKSTHoursAndMinutes(date: Date) {
 }
 
 /**
+ * DB의 startAt/endAt과 비교할 때 사용하는 "현재 시각".
+ *
+ * 신청 폼의 "YYYY-MM-DDTHH:mm"(KST 벽시계) 문자열은 서버 타임존으로 파싱되어
+ * 저장되므로, 저장값과 실시간 비교하려면 현재 KST 벽시계 시각을 같은 방식
+ * (서버 타임존 파싱)으로 만든 Date를 써야 한다. new Date()를 직접 쓰면
+ * UTC 서버(Vercel)에서 9시간 이르게 판정된다.
+ */
+export function nowKST(): Date {
+  return getKSTHoursAndMinutes(new Date()).date
+}
+
+/**
  * 대여 신청(폼 작성)이 평일 09:00 ~ 17:00 (공휴일 제외) 이내인지 판별
  */
 export function isSubmissionTimeValid(date: Date): boolean {

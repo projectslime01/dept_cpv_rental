@@ -3,13 +3,14 @@ import { prisma } from '@/lib/prisma'
 import { Package } from 'lucide-react'
 import { CreateEquipmentButton, EquipmentActions } from '@/components/admin/EquipmentForm'
 import { CATEGORY_ORDER, sortByCategory } from '@/lib/categories'
+import { nowKST } from '@/lib/rentalUtils'
 
 export default async function AdminEquipmentPage({
   searchParams,
 }: {
   searchParams: { category?: string }
 }) {
-  const now = new Date()
+  const now = nowKST()
   const categoryFilter = searchParams.category && searchParams.category !== 'all'
     ? searchParams.category : undefined
 

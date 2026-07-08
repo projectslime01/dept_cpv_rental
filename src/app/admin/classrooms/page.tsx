@@ -2,11 +2,12 @@ import { prisma } from '@/lib/prisma'
 import { Building2 } from 'lucide-react'
 import Link from 'next/link'
 import { CreateClassroomButton, ClassroomActions } from '@/components/admin/ClassroomForm'
+import { nowKST } from '@/lib/rentalUtils'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminClassroomsPage() {
-  const now = new Date()
+  const now = nowKST()
 
   // 단일 쿼리 2개로 N+1 제거
   const [classrooms, activeRentals] = await Promise.all([

@@ -6,6 +6,7 @@
  */
 
 import { prisma } from '@/lib/prisma'
+import { nowKST } from '@/lib/rentalUtils'
 
 export type ActiveRestriction = {
   id: number
@@ -20,7 +21,7 @@ export type ActiveRestriction = {
  */
 export async function getActiveRestriction(
   studentId: string,
-  at: Date = new Date(),
+  at: Date = nowKST(),
 ): Promise<ActiveRestriction | null> {
   const id = studentId.trim()
   if (!id) return null

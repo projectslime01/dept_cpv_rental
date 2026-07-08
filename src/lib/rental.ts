@@ -5,6 +5,7 @@ export {
   generateRequestNumber,
   isHoliday,
   getKSTHoursAndMinutes,
+  nowKST,
   isSubmissionTimeValid,
   getEarliestAllowedStartDate,
   isValidStartDate,
