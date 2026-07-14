@@ -47,7 +47,7 @@ function SectionCard({ title, icon: Icon, children, badge }: { title: string; ic
   )
 }
 
-function SuccessScreen({ requestNumbers, onClear }: { groupNumber: string; requestNumbers: string[]; onClear: () => void }) {
+function SuccessScreen({ groupNumber, requestNumbers, onClear }: { groupNumber: string; requestNumbers: string[]; onClear: () => void }) {
   return (
     <div className="bg-surface-base rounded-2xl border border-base p-8 text-center space-y-5">
       <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/30">
@@ -57,13 +57,14 @@ function SuccessScreen({ requestNumbers, onClear }: { groupNumber: string; reque
         <h2 className="text-xl font-bold text-base-primary">신청 완료!</h2>
         <p className="text-sm text-base-secondary mt-1">{requestNumbers.length}종 기자재가 일괄 신청됐습니다.</p>
       </div>
-      <div className="bg-surface-raised rounded-xl border border-base p-4 text-left space-y-2">
+      <div className="bg-surface-raised rounded-xl border border-base p-4 text-left">
         <p className="text-[11px] font-bold text-base-muted uppercase tracking-wider mb-3">신청 번호</p>
-        {requestNumbers.map(rn => (
-          <p key={rn} className="font-mono text-sm font-bold text-brand-rose bg-surface-overlay rounded-lg border border-base px-3 py-2">
-            {rn}
-          </p>
-        ))}
+        <p className="font-mono text-lg font-bold text-brand-rose bg-surface-overlay rounded-lg border border-base px-3 py-2.5 text-center">
+          {groupNumber}
+        </p>
+        <p className="text-xs text-base-muted mt-2.5">
+          신청 번호 하나로 이번에 신청한 모든 기자재를 함께 조회할 수 있습니다.
+        </p>
       </div>
       <p className="text-xs text-red-600 dark:text-red-400 font-medium bg-red-50 dark:bg-red-950/30 rounded-xl px-4 py-2.5 border border-red-200 dark:border-red-900/30">
         ⚠️ 위 번호를 반드시 저장하세요. 조회 시 사용됩니다.

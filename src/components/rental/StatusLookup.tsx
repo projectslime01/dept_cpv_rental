@@ -111,7 +111,6 @@ export function StatusLookup() {
                   <div key={item.requestNumber} className="flex items-center justify-between px-4 py-3.5">
                     <div className="space-y-0.5">
                       <p className="text-sm font-semibold text-base-primary">{item.equipmentName} <span className="font-normal text-base-muted">× {item.quantity}개</span></p>
-                      <p className="text-[11px] text-base-muted font-mono">{item.requestNumber}</p>
                       {item.adminNote && <p className="text-xs text-base-secondary mt-1">메모: {item.adminNote}</p>}
                     </div>
                     <StatusBadge status={item.status} />
