@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { DoorOpen } from 'lucide-react'
-import { ClassroomRentalActionButtons } from '@/components/admin/ClassroomRentalActionButtons'
+import { ClassroomActionButtons } from '@/components/admin/ActionModal'
 
 const STATUS_STYLES: Record<string, string> = {
   pending:  'bg-amber-500/10 text-amber-500 border-amber-500/30',
@@ -153,7 +153,7 @@ export default async function ClassroomAdminPage({
                     </div>
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <ClassroomRentalActionButtons id={r.id} status={r.status} applicantName={r.applicantName} />
+                    <ClassroomActionButtons id={r.id} status={r.status} applicantName={r.applicantName} classroomNumber={r.classroom.roomNumber} />
                   </td>
                 </tr>
               ))}
