@@ -316,6 +316,7 @@ export interface CreatedAccessoryEntry {
   name: string
   description: string | null
   totalQuantity: number
+  sharedStockKey: string | null
   status: string
   createdAt: string // ISO string
 }
@@ -333,6 +334,8 @@ export async function createEquipmentAccessory(
   const name = (formData.get('name') as string).trim()
   const description = (formData.get('description') as string)?.trim() || null
   const totalQuantity = parseInt(formData.get('totalQuantity') as string)
+  // 공유 재고 그룹 키: 같은 값을 가진 부속끼리 재고를 공유한다. 빈 값이면 단독 재고.
+  const sharedStockKey = (formData.get('sharedStockKey') as string | null)?.trim() || null
 
   if (isNaN(equipmentId) || equipmentId < 1) {
     return { success: false, error: '기자재 정보가 올바르지 않습니다.' }
@@ -352,8 +355,18 @@ export async function createEquipmentAccessory(
     return { success: false, error: '해당 기자재를 찾을 수 없습니다.' }
   }
 
-  const entry = await prisma.equipmentAccessory.create({
-    data: { equipmentId, name, description, totalQuantity },
+  const entry = await prisma.$transaction(async (tx) => {
+    const created = await tx.equipmentAccessory.create({
+      data: { equipmentId, name, description, totalQuantity, sharedStockKey },
+    })
+    // 기존 그룹에 합류하는 경우, 같은 풀이므로 그룹 전체 총 수량을 새 값으로 동기화한다.
+    if (sharedStockKey) {
+      await tx.equipmentAccessory.updateMany({
+        where: { sharedStockKey, id: { not: created.id } },
+        data: { totalQuantity },
+      })
+    }
+    return created
   })
 
   revalidatePath(`/admin/equipment/${equipmentId}/accessories`)
@@ -366,6 +379,7 @@ export async function createEquipmentAccessory(
       name: entry.name,
       description: entry.description,
       totalQuantity: entry.totalQuantity,
+      sharedStockKey: entry.sharedStockKey,
       status: entry.status,
       createdAt: entry.createdAt.toISOString(),
     },

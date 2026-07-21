@@ -1,7 +1,7 @@
 // src/app/api/equipment/[id]/accessories/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getAvailableAccessoryQuantity } from '@/lib/accessory'
+import { getAvailableAccessoryQuantity, getAccessoryTotalQuantity } from '@/lib/accessory'
 
 export async function GET(
   request: NextRequest,
@@ -38,14 +38,16 @@ export async function GET(
 
     const result = await Promise.all(
       accessories.map(async (acc) => {
+        // 공유 재고 그룹이면 그룹 공유 총량 기준으로 표시/차감한다.
+        const totalQuantity = await getAccessoryTotalQuantity(acc.id)
         const available = hasValidDates
           ? await getAvailableAccessoryQuantity(acc.id, startAt!, endAt!)
-          : acc.totalQuantity
+          : totalQuantity
         return {
           id: acc.id,
           name: acc.name,
           description: acc.description,
-          totalQuantity: acc.totalQuantity,
+          totalQuantity,
           available,
         }
       }),

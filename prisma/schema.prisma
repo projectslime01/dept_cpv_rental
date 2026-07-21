@@ -54,10 +54,15 @@ model EquipmentAccessory {
   name          String
   description   String?
   totalQuantity Int
+  // 같은 값을 가진 부속들은 물리적으로 동일한 재고 풀을 공유한다.
+  // (예: FX3·A7M4가 함께 쓰는 배터리) null이면 단독 재고.
+  sharedStockKey String?
   status        String                   @default("active")
   createdAt     DateTime                 @default(now())
   equipment     Equipment                @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
   rentalItems   RentalRequestAccessory[]
+
+  @@index([sharedStockKey])
 }
 
 model RentalRequestAccessory {

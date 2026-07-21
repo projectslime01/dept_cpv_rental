@@ -29,6 +29,7 @@ export default async function EquipmentAccessoriesPage({
     name: a.name,
     description: a.description,
     totalQuantity: a.totalQuantity,
+    sharedStockKey: a.sharedStockKey,
     status: a.status,
     createdAt: a.createdAt.toISOString(),
   }))
