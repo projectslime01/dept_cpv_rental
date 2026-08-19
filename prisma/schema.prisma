@@ -179,3 +179,26 @@ model ClassroomRentalRequest {
   testAdminId Int?
   testAdmin   Admin?  @relation("ClassroomTestAdmin", fields: [testAdminId], references: [id], onDelete: SetNull)
 }
+
+model Student {
+  studentId  String   @id
+  name       String
+  grade      Int
+  className  String?
+  status     String   @default("active")
+  source     String   @default("upload")
+  updatedAt  DateTime @updatedAt
+
+  @@index([status])
+}
+
+model StudentRosterUpload {
+  id          Int      @id @default(autoincrement())
+  fileName    String
+  totalRows   Int
+  added       Int
+  updated     Int
+  deactivated Int
+  uploadedBy  Int?
+  createdAt   DateTime @default(now())
+}
