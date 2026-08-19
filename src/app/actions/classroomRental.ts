@@ -14,6 +14,7 @@ import {
 import { findTimetableConflict, DOW_LABELS } from '@/lib/timetable'
 import { restrictionBlockMessage } from '@/lib/restriction'
 import { getActiveRestriction } from '@/lib/restriction.server'
+import { verifyStudent, verifyFailureMessage } from '@/lib/roster.server'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
@@ -74,6 +75,12 @@ export async function createClassroomRentalRequest(formData: FormData): Promise<
   }
   if (isNaN(startAt.getTime()) || isNaN(endAt.getTime()) || startAt >= endAt) {
     return { success: false, error: '대여 기간이 올바르지 않습니다.' }
+  }
+
+  // 학과 명단 대조 — 등재되지 않은 학번은 신청 차단 (강의실은 학년 조건이 없다)
+  const rosterCheck = await verifyStudent(studentId, applicantName)
+  if (!rosterCheck.ok) {
+    return { success: false, error: verifyFailureMessage(rosterCheck.reason) }
   }
 
   // 대여 제한자(패널티) 검증 — 제한 기간 내 학번은 신청 차단

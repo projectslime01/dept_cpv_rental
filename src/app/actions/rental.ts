@@ -18,6 +18,7 @@ import { getAvailableAccessoryQuantity } from '@/lib/accessory'
 import { checkRateLimit, recordFailedAttempt, resetAttempts } from '@/lib/rate-limit'
 import { restrictionBlockMessage } from '@/lib/restriction'
 import { getActiveRestriction } from '@/lib/restriction.server'
+import { verifyStudent, verifyFailureMessage } from '@/lib/roster.server'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
@@ -35,8 +36,7 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
   const phone = (formData.get('phone') as string).trim()
   const password = (formData.get('password') as string)
   const purpose = (formData.get('purpose') as string | null)?.trim() || null
-  const gradeRaw = parseInt(formData.get('grade') as string)
-  const grade = [1, 2, 3].includes(gradeRaw) ? gradeRaw : null
+  // 학년은 클라이언트 입력을 쓰지 않는다. 명단 대조 후 서버가 결정한다.
 
   if (isNaN(equipmentId) || equipmentId < 1) {
     return { success: false, error: '기자재 정보가 올바르지 않습니다.' }
@@ -46,9 +46,6 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
   }
   if (!applicantName || !studentId || !phone || !password) {
     return { success: false, error: '필수 항목을 모두 입력해주세요.' }
-  }
-  if (!grade) {
-    return { success: false, error: '학년을 선택해주세요.' }
   }
   if (!purpose) {
     return { success: false, error: '사용 목적을 입력해주세요.' }
@@ -62,6 +59,14 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
   if (quantity < 1) {
     return { success: false, error: '수량은 1 이상이어야 합니다.' }
   }
+
+  // 학과 명단 대조 — 등재되지 않은 학번은 신청 차단
+  const rosterCheck = await verifyStudent(studentId, applicantName)
+  if (!rosterCheck.ok) {
+    return { success: false, error: verifyFailureMessage(rosterCheck.reason) }
+  }
+  // 학년은 명단 값을 신뢰한다. 클라이언트가 보낸 값은 쓰지 않는다.
+  const verifiedGrade = rosterCheck.grade
 
   // 대여 제한자(패널티) 검증 — 제한 기간 내 학번은 신청 차단
   const restriction = await getActiveRestriction(studentId)
@@ -77,7 +82,7 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
   if (!equipmentForLimit || equipmentForLimit.status !== 'active') {
     return { success: false, error: '해당 기자재를 찾을 수 없습니다.' }
   }
-  if (grade < equipmentForLimit.minGrade) {
+  if (verifiedGrade < equipmentForLimit.minGrade) {
     return {
       success: false,
       error: `'${equipmentForLimit.name}'은(는) ${equipmentForLimit.minGrade}학년 이상부터 대여 가능합니다.`,
@@ -209,7 +214,7 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
           phone,
           equipmentId,
           quantity,
-          grade,
+          grade: verifiedGrade,
           startAt,
           endAt,
           purpose,
@@ -254,14 +259,10 @@ export async function createBatchRentalRequest(formData: FormData): Promise<Crea
   const phone = (formData.get('phone') as string).trim()
   const password = formData.get('password') as string
   const purpose = (formData.get('purpose') as string | null)?.trim() || null
-  const gradeRaw = parseInt(formData.get('grade') as string)
-  const grade = [1, 2, 3].includes(gradeRaw) ? gradeRaw : null
+  // 학년은 클라이언트 입력을 쓰지 않는다. 명단 대조 후 서버가 결정한다.
 
   if (!applicantName || !studentId || !phone || !password) {
     return { success: false, error: '필수 항목을 모두 입력해주세요.' }
-  }
-  if (!grade) {
-    return { success: false, error: '학년을 선택해주세요.' }
   }
   if (!purpose) {
     return { success: false, error: '사용 목적을 입력해주세요.' }
@@ -272,6 +273,14 @@ export async function createBatchRentalRequest(formData: FormData): Promise<Crea
   if (isNaN(startAt.getTime()) || isNaN(endAt.getTime()) || startAt >= endAt) {
     return { success: false, error: '대여 기간이 올바르지 않습니다.' }
   }
+
+  // 학과 명단 대조 — 등재되지 않은 학번은 신청 차단
+  const rosterCheck = await verifyStudent(studentId, applicantName)
+  if (!rosterCheck.ok) {
+    return { success: false, error: verifyFailureMessage(rosterCheck.reason) }
+  }
+  // 학년은 명단 값을 신뢰한다. 클라이언트가 보낸 값은 쓰지 않는다.
+  const verifiedGrade = rosterCheck.grade
 
   // 대여 제한자(패널티) 검증 — 제한 기간 내 학번은 신청 차단
   const restriction = await getActiveRestriction(studentId)
@@ -345,7 +354,7 @@ export async function createBatchRentalRequest(formData: FormData): Promise<Crea
       const effectiveMax = eq?.maxRentalQuantity !== null && eq?.maxRentalQuantity !== undefined
         ? Math.min(eq.maxRentalQuantity, eq.totalQuantity)
         : (eq?.totalQuantity ?? item.quantity)
-      if (eq && grade < eq.minGrade) {
+      if (eq && verifiedGrade < eq.minGrade) {
         return { success: false, error: `'${eq.name}'은(는) ${eq.minGrade}학년 이상부터 대여 가능합니다.` }
       }
       if (item.quantity < minQty) {
@@ -375,7 +384,7 @@ export async function createBatchRentalRequest(formData: FormData): Promise<Crea
           phone,
           equipmentId: item.equipmentId,
           quantity: item.quantity,
-          grade,
+          grade: verifiedGrade,
           startAt,
           endAt,
           purpose,
