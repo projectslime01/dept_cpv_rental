@@ -90,7 +90,9 @@ export function CartPageClient() {
   const [result, setResult] = useState<{ groupNumber: string; requestNumbers: string[] } | null>(null)
   const [availability, setAvailability] = useState<AvailabilityMap | null>(null)
   const [isChecking, setIsChecking] = useState(false)
-  const [grade, setGrade] = useState<number | null>(null)
+  const [verified, setVerified] = useState<{ grade: number } | null>(null)
+  const [verifyError, setVerifyError] = useState<string | null>(null)
+  const [verifying, setVerifying] = useState(false)
 
   // 실시간 제약 검증용 클라이언트 상태
   const [currentTimeValid, setCurrentTimeValid] = useState(true)
@@ -130,16 +132,42 @@ export function CartPageClient() {
   }
 
   // 학년 자격 미달 품목 (availability 로딩 후 minGrade 기준)
-  const gradeBlockedItems = grade != null && availability
-    ? items.filter(i => (availability[i.equipmentId]?.minGrade ?? 1) > grade)
+  const gradeBlockedItems = verified != null && availability
+    ? items.filter(i => (availability[i.equipmentId]?.minGrade ?? 1) > verified.grade)
     : []
+
+  /** 학번·이름을 명단과 대조해 대여 자격과 학년을 확인한다. 응답에 이름은 포함되지 않는다. */
+  async function verifyEligibility(studentId: string, name: string) {
+    if (!studentId.trim() || !name.trim()) return
+    setVerifying(true)
+    setVerifyError(null)
+    try {
+      const res = await fetch('/api/students/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentId, name }),
+      })
+      const data = await res.json()
+      if (data.valid) {
+        setVerified({ grade: data.grade })
+      } else {
+        setVerified(null)
+        setVerifyError(data.error ?? '확인에 실패했습니다.')
+      }
+    } catch {
+      setVerified(null)
+      setVerifyError('확인 중 오류가 발생했습니다.')
+    } finally {
+      setVerifying(false)
+    }
+  }
 
   // 제출 비활성화 계산
   const isSubmitDisabled =
     isPending ||
     !startAt ||
     !endAt ||
-    grade == null ||
+    verified == null ||
     gradeBlockedItems.length > 0 ||
     !currentTimeValid ||
     !isStartAtValid ||
@@ -192,7 +220,6 @@ export function CartPageClient() {
     formData.set('endAt', endAt)
     formData.set('items', JSON.stringify(items.map(i => ({ equipmentId: i.equipmentId, quantity: i.quantity }))))
     formData.set('hasDepartmentApproval', String(hasDepartmentApproval))
-    formData.set('grade', grade != null ? String(grade) : '')
     setError(null)
     startTransition(async () => {
       const res = await createBatchRentalRequest(formData)
@@ -369,36 +396,58 @@ export function CartPageClient() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <label htmlFor="applicantName" className="block text-xs font-medium text-base-secondary">이름 *</label>
-                <input id="applicantName" name="applicantName" required className={inputCls} />
+                <input
+                  id="applicantName"
+                  name="applicantName"
+                  required
+                  className={inputCls}
+                  onBlur={(e) => {
+                    const sid = (document.getElementById('studentId') as HTMLInputElement | null)?.value ?? ''
+                    verifyEligibility(sid, e.target.value)
+                  }}
+                />
               </div>
               <div className="space-y-1.5">
                 <label htmlFor="studentId" className="block text-xs font-medium text-base-secondary">학번 *</label>
-                <input id="studentId" name="studentId" required className={inputCls} />
+                <input
+                  id="studentId"
+                  name="studentId"
+                  required
+                  className={inputCls}
+                  onBlur={(e) => {
+                    const nm = (document.getElementById('applicantName') as HTMLInputElement | null)?.value ?? ''
+                    verifyEligibility(e.target.value, nm)
+                  }}
+                />
               </div>
             </div>
             <div className="space-y-1.5">
               <label htmlFor="phone" className="block text-xs font-medium text-base-secondary">연락처 *</label>
               <input id="phone" name="phone" type="tel" placeholder="010-0000-0000" required className={inputCls} />
             </div>
-            {/* 학년 선택 (학년별 대여 자격 제한) */}
+            {/* 대여 자격 확인 (명단 대조 · 학년은 명단 기준) */}
             <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-base-secondary">학년 <span className="text-brand-rose">*</span></label>
-              <div className="grid grid-cols-3 gap-2">
-                {[1, 2, 3].map((g) => (
-                  <button
-                    key={g}
-                    type="button"
-                    onClick={() => setGrade(g)}
-                    className={`h-10 rounded-xl border text-sm font-semibold transition-colors ${
-                      grade === g
-                        ? 'bg-brand-rose text-white border-brand-rose'
-                        : 'bg-surface-raised border-base text-base-secondary hover:border-brand-rose/50'
-                    }`}
-                  >
-                    {g}학년
-                  </button>
-                ))}
-              </div>
+              <label className="block text-xs font-medium text-base-secondary">대여 자격 <span className="text-brand-rose">*</span></label>
+              {verifying && (
+                <div className="text-xs text-base-muted bg-surface-raised border border-base rounded-xl px-3 py-2">
+                  확인 중...
+                </div>
+              )}
+              {!verifying && verified && (
+                <div className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/30 rounded-xl px-3 py-2">
+                  확인됨 · {verified.grade}학년
+                </div>
+              )}
+              {!verifying && verifyError && (
+                <div className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-xl px-3 py-2">
+                  {verifyError}
+                </div>
+              )}
+              {!verifying && !verified && !verifyError && (
+                <div className="text-xs text-base-muted bg-surface-raised border border-base rounded-xl px-3 py-2">
+                  이름과 학번을 입력하면 대여 자격을 확인합니다.
+                </div>
+              )}
               {gradeBlockedItems.length > 0 && (
                 <div className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-xl px-3 py-2 flex items-start gap-1.5 mt-1">
                   <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
