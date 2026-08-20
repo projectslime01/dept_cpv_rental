@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 const REGULATION_FILES = [
   {
     title: '기자재 대여 규정',
-    description: '영상콘텐츠과 기자재 대여 운영 규정',
+    description: '영상콘텐츠과 기자재 대여 운영 규정 · 2026. 9. 1. 개정',
     path: '/regulations/기자재-대여-규정.pdf',
   },
 ]
