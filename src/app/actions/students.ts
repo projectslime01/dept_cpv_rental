@@ -3,6 +3,7 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import { normalizeStudentId, normalizeMajor, computeRosterDiff, type RosterRow, type ExistingStudent } from '@/lib/roster'
 import { parseRosterBuffer } from '@/lib/rosterParse'
@@ -12,6 +13,9 @@ import { parseRosterBuffer } from '@/lib/rosterParse'
  * 'use server' 파일은 async 함수 외의 런타임 값을 export할 수 없으므로 로컬 상수로 둔다.
  */
 const BULK_DEACTIVATION_THRESHOLD = 0.5
+
+/** 한 INSERT 문에 묶을 최대 행 수 (Postgres 파라미터 한도 대비 여유 있게) */
+const UPSERT_CHUNK_SIZE = 500
 
 async function requireAdminId(): Promise<number> {
   const session = await getServerSession(authOptions)
@@ -137,21 +141,30 @@ export async function commitRosterUpload(fileNames: string[], rows: RosterRow[])
   const existing = await loadExisting()
   const diff = computeRosterDiff(rows, existing)
 
+  const upserts = [...diff.added, ...diff.updated]
+
   await prisma.$transaction(async (tx) => {
-    for (const r of [...diff.added, ...diff.updated]) {
-      await tx.student.upsert({
-        where: { studentId: r.studentId },
-        create: {
-          studentId: r.studentId,
-          name: r.name,
-          grade: r.grade,
-          className: r.className,
-          major: r.major,
-          status: 'active',
-          source: 'upload',
-        },
-        update: { name: r.name, grade: r.grade, className: r.className, major: r.major, status: 'active' },
-      })
+    // 한 행씩 upsert하면 학생 수만큼 원격 DB를 왕복해 트랜잭션 제한 시간을 넘긴다
+    // (210명 기준 약 5.6초). 여러 행을 한 문장으로 묶어 왕복 횟수를 줄인다.
+    for (let i = 0; i < upserts.length; i += UPSERT_CHUNK_SIZE) {
+      const chunk = upserts.slice(i, i + UPSERT_CHUNK_SIZE)
+      const values = chunk.map(
+        (r) =>
+          Prisma.sql`(${r.studentId}, ${r.name}, ${r.grade}, ${r.className}, ${r.major}, 'active', 'upload', NOW())`,
+      )
+      // source는 갱신 대상에서 제외한다. 관리자가 개별 추가한 학생('manual')이
+      // 이후 명부에 포함되더라도 등록 경위를 남겨 두기 위함이다.
+      await tx.$executeRaw`
+        INSERT INTO "Student" ("studentId", "name", "grade", "className", "major", "status", "source", "updatedAt")
+        VALUES ${Prisma.join(values)}
+        ON CONFLICT ("studentId") DO UPDATE SET
+          "name" = EXCLUDED."name",
+          "grade" = EXCLUDED."grade",
+          "className" = EXCLUDED."className",
+          "major" = EXCLUDED."major",
+          "status" = 'active',
+          "updatedAt" = NOW()
+      `
     }
     if (diff.deactivated.length > 0) {
       await tx.student.updateMany({
@@ -169,7 +182,7 @@ export async function commitRosterUpload(fileNames: string[], rows: RosterRow[])
         uploadedBy: adminId,
       },
     })
-  })
+  }, { timeout: 30000 })
 
   revalidatePath('/admin/students')
   return {

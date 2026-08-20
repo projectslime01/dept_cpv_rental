@@ -85,8 +85,14 @@ describe('computeRosterDiff', () => {
 })
 
 describe('normalizeMajor', () => {
-  it('공백을 제거하고 빈 값은 null', () => {
-    expect(normalizeMajor(' 영상 콘텐츠과 ')).toBe('영상콘텐츠과')
+  it('앞뒤 공백을 없애고 연속 공백은 하나로 줄인다', () => {
+    expect(normalizeMajor('  영상콘텐츠과  ')).toBe('영상콘텐츠과')
+    expect(normalizeMajor('영상콘텐츠과   영상콘텐츠제작전공')).toBe('영상콘텐츠과 영상콘텐츠제작전공')
+  })
+  it('두 마디 전공명의 공백은 보존한다 (화면 가독성)', () => {
+    expect(normalizeMajor('영상콘텐츠과 뉴미디어콘텐츠전공')).toBe('영상콘텐츠과 뉴미디어콘텐츠전공')
+  })
+  it('빈 값은 null', () => {
     expect(normalizeMajor('   ')).toBeNull()
     expect(normalizeMajor(null)).toBeNull()
   })

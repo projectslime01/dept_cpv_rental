@@ -42,10 +42,16 @@ export function normalizeName(raw: string): string {
   return raw.replace(/\s+/g, '')
 }
 
-/** 전공명 정규화: 앞뒤 및 내부 공백 제거(표기 흔들림 방지). 빈 값은 null. */
+/**
+ * 전공명 정규화: 앞뒤 공백을 없애고 연속 공백을 하나로 줄인다. 빈 값은 null.
+ *
+ * 공백을 전부 지우지 않는 이유는 학사 명부의 학과 값이
+ * "영상콘텐츠과 영상콘텐츠제작전공"처럼 두 마디로 오기 때문이다.
+ * 전부 지우면 화면에 "영상콘텐츠과영상콘텐츠제작전공"으로 붙어 읽기 어렵다.
+ */
 export function normalizeMajor(raw: string | null | undefined): string | null {
   if (raw == null) return null
-  const v = raw.replace(/\s+/g, '')
+  const v = raw.replace(/\s+/g, ' ').trim()
   return v.length > 0 ? v : null
 }
 
