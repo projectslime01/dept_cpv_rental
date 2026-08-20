@@ -56,6 +56,13 @@ export function StudentRosterManager({ initialStudents }: { initialStudents: Stu
     setError(null)
     setMessage(null)
     setBulkConfirmed(false)
+    // 서버 액션의 multipart 파서는 한글 파일명을 Latin-1로 잘못 읽어 깨뜨린다
+    // (macOS는 파일명을 자모 분리(NFD) 형태로 준다). 브라우저가 올바르게
+    // 들고 있는 이름을 텍스트 필드로 따로 보내고, 서버는 이 값을 쓴다.
+    const picked = fileRef.current?.files
+    if (picked) {
+      for (const f of Array.from(picked)) formData.append('fileName', f.name.normalize('NFC'))
+    }
     startTransition(async () => {
       const res = await previewRosterUpload(formData)
       if (!res.success) {

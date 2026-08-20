@@ -71,17 +71,25 @@ export async function previewRosterUpload(formData: FormData): Promise<PreviewRe
   const files = formData.getAll('file').filter((f): f is File => f instanceof File && f.size > 0)
   if (files.length === 0) return { success: false, error: '파일을 선택해 주세요.' }
 
+  // 서버 액션의 multipart 파서가 한글 파일명을 깨뜨리므로(File.name이 Latin-1로
+  // 잘못 디코딩됨) 클라이언트가 동봉한 이름을 우선 쓴다. 없으면 File.name으로
+  // 물러서되 NFC로 정규화한다(macOS는 자모 분리 형태로 준다).
+  const sentNames = formData.getAll('fileName').filter((v): v is string => typeof v === 'string')
+  const displayName = (i: number) => (sentNames[i] ?? files[i].name).normalize('NFC')
+
   const summaries: RosterFileSummary[] = []
   const merged = new Map<string, RosterRow>()
   let skipped = 0
 
-  for (const file of files) {
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i]
+    const name = displayName(i)
     const buffer = Buffer.from(await file.arrayBuffer())
-    const parsed = await parseRosterBuffer(buffer, file.name)
+    const parsed = await parseRosterBuffer(buffer, name)
     if (!parsed.ok) return { success: false, error: parsed.error }
 
     summaries.push({
-      fileName: file.name,
+      fileName: name,
       rowCount: parsed.rows.length,
       skipped: parsed.skipped,
       majors: parsed.majors,
