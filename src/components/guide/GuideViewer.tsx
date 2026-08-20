@@ -2,12 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
-import {
-  Package, Building2, Search, CalendarDays,
-  LayoutDashboard, ClipboardList, DoorOpen, History,
-  Users, TestTube2, BookOpen,
-  Presentation, X, ChevronLeft, ChevronRight, Printer, Download,
-} from 'lucide-react'
+import { Package, Building2, Search, CalendarDays, LayoutDashboard, ClipboardList, DoorOpen, History, Users, TestTube2, BookOpen, Presentation, X, ChevronLeft, ChevronRight, Printer, Download, AlertTriangle } from 'lucide-react'
 import type { ComponentType } from 'react'
 import { GuideSlide } from './GuideSlide'
 import type { GuideSection, GuideStep } from '@/lib/guide-content'
@@ -25,6 +20,7 @@ const ICON_MAP: Record<string, ComponentType<{ className?: string }>> = {
   Users,
   TestTube2,
   BookOpen,
+  AlertTriangle,
 }
 
 // ─── 전체 슬라이드 평탄화 ────────────────────────────────────

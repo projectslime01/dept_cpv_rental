@@ -14,6 +14,27 @@ export interface GuideSection {
 
 export const studentGuide: GuideSection[] = [
   {
+    id: 'rental-rules',
+    title: '신청 전 확인사항',
+    iconName: 'AlertTriangle',
+    steps: [
+      {
+        title: '기자재별 대여 수량 제한',
+        description:
+          '기자재마다 한 번에 신청할 수 있는 수량이 정해져 있습니다. 소니 FX3는 최대 2대까지, 렌즈는 종류별로 1개씩만 신청할 수 있습니다. 제한을 넘겨 신청하면 신청 단계에서 막히므로, 수량을 정하기 전에 확인해 주세요.',
+        imagePath: '/guide/student/01-04-apply-form.png',
+        imageAlt: '기자재 신청서의 수량 입력 화면',
+      },
+      {
+        title: '팀 과제도 팀원 각자 신청',
+        description:
+          '팀 과제로 기자재를 사용하더라도 대표자 한 명이 팀 전체 몫을 몰아서 신청할 수 없습니다. 팀원 각자가 본인 이름과 학번으로 따로 신청해 주세요. 대여 이력과 반납 책임이 신청한 사람 개인에게 남습니다.',
+        imagePath: '/guide/student/01-01-equipment-list.png',
+        imageAlt: '기자재 목록 화면',
+      },
+    ],
+  },
+  {
     id: 'equipment-rental',
     title: '기자재 대여 신청',
     iconName: 'Package',
@@ -38,7 +59,8 @@ export const studentGuide: GuideSection[] = [
       },
       {
         title: '신청서 작성',
-        description: '이름, 학번, 연락처, 대여 기간, 사용 목적을 입력합니다. 비밀번호는 나중에 신청 현황을 조회할 때 필요하므로 꼭 기억해두세요.',
+        description:
+          '이름, 학번, 연락처, 대여 기간, 사용 목적을 입력합니다. 수량은 기자재별 제한 안에서만 정할 수 있습니다(소니 FX3 최대 2대, 렌즈는 종류별 1개). 비밀번호는 나중에 신청 현황을 조회할 때 필요하므로 꼭 기억해두세요.',
         imagePath: '/guide/student/01-04-apply-form.png',
         imageAlt: '기자재 신청서 작성 화면',
       },
