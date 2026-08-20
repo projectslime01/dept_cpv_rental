@@ -7,9 +7,6 @@ const nextConfig = {
     serverComponentsExternalPackages: [
       'better-sqlite3',
       '@prisma/adapter-better-sqlite3',
-      // exceljs(jszip)는 번들링되면 압축 해제가 깨진다
-      // ("uncompressed data size mismatch") — Node.js require()로 처리한다
-      'exceljs',
     ],
   },
 };

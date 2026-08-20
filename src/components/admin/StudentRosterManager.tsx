@@ -16,6 +16,7 @@ interface StudentRow {
   name: string
   grade: number
   className: string | null
+  major: string | null
   status: string
   source: string
 }
@@ -35,11 +36,19 @@ export function StudentRosterManager({ initialStudents }: { initialStudents: Stu
   const [message, setMessage] = useState<string | null>(null)
   const [query, setQuery] = useState('')
 
+  const knownMajors = useMemo(
+    () => Array.from(new Set(initialStudents.map((s) => s.major).filter((m): m is string => !!m))),
+    [initialStudents],
+  )
+
   const filtered = useMemo(() => {
     const q = query.replace(/\s+/g, '').toLowerCase()
     if (!q) return initialStudents
     return initialStudents.filter(
-      (s) => s.studentId.toLowerCase().includes(q) || s.name.replace(/\s+/g, '').toLowerCase().includes(q),
+      (s) =>
+        s.studentId.toLowerCase().includes(q) ||
+        s.name.replace(/\s+/g, '').toLowerCase().includes(q) ||
+        (s.major ?? '').toLowerCase().includes(q),
     )
   }, [initialStudents, query])
 
@@ -62,7 +71,7 @@ export function StudentRosterManager({ initialStudents }: { initialStudents: Stu
     if (!preview) return
     setError(null)
     startTransition(async () => {
-      const res = await commitRosterUpload(preview.fileName, preview.rows)
+      const res = await commitRosterUpload(preview.files.map((f) => f.fileName), preview.rows)
       if (!res.success) {
         setError(res.error)
       } else {
@@ -106,16 +115,18 @@ export function StudentRosterManager({ initialStudents }: { initialStudents: Stu
           명단 업로드
         </h2>
         <p className="text-xs text-base-muted leading-relaxed">
-          엑셀(xlsx) 또는 CSV 파일을 올리면 <strong className="text-base-secondary">전체 교체</strong>됩니다.
-          파일에 없는 학생은 자동으로 비활성 처리되며, 확정 전에 변경 내용을 먼저 확인할 수 있습니다.
-          필수 컬럼은 학번·이름·학년이고 반은 선택입니다.
+          엑셀(xls·xlsx) 또는 CSV 파일을 올립니다. <strong className="text-base-secondary">전공별 명부를 여러 개 한 번에</strong> 선택할 수 있습니다.
+          교체 범위는 <strong className="text-base-secondary">업로드한 파일에 들어 있는 전공</strong>으로 한정되므로,
+          한 전공만 올려도 다른 전공 학생은 그대로 유지됩니다. 확정 전에 변경 내용을 먼저 확인할 수 있습니다.
+          필수 컬럼은 학번·이름·학년이고, 학과(전공)·반은 선택입니다.
         </p>
         <form action={handlePreview} className="flex flex-wrap items-center gap-2">
           <input
             ref={fileRef}
             type="file"
             name="file"
-            accept=".xlsx,.csv"
+            accept=".xls,.xlsx,.csv"
+            multiple
             required
             className="text-sm text-base-secondary file:mr-3 file:h-10 file:px-4 file:rounded-xl file:border-0 file:bg-surface-raised file:text-base-secondary file:text-sm file:font-semibold"
           />
@@ -130,7 +141,32 @@ export function StudentRosterManager({ initialStudents }: { initialStudents: Stu
 
         {preview && (
           <div className="rounded-xl border border-base bg-surface-raised p-4 space-y-3">
-            <p className="text-sm font-semibold text-base-primary">{preview.fileName}</p>
+            <div className="space-y-1">
+              {preview.files.map((f) => (
+                <p key={f.fileName} className="text-sm font-semibold text-base-primary">
+                  {f.fileName}
+                  <span className="ml-2 text-xs font-normal text-base-muted">
+                    {f.rowCount}명
+                    {f.majors.length > 0 && ` · ${f.majors.join(', ')}`}
+                    {f.skipped > 0 && ` · 건너뜀 ${f.skipped}행`}
+                  </span>
+                </p>
+              ))}
+            </div>
+
+            <div className="text-xs bg-surface-base border border-base rounded-lg px-3 py-2 text-base-secondary">
+              {preview.scopeMajors.length > 0 ? (
+                <>
+                  교체 범위: <strong className="text-base-primary">{preview.scopeMajors.join(', ')}</strong>
+                  {preview.outOfScopeActive > 0 && (
+                    <> · 범위 밖 <strong className="text-base-primary">{preview.outOfScopeActive}명</strong>은 그대로 유지됩니다</>
+                  )}
+                </>
+              ) : (
+                <>파일에 학과(전공) 정보가 없어 <strong className="text-base-primary">전체 명단을 교체</strong>합니다.</>
+              )}
+            </div>
+
             <div className="flex flex-wrap gap-3 text-sm">
               <span className="text-emerald-600 dark:text-emerald-400 font-semibold">추가 {preview.addedCount}명</span>
               <span className="text-sky-600 dark:text-sky-400 font-semibold">갱신 {preview.updatedCount}명</span>
@@ -145,7 +181,7 @@ export function StudentRosterManager({ initialStudents }: { initialStudents: Stu
                 <ul className="mt-2 space-y-0.5 max-h-40 overflow-y-auto">
                   {preview.deactivated.map((s) => (
                     <li key={s.studentId} className="font-mono">
-                      {s.studentId} {s.name} ({s.grade}학년)
+                      {s.studentId} {s.name} ({s.grade}학년{s.major ? ` · ${s.major}` : ''})
                     </li>
                   ))}
                 </ul>
@@ -162,7 +198,8 @@ export function StudentRosterManager({ initialStudents }: { initialStudents: Stu
                 />
                 <span className="flex items-start gap-1.5">
                   <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                  기존 활성 학생 {preview.activeBefore}명 중 {preview.deactivated.length}명이 비활성화됩니다.
+                  교체 범위({preview.scopeMajors.length > 0 ? preview.scopeMajors.join(', ') : '전체'}) 안의
+                  활성 학생 {preview.activeInScopeBefore}명 중 {preview.deactivated.length}명이 비활성화됩니다.
                   파일이 올바른지 확인했다면 체크해 주세요.
                 </span>
               </label>
@@ -206,7 +243,7 @@ export function StudentRosterManager({ initialStudents }: { initialStudents: Stu
           <UserPlus className="w-4 h-4" />
           학생 개별 추가
         </h2>
-        <form ref={addFormRef} action={handleAdd} className="grid grid-cols-1 sm:grid-cols-5 gap-3 items-end">
+        <form ref={addFormRef} action={handleAdd} className="grid grid-cols-1 sm:grid-cols-6 gap-3 items-end">
           <div className="space-y-1.5 sm:col-span-2">
             <label className="block text-xs font-medium text-base-secondary">학번 *</label>
             <input name="studentId" required placeholder="2026102001" className={inputCls} />
@@ -223,6 +260,13 @@ export function StudentRosterManager({ initialStudents }: { initialStudents: Stu
               <option value="2">2학년</option>
               <option value="3">3학년</option>
             </select>
+          </div>
+          <div className="space-y-1.5">
+            <label className="block text-xs font-medium text-base-secondary">전공</label>
+            <input name="major" list="major-options" placeholder="영상콘텐츠과" className={inputCls} />
+            <datalist id="major-options">
+              {knownMajors.map((m) => <option key={m} value={m} />)}
+            </datalist>
           </div>
           <div className="space-y-1.5">
             <label className="block text-xs font-medium text-base-secondary">반</label>
@@ -261,6 +305,7 @@ export function StudentRosterManager({ initialStudents }: { initialStudents: Stu
               <tr className="bg-surface-raised border-b border-base">
                 <th className="px-5 py-3 text-left text-xs font-semibold text-base-secondary uppercase tracking-wider">학번</th>
                 <th className="px-5 py-3 text-left text-xs font-semibold text-base-secondary uppercase tracking-wider">이름</th>
+                <th className="px-5 py-3 text-left text-xs font-semibold text-base-secondary uppercase tracking-wider">전공</th>
                 <th className="px-5 py-3 text-left text-xs font-semibold text-base-secondary uppercase tracking-wider">학년</th>
                 <th className="px-5 py-3 text-left text-xs font-semibold text-base-secondary uppercase tracking-wider">반</th>
                 <th className="px-5 py-3 text-left text-xs font-semibold text-base-secondary uppercase tracking-wider">상태</th>
@@ -269,11 +314,12 @@ export function StudentRosterManager({ initialStudents }: { initialStudents: Stu
             </thead>
             <tbody className="divide-y divide-base">
               {filtered.length === 0 ? (
-                <tr><td colSpan={6} className="px-5 py-8 text-center text-sm text-base-muted">등록된 학생이 없습니다.</td></tr>
+                <tr><td colSpan={7} className="px-5 py-8 text-center text-sm text-base-muted">등록된 학생이 없습니다.</td></tr>
               ) : filtered.map((s) => (
                 <tr key={s.studentId} className="hover:bg-surface-raised transition-colors">
                   <td className="px-5 py-3 font-mono text-xs text-base-secondary">{s.studentId}</td>
                   <td className="px-5 py-3 font-medium text-base-primary">{s.name}</td>
+                  <td className="px-5 py-3 text-base-secondary text-xs">{s.major ?? '—'}</td>
                   <td className="px-5 py-3 text-base-secondary">{s.grade}학년</td>
                   <td className="px-5 py-3 text-base-secondary">{s.className ?? '—'}</td>
                   <td className="px-5 py-3">

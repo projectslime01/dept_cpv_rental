@@ -8,6 +8,8 @@ export interface RosterRow {
   name: string
   grade: number
   className: string | null
+  /** 학과·전공. 업로드 교체 범위를 가르는 기준이 된다. */
+  major: string | null
 }
 
 export interface ExistingStudent {
@@ -15,6 +17,7 @@ export interface ExistingStudent {
   name: string
   grade: number
   className: string | null
+  major: string | null
   status: string
 }
 
@@ -23,6 +26,10 @@ export interface RosterDiff {
   updated: RosterRow[]
   deactivated: ExistingStudent[]
   unchanged: number
+  /** 이번 업로드가 교체를 책임지는 전공 목록 */
+  scopeMajors: string[]
+  /** 범위 밖이라 손대지 않은 활성 학생 수 */
+  outOfScopeActive: number
 }
 
 /** 학번 정규화: 앞뒤 공백만 제거한다(학번 체계 변경 대비해 문자 변환은 하지 않음). */
@@ -35,6 +42,13 @@ export function normalizeName(raw: string): string {
   return raw.replace(/\s+/g, '')
 }
 
+/** 전공명 정규화: 앞뒤 및 내부 공백 제거(표기 흔들림 방지). 빈 값은 null. */
+export function normalizeMajor(raw: string | null | undefined): string | null {
+  if (raw == null) return null
+  const v = raw.replace(/\s+/g, '')
+  return v.length > 0 ? v : null
+}
+
 /** 공백 차이를 무시한 이름 일치 여부. 빈 이름은 항상 불일치. */
 export function namesMatch(a: string, b: string): boolean {
   const na = normalizeName(a)
@@ -44,7 +58,10 @@ export function namesMatch(a: string, b: string): boolean {
 
 /**
  * 업로드 파일(rows)과 현재 DB 상태(existing)를 비교해 변경분을 계산한다.
- * 전체 교체 정책: 파일에 없는 active 학생은 비활성화 대상이 된다.
+ *
+ * 교체 범위는 업로드에 등장한 전공으로 한정한다. 전공이 여러 개인 학과에서
+ * 파일을 나눠 올려도, 이번에 올리지 않은 전공 학생은 건드리지 않는다.
+ * 업로드에 전공 정보가 전혀 없으면(단일 명단) 전체를 교체 범위로 본다.
  */
 export function computeRosterDiff(rows: RosterRow[], existing: ExistingStudent[]): RosterDiff {
   const existingMap = new Map(existing.map((s) => [s.studentId, s]))
@@ -64,12 +81,20 @@ export function computeRosterDiff(rows: RosterRow[], existing: ExistingStudent[]
       prev.name === row.name &&
       prev.grade === row.grade &&
       (prev.className ?? null) === (row.className ?? null) &&
+      (prev.major ?? null) === (row.major ?? null) &&
       prev.status === 'active'
     if (same) unchanged++
     else updated.push(row)
   }
 
-  const deactivated = existing.filter((s) => s.status === 'active' && !rowIds.has(s.studentId))
+  const scopeMajors = Array.from(new Set(rows.map((r) => r.major).filter((m): m is string => m != null)))
+  const scopeAll = scopeMajors.length === 0
+  const inScope = (s: ExistingStudent) =>
+    scopeAll || (s.major != null && scopeMajors.includes(s.major))
 
-  return { added, updated, deactivated, unchanged }
+  const activeNotInFile = existing.filter((s) => s.status === 'active' && !rowIds.has(s.studentId))
+  const deactivated = activeNotInFile.filter(inScope)
+  const outOfScopeActive = activeNotInFile.length - deactivated.length
+
+  return { added, updated, deactivated, unchanged, scopeMajors, outOfScopeActive }
 }

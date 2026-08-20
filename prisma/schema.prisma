@@ -185,11 +185,14 @@ model Student {
   name       String
   grade      Int
   className  String?
+  // 학과·전공. 명단 업로드 시 교체 범위를 가르는 기준 (전공별 명부를 따로 올릴 수 있다)
+  major      String?
   status     String   @default("active")
   source     String   @default("upload")
   updatedAt  DateTime @updatedAt
 
   @@index([status])
+  @@index([major])
 }
 
 model StudentRosterUpload {
