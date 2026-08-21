@@ -27,12 +27,27 @@ export function DatePicker({
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)
+  /** 아래 공간이 부족하면 위로 펼친다 (폼 하단에서 달력이 잘려 보이지 않도록) */
+  const [dropUp, setDropUp] = useState(false)
 
   const initDate = value
     ? (() => { const d = new Date(value + 'T00:00'); return isValid(d) ? d : null })()
     : null
   const [viewDate, setViewDate] = useState(initDate ?? new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(initDate)
+
+  // 열릴 때마다 아래 여유 공간을 재어 방향을 정한다.
+  // 스크롤 영역 안에 있을 수 있으므로 화면 기준으로 판단한다.
+  useEffect(() => {
+    if (!open) return
+    const el = containerRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    const POPUP_HEIGHT = 330 // 달력 높이(월 6주 기준) 여유값
+    const spaceBelow = window.innerHeight - rect.bottom
+    const spaceAbove = rect.top
+    setDropUp(spaceBelow < POPUP_HEIGHT && spaceAbove > spaceBelow)
+  }, [open])
 
   useEffect(() => {
     if (!open) return
@@ -89,7 +104,11 @@ export function DatePicker({
       </button>
 
       {open && (
-        <div className="absolute z-50 top-full mt-2 left-0 bg-surface-base rounded-2xl shadow-2xl border border-strong w-72 overflow-hidden">
+        <div
+          className={`absolute z-50 left-0 bg-surface-base rounded-2xl shadow-2xl border border-strong w-72 overflow-hidden ${
+            dropUp ? 'bottom-full mb-2' : 'top-full mt-2'
+          }`}
+        >
           {/* Month navigation */}
           <div className="bg-surface border-b border-base text-base-primary px-3 py-2.5 flex items-center justify-between">
             <button type="button" onClick={() => setViewDate(subMonths(viewDate, 1))}

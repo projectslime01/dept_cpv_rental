@@ -193,7 +193,9 @@ export function ClassroomTimetableManager({ classroomId, initialEntries }: Props
       </div>
 
       {/* 새 시간표 추가 폼 */}
-      <div className="bg-surface-base rounded-2xl border border-base overflow-hidden">
+      {/* 날짜 선택 팝업이 카드 경계를 넘어가므로 overflow-hidden 을 두지 않는다.
+          내부에 배경이 채워진 자식이 없어 모서리 둥글기에는 영향이 없다. */}
+      <div className="bg-surface-base rounded-2xl border border-base">
         <div className="flex items-center gap-2 px-5 py-3.5 border-b border-subtle">
           <Plus className="w-4 h-4 text-brand-indigo" />
           <h2 className="text-sm font-semibold text-base-secondary">수업 시간표 추가</h2>
