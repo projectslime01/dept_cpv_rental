@@ -36,13 +36,13 @@ export function GuideSlide({ step, sectionTitle, stepIndex, totalSteps }: Props)
 
       {/* 텍스트 */}
       <div className="w-full md:w-2/5 space-y-3">
-        <p className="text-xs font-medium text-base-muted uppercase tracking-wider">
+        <p className="text-sm font-medium text-base-muted uppercase tracking-wider">
           {sectionTitle}
         </p>
-        <h2 className="text-xl font-bold text-base-primary leading-snug break-keep">
+        <h2 className="text-2xl font-bold text-base-primary leading-snug break-keep">
           {step.title}
         </h2>
-        <p className="text-[15px] text-base-secondary leading-[1.85] break-keep">
+        <p className="text-[17px] text-base-secondary leading-[1.85] break-keep">
           {step.description}
         </p>
         <p className="text-xs text-base-faint font-mono">

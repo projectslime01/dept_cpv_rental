@@ -49,10 +49,10 @@ function StepCard({ step, stepNumber }: { step: GuideStep; stepNumber: number })
     <div className="rounded-2xl border border-base bg-surface-raised overflow-hidden">
       {/* 제목 행 */}
       <div className="flex items-center gap-2.5 px-4 py-3 border-b border-base">
-        <span className="w-6 h-6 rounded-full bg-brand-rose text-white text-xs font-bold flex items-center justify-center shrink-0">
+        <span className="w-7 h-7 rounded-full bg-brand-rose text-white text-sm font-bold flex items-center justify-center shrink-0">
           {stepNumber}
         </span>
-        <span className="text-sm font-semibold text-base-primary">{step.title}</span>
+        <span className="text-lg font-semibold text-base-primary break-keep">{step.title}</span>
       </div>
       {/* 이미지 + 설명 */}
       <div className="flex flex-col md:flex-row">
@@ -67,7 +67,7 @@ function StepCard({ step, stepNumber }: { step: GuideStep; stepNumber: number })
           />
         </div>
         <div className="md:w-1/2 px-5 py-4 flex items-center">
-          <p className="text-[15px] text-base-secondary leading-[1.85] break-keep">{step.description}</p>
+          <p className="text-[17px] text-base-secondary leading-[1.85] break-keep">{step.description}</p>
         </div>
       </div>
     </div>
@@ -167,7 +167,7 @@ export function GuideViewer({ sections, title, subtitle, pdfPath }: Props) {
                 <div className="w-9 h-9 rounded-xl bg-brand-rose-muted border border-brand-rose flex items-center justify-center text-brand-rose shrink-0">
                   <Icon className="w-4 h-4" />
                 </div>
-                <h2 className="text-base font-bold text-base-primary">{section.title}</h2>
+                <h2 className="text-xl font-bold text-base-primary break-keep">{section.title}</h2>
               </div>
               {/* Step 카드 목록 */}
               <div className="space-y-4">

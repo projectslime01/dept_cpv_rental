@@ -214,7 +214,7 @@ function pageCSS(): string {
     background:var(--accent); padding:6px 16px; border-radius:8px; letter-spacing:-0.01em;
   }
   .step-title { font-size:40px; font-weight:800; line-height:1.25; margin-top:20px; letter-spacing:-0.025em; word-break:keep-all; }
-  .step-desc { font-size:23px; line-height:1.85; color:${SUB}; margin-top:24px; font-weight:400; letter-spacing:-0.018em; word-break:keep-all; }
+  .step-desc { font-size:26px; line-height:1.85; color:${SUB}; margin-top:24px; font-weight:400; letter-spacing:-0.018em; word-break:keep-all; }
   .foot-bar { height:10px; background:var(--accent); margin:40px -64px 0; }
   `
 }
