@@ -11,18 +11,20 @@ import {
 } from '@/app/actions/admin-accounts'
 import { Users, Plus, Trash2, KeyRound, X, CheckCircle2, Shield } from 'lucide-react'
 
-type AdminRow = { id: number; username: string; name: string | null; createdAt: Date }
+type AdminRow = { id: number; username: string; name: string | null; createdAt: Date; role?: string }
 type ModalType = 'create' | 'delete' | 'changePassword' | null
 
 interface Props {
   admins: AdminRow[]
   currentAdminId: number
+  /** 계정 추가·삭제 권한 보유 여부. 서버에서도 동일하게 검사한다. */
+  isOwner: boolean
 }
 
 const inputCls =
   'w-full h-10 px-3.5 rounded-xl border border-strong text-sm bg-surface-raised text-base-primary placeholder:text-base-faint focus:outline-none focus:border-brand-rose transition-colors'
 
-export function AccountManagement({ admins, currentAdminId }: Props) {
+export function AccountManagement({ admins, currentAdminId, isOwner }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [modal, setModal] = useState<ModalType>(null)
@@ -127,14 +129,22 @@ export function AccountManagement({ admins, currentAdminId }: Props) {
           <Users className="w-4 h-4 text-base-muted" />
           <h2 className="text-sm font-semibold text-base-primary">관리자 계정</h2>
           <span className="ml-auto text-xs text-base-muted">{admins.length}명</span>
-          <button
-            onClick={() => { setError(null); setModal('create') }}
-            className="ml-3 flex items-center gap-1.5 h-8 px-3.5 rounded-xl bg-brand-rose hover:bg-brand-rose/90 text-white text-xs font-semibold transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            계정 추가
-          </button>
+          {isOwner && (
+            <button
+              onClick={() => { setError(null); setModal('create') }}
+              className="ml-3 flex items-center gap-1.5 h-8 px-3.5 rounded-xl bg-brand-rose hover:bg-brand-rose/90 text-white text-xs font-semibold transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              계정 추가
+            </button>
+          )}
         </div>
+
+        {!isOwner && (
+          <p className="px-5 py-3 text-xs text-base-muted border-b border-base bg-surface-raised/50">
+            계정 추가·삭제는 학과 관리자 계정에서만 할 수 있습니다. 본인 비밀번호는 아래에서 변경할 수 있습니다.
+          </p>
+        )}
 
         <div className="divide-y divide-base">
           {admins.map(admin => {
@@ -156,6 +166,11 @@ export function AccountManagement({ admins, currentAdminId }: Props) {
                         나
                       </span>
                     )}
+                    {admin.role === 'owner' && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/30">
+                        계정 관리
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-base-muted mt-0.5">생성일 {fmt(admin.createdAt)}</p>
                 </div>
@@ -171,7 +186,7 @@ export function AccountManagement({ admins, currentAdminId }: Props) {
                       비번 변경
                     </button>
                   )}
-                  {!isSelf && (
+                  {!isSelf && isOwner && (
                     <button
                       onClick={() => openDelete(admin)}
                       className="flex items-center gap-1.5 h-8 px-3 rounded-xl border border-strong text-xs font-medium text-base-muted hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-600 dark:hover:text-red-400 hover:border-red-200 dark:border-red-900/50 transition-colors"

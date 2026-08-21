@@ -82,6 +82,9 @@ model Admin {
   passwordHash String
   createdAt    DateTime @default(now())
   name         String   @default("관리자")
+  // owner: 다른 관리자 계정을 추가·삭제할 수 있다. staff: 자기 비밀번호만 변경 가능.
+  // 새 계정은 기본이 staff 이므로 권한은 명시적으로만 올라간다.
+  role         String   @default("staff")
   testRentalRequests    RentalRequest[]          @relation("RentalTestAdmin")
   testClassroomRequests ClassroomRentalRequest[] @relation("ClassroomTestAdmin")
 }

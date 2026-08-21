@@ -8,11 +8,31 @@ import { revalidatePath } from 'next/cache'
 
 type Result = { success: true } | { success: false; error: string }
 
+const NOT_OWNER_MESSAGE = '계정 추가·삭제 권한이 없습니다. 학과 관리자에게 문의해 주세요.'
+
+/**
+ * 계정을 추가·삭제할 수 있는 관리자인지 확인한다.
+ *
+ * 화면에서 버튼을 감추는 것만으로는 막을 수 없으므로(서버 액션은 직접 호출될 수
+ * 있다) 반드시 여기서 검사한다. 권한은 Admin.role 에 저장되며 'owner' 만 허용한다.
+ */
+async function requireOwner(): Promise<{ ok: true; adminId: number } | { ok: false; error: string }> {
+  const session = await getServerSession(authOptions)
+  if (!session) return { ok: false, error: '인증이 필요합니다.' }
+
+  const adminId = parseInt(session.user.id)
+  const me = await prisma.admin.findUnique({ where: { id: adminId }, select: { role: true } })
+  if (!me) return { ok: false, error: '계정을 찾을 수 없습니다.' }
+  if (me.role !== 'owner') return { ok: false, error: NOT_OWNER_MESSAGE }
+
+  return { ok: true, adminId }
+}
+
 // ── 계정 생성 ─────────────────────────────────────────────────────────────────
 
 export async function createAdminAccount(formData: FormData): Promise<Result> {
-  const session = await getServerSession(authOptions)
-  if (!session) return { success: false, error: '인증이 필요합니다.' }
+  const auth = await requireOwner()
+  if (!auth.ok) return { success: false, error: auth.error }
 
   const username = (formData.get('username') as string ?? '').trim().toLowerCase()
   const password = (formData.get('password') as string ?? '')
@@ -35,7 +55,8 @@ export async function createAdminAccount(formData: FormData): Promise<Result> {
   if (existing) return { success: false, error: '이미 사용 중인 아이디입니다.' }
 
   const passwordHash = await hashPassword(password)
-  await prisma.admin.create({ data: { username, passwordHash, name } })
+  // 새 계정은 항상 일반 권한으로 만든다. 권한 상승은 DB에서 명시적으로만 한다.
+  await prisma.admin.create({ data: { username, passwordHash, name, role: 'staff' } })
   revalidatePath('/admin/accounts')
   return { success: true }
 }
@@ -43,10 +64,10 @@ export async function createAdminAccount(formData: FormData): Promise<Result> {
 // ── 계정 삭제 ─────────────────────────────────────────────────────────────────
 
 export async function deleteAdminAccount(id: number): Promise<Result> {
-  const session = await getServerSession(authOptions)
-  if (!session) return { success: false, error: '인증이 필요합니다.' }
+  const auth = await requireOwner()
+  if (!auth.ok) return { success: false, error: auth.error }
 
-  if (String(id) === session.user.id) {
+  if (id === auth.adminId) {
     return { success: false, error: '자신의 계정은 삭제할 수 없습니다.' }
   }
 
