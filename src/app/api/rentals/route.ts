@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { maskName } from '@/lib/maskName'
+import { toWallClockString } from '@/lib/rentalUtils'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
@@ -76,8 +77,8 @@ export async function GET(req: NextRequest) {
       applicantName: maskName(r.applicantName),
       equipmentName: r.equipment.name,
       quantity: r.quantity,
-      startAt: r.startAt.toISOString(),
-      endAt: r.endAt.toISOString(),
+      startAt: toWallClockString(r.startAt),
+      endAt: toWallClockString(r.endAt),
     }))
 
     const formattedClassroom = classroomRentals.map((r) => ({
@@ -86,8 +87,8 @@ export async function GET(req: NextRequest) {
       applicantName: maskName(r.applicantName),
       equipmentName: r.classroom.roomNumber,
       quantity: 1,
-      startAt: r.startAt.toISOString(),
-      endAt: r.endAt.toISOString(),
+      startAt: toWallClockString(r.startAt),
+      endAt: toWallClockString(r.endAt),
     }))
 
     // 시작 시간 기준 오름차순 정렬하여 병합

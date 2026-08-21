@@ -4,6 +4,7 @@ import {
   includesWeekend,
   isValidWeekendRental,
   isValidStartDate,
+  toWallClockString,
 } from '../rentalUtils'
 
 /**
@@ -72,5 +73,25 @@ describe('isValidStartDate — 서버 타임존 무관', () => {
 
   it('하루 이른 시작은 오후 시간이라도 차단된다', () => {
     expect(isValidStartDate(at('2026-08-24T16:00'), applyAt)).toBe(false)
+  })
+})
+
+describe('toWallClockString — 서버에서 클라이언트로 보낼 때 벽시계 보존', () => {
+  it('벽시계 숫자를 시간대 표기 없이 그대로 담는다', () => {
+    expect(toWallClockString(new Date(2026, 7, 25, 13, 0, 0))).toBe('2026-08-25T13:00:00')
+    expect(toWallClockString(new Date(2026, 7, 27, 17, 0, 0))).toBe('2026-08-27T17:00:00')
+  })
+
+  it('한 자리 수도 0을 채운다', () => {
+    expect(toWallClockString(new Date(2026, 0, 5, 9, 5, 3))).toBe('2026-01-05T09:05:03')
+  })
+
+  it('다시 파싱하면 같은 벽시계가 나온다 (브라우저 왕복)', () => {
+    const original = new Date(2026, 7, 27, 17, 0, 0)
+    const round = new Date(toWallClockString(original))
+    expect(round.getFullYear()).toBe(2026)
+    expect(round.getMonth()).toBe(7)
+    expect(round.getDate()).toBe(27)   // 날짜가 밀리면 안 된다
+    expect(round.getHours()).toBe(17)  // 시간이 밀리면 안 된다
   })
 })

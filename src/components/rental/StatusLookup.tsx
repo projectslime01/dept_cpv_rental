@@ -13,7 +13,8 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   returned: { label: '반납 완료', color: 'bg-surface-raised border-base text-base-secondary' },
 }
 
-const fmt = (d: Date) => format(new Date(d), 'yyyy.MM.dd HH:mm', { locale: ko })
+// 서버가 시간대 표기 없는 벽시계 문자열을 보내므로 로컬로 파싱하면 숫자가 그대로 보존된다
+const fmt = (d: string) => format(new Date(d), 'yyyy.MM.dd HH:mm', { locale: ko })
 
 function StatusBadge({ status }: { status: string }) {
   const cfg = STATUS_CONFIG[status] ?? { label: status, color: 'bg-surface-raised text-base-secondary border-base' }

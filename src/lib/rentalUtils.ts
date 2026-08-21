@@ -88,6 +88,22 @@ export function getWallClockDayStart(date: Date): Date {
 }
 
 /**
+ * 저장된 벽시계 Date를 클라이언트로 보낼 문자열로 만든다. ("2026-08-25T13:00:00")
+ *
+ * toISOString() 을 쓰면 안 된다. 저장값은 벽시계를 UTC 자리에 담아둔 것이라
+ * "...T13:00:00.000Z" 로 나가고, 이를 한국 브라우저가 파싱하면 22:00 으로
+ * 9시간 밀린다. 시간대 표기 없이 보내면 브라우저가 로컬로 파싱해
+ * 벽시계 숫자가 그대로 보존된다.
+ */
+export function toWallClockString(date: Date): string {
+  const p = (n: number) => String(n).padStart(2, '0')
+  return (
+    `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())}` +
+    `T${p(date.getHours())}:${p(date.getMinutes())}:${p(date.getSeconds())}`
+  )
+}
+
+/**
  * 대여 신청(폼 작성)이 평일 09:00 ~ 17:00 (공휴일 제외) 이내인지 판별
  */
 export function isSubmissionTimeValid(date: Date): boolean {

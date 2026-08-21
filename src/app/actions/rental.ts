@@ -15,6 +15,7 @@ import {
   getAvailableQuantity,
 } from '@/lib/rental'
 import { getAvailableAccessoryQuantity } from '@/lib/accessory'
+import { toWallClockString } from '@/lib/rentalUtils'
 import { checkRateLimit, recordFailedAttempt, resetAttempts } from '@/lib/rate-limit'
 import { restrictionBlockMessage } from '@/lib/restriction'
 import { getActiveRestriction } from '@/lib/restriction.server'
@@ -480,10 +481,10 @@ export type LookupResult =
         status: string
         equipmentName: string
         quantity: number
-        startAt: Date
-        endAt: Date
+        startAt: string
+        endAt: string
         adminNote: string | null
-        createdAt: Date
+        createdAt: string
         accessories: { name: string; quantity: number }[]
       }
       groupItems?: {
@@ -548,10 +549,10 @@ export async function lookupRequest(formData: FormData): Promise<LookupResult> {
           status: request.status,
           equipmentName: `${request.classroom.roomNumber} (강의실)`,
           quantity: 1,
-          startAt: request.startAt,
-          endAt: request.endAt,
+          startAt: toWallClockString(request.startAt),
+          endAt: toWallClockString(request.endAt),
           adminNote: request.adminNote,
-          createdAt: request.createdAt,
+          createdAt: toWallClockString(request.createdAt),
           accessories: [],
         },
       }
@@ -612,10 +613,10 @@ export async function lookupRequest(formData: FormData): Promise<LookupResult> {
         status: request.status,
         equipmentName: request.equipment.name,
         quantity: request.quantity,
-        startAt: request.startAt,
-        endAt: request.endAt,
+        startAt: toWallClockString(request.startAt),
+        endAt: toWallClockString(request.endAt),
         adminNote: request.adminNote,
-        createdAt: request.createdAt,
+        createdAt: toWallClockString(request.createdAt),
         accessories: request.accessories.map((ra) => ({
           name: ra.accessory.name,
           quantity: ra.quantity,

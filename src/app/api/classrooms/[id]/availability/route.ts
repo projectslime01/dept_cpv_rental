@@ -1,5 +1,6 @@
 // src/app/api/classrooms/[id]/availability/route.ts
 import { NextRequest, NextResponse } from 'next/server'
+import { toWallClockString } from '@/lib/rentalUtils'
 import { prisma } from '@/lib/prisma'
 import { maskName } from '@/lib/maskName'
 import { getTimetableOccurrencesForMonth } from '@/lib/timetable'
@@ -59,8 +60,8 @@ export async function GET(
       // 개인 정보 보장 및 포맷 가공
       const formattedBookings = requests.map((req) => ({
         id: req.id,
-        startAt: req.startAt,
-        endAt: req.endAt,
+        startAt: toWallClockString(req.startAt),
+        endAt: toWallClockString(req.endAt),
         applicantName: maskName(req.applicantName),
         status: req.status,
         purpose: req.purpose,
