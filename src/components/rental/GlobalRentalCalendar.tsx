@@ -30,7 +30,12 @@ interface Rental {
   id: string
   type: 'equipment' | 'classroom'
   applicantName: string
+  /** 칩에 쓰는 요약 라벨. 일괄 신청이면 "소니 FX3 외 1종" */
   equipmentName: string
+  /** 묶음에 포함된 품목 전체 ("소니 FX3 1대, 소니 24-70mm 1개") */
+  itemsLabel: string
+  items: { name: string; quantity: number; unit: string }[]
+  /** 묶음 전체 수량 합 */
   quantity: number
   startAt: string
   endAt: string
@@ -276,7 +281,7 @@ export function GlobalRentalCalendar() {
                             ? 'bg-brand-indigo-muted hover:bg-brand-indigo-muted/80 border-brand-indigo/20 text-brand-indigo'
                             : 'bg-brand-rose-muted hover:bg-brand-rose-muted/80 border-brand-rose/20 text-brand-rose'
                         }`}
-                        title={`[${rental.applicantName}] ${rental.equipmentName} ${isClassroom ? '(강의실)' : `(${rental.quantity}대)`}`}
+                        title={`[${rental.applicantName}] ${isClassroom ? `${rental.equipmentName} (강의실)` : rental.itemsLabel}`}
                       >
                         <span className="shrink-0 text-base-primary/70">[{rental.applicantName}]</span>
                         <span className="truncate">{rental.equipmentName}</span>
@@ -364,16 +369,33 @@ export function GlobalRentalCalendar() {
                           <p className="text-sm font-semibold text-base-primary leading-none">
                             {rental.equipmentName}
                           </p>
-                          <p className="text-xs text-base-secondary flex items-center gap-1.5">
-                            <Layers className="w-3.5 h-3.5" />
-                            <span>
-                              {isClassroom ? (
-                                <strong className="text-brand-indigo">강의실 대여</strong>
-                              ) : (
-                                <>대여 수량: <strong className="text-brand-rose">{rental.quantity}대</strong></>
-                              )}
-                            </span>
-                          </p>
+                          <div className="text-xs text-base-secondary flex items-start gap-1.5">
+                            <Layers className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                            {isClassroom ? (
+                              <strong className="text-brand-indigo">강의실 대여</strong>
+                            ) : rental.items.length > 1 ? (
+                              <div className="space-y-0.5">
+                                <p className="font-semibold text-base-secondary">
+                                  일괄 신청 {rental.items.length}종
+                                </p>
+                                <ul className="space-y-0.5">
+                                  {rental.items.map((it, i) => (
+                                    <li key={i}>
+                                      {it.name} <strong className="text-brand-rose">{it.quantity}{it.unit}</strong>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : (
+                              <span>
+                                대여 수량:{' '}
+                                <strong className="text-brand-rose">
+                                  {rental.items[0]?.quantity ?? rental.quantity}
+                                  {rental.items[0]?.unit ?? '개'}
+                                </strong>
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
 
