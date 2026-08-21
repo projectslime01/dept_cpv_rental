@@ -67,7 +67,7 @@ function StepCard({ step, stepNumber }: { step: GuideStep; stepNumber: number })
           />
         </div>
         <div className="md:w-1/2 px-5 py-4 flex items-center">
-          <p className="text-sm text-base-secondary leading-relaxed">{step.description}</p>
+          <p className="text-[15px] text-base-secondary leading-[1.85] break-keep">{step.description}</p>
         </div>
       </div>
     </div>

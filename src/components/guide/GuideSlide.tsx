@@ -39,10 +39,10 @@ export function GuideSlide({ step, sectionTitle, stepIndex, totalSteps }: Props)
         <p className="text-xs font-medium text-base-muted uppercase tracking-wider">
           {sectionTitle}
         </p>
-        <h2 className="text-xl font-bold text-base-primary leading-snug">
+        <h2 className="text-xl font-bold text-base-primary leading-snug break-keep">
           {step.title}
         </h2>
-        <p className="text-sm text-base-secondary leading-relaxed">
+        <p className="text-[15px] text-base-secondary leading-[1.85] break-keep">
           {step.description}
         </p>
         <p className="text-xs text-base-faint font-mono">
