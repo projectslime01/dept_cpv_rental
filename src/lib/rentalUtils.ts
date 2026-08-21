@@ -46,7 +46,13 @@ export function isHoliday(date: Date): boolean {
 }
 
 /**
- * UTC Date를 한국 시각(KST, UTC+9)으로 완벽하게 파싱한 일자 및 시/분 정보 반환
+ * "실제 순간"(new Date() 등)을 한국 시각(KST)으로 옮겨 일자·시·분을 얻는다.
+ *
+ * 주의: 신청 폼에서 온 startAt/endAt 에는 쓰면 안 된다. 그 값들은
+ * "YYYY-MM-DDTHH:mm"(KST 벽시계)을 서버 타임존으로 파싱한 것이라 이미
+ * 벽시계를 담고 있고, 여기에 다시 변환을 걸면 UTC 서버에서 +9시간이
+ * 한 번 더 적용돼 오후 3시 이후 값이 다음 날로 밀린다.
+ * 그런 값에는 getWallClockDayStart / Date 자체의 getDay() 를 쓴다.
  */
 export function getKSTHoursAndMinutes(date: Date) {
   const kstString = date.toLocaleString('en-US', { timeZone: 'Asia/Seoul' })
@@ -69,6 +75,16 @@ export function getKSTHoursAndMinutes(date: Date) {
  */
 export function nowKST(): Date {
   return getKSTHoursAndMinutes(new Date()).date
+}
+
+/**
+ * 신청 폼에서 온 벽시계 Date의 "그 날 00:00"(서버 로컬)을 만든다.
+ *
+ * 폼 값은 서버 타임존으로 파싱되므로 Date의 로컬 필드가 곧 KST 벽시계다.
+ * 시간대 변환 없이 그대로 읽어야 서버 타임존과 무관하게 같은 날짜가 나온다.
+ */
+export function getWallClockDayStart(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate())
 }
 
 /**
@@ -106,22 +122,18 @@ export function getEarliestAllowedStartDate(applyDate: Date): Date {
  * 대여 시작일이 평일 기준 최소 2일 전인지 판별
  */
 export function isValidStartDate(startAt: Date, applyDate: Date): boolean {
+  // applyDate 는 실제 순간이므로 KST 변환이 맞고, startAt 은 벽시계이므로 변환하지 않는다.
   const earliest = getEarliestAllowedStartDate(applyDate)
-  const kstStart = getKSTHoursAndMinutes(startAt).date
-  const startDayZero = new Date(kstStart.getFullYear(), kstStart.getMonth(), kstStart.getDate(), 0, 0, 0, 0)
-  return startDayZero >= earliest
+  return getWallClockDayStart(startAt) >= earliest
 }
 
 /**
  * 대여 기간 내 실제 평일(영업일) 수량 카운트 (시작일과 종료일이 걸치는 날 기준)
  */
 export function countWeekdaysInRange(start: Date, end: Date): number {
-  const kstStart = getKSTHoursAndMinutes(start).date
-  const kstEnd = getKSTHoursAndMinutes(end).date
-
   let count = 0
-  const current = new Date(kstStart.getFullYear(), kstStart.getMonth(), kstStart.getDate())
-  const last = new Date(kstEnd.getFullYear(), kstEnd.getMonth(), kstEnd.getDate())
+  const current = getWallClockDayStart(start)
+  const last = getWallClockDayStart(end)
 
   while (current <= last) {
     const day = current.getDay()
@@ -137,11 +149,8 @@ export function countWeekdaysInRange(start: Date, end: Date): number {
  * 대여 기간이 주말(토/일)을 포함하는지 판별
  */
 export function includesWeekend(start: Date, end: Date): boolean {
-  const kstStart = getKSTHoursAndMinutes(start).date
-  const kstEnd = getKSTHoursAndMinutes(end).date
-
-  const current = new Date(kstStart.getFullYear(), kstStart.getMonth(), kstStart.getDate())
-  const last = new Date(kstEnd.getFullYear(), kstEnd.getMonth(), kstEnd.getDate())
+  const current = getWallClockDayStart(start)
+  const last = getWallClockDayStart(end)
 
   while (current <= last) {
     const day = current.getDay()
@@ -158,7 +167,6 @@ export function includesWeekend(start: Date, end: Date): boolean {
  */
 export function isValidWeekendRental(start: Date, end: Date): boolean {
   if (!includesWeekend(start, end)) return true
-  const kstStart = getKSTHoursAndMinutes(start).date
-  const kstEnd = getKSTHoursAndMinutes(end).date
-  return kstStart.getDay() === 5 && kstEnd.getDay() === 1
+  // 벽시계 Date의 요일을 그대로 읽는다 (변환하면 금 15:00 이 토요일로 밀린다)
+  return start.getDay() === 5 && end.getDay() === 1
 }
