@@ -320,19 +320,18 @@ export function CartPageClient() {
                   </div>
                 )}
 
-                {/* 부속 기자재 선택 — 부속이 있는 기자재에만 표시된다(없으면 컴포넌트가 null 반환) */}
-                {startAt && endAt && (
-                  <div className="mt-2.5 pt-2.5 border-t border-base/60">
-                    <AccessorySelector
-                      equipmentId={item.equipmentId}
-                      startAt={startAt}
-                      endAt={endAt}
-                      onChange={(accs) =>
-                        setItemAccessories((prev) => ({ ...prev, [item.equipmentId]: accs }))
-                      }
-                    />
-                  </div>
-                )}
+                {/* 부속 기자재 선택 — 부속이 있는 기자재에만 표시된다(없으면 컴포넌트가 null 반환).
+                    날짜 미선택 시에도 목록은 보여주고, 대여 기간을 고르면 가용 수량이 채워진다. */}
+                <div className="mt-2.5">
+                  <AccessorySelector
+                    equipmentId={item.equipmentId}
+                    startAt={startAt}
+                    endAt={endAt}
+                    onChange={(accs) =>
+                      setItemAccessories((prev) => ({ ...prev, [item.equipmentId]: accs }))
+                    }
+                  />
+                </div>
               </div>
             )
           })}
