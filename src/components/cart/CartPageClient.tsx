@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useCart } from '@/lib/useCart'
 import { DateTimePicker } from '@/components/ui/DateTimePicker'
 import { createBatchRentalRequest, checkCartAvailability, type CartAvailabilityItem } from '@/app/actions/rental'
+import { AccessorySelector } from '@/components/rental/AccessorySelector'
 import { ClipboardList, Trash2, CheckCircle2, Minus, Plus, ArrowRight, CalendarDays, User, Loader2, AlertTriangle, Clock } from 'lucide-react'
 import {
   isSubmissionTimeValid,
@@ -91,6 +92,8 @@ export function CartPageClient() {
   const [availability, setAvailability] = useState<AvailabilityMap | null>(null)
   const [isChecking, setIsChecking] = useState(false)
   const [verified, setVerified] = useState<{ grade: number } | null>(null)
+  // 기자재(equipmentId)별 선택한 부속 기자재
+  const [itemAccessories, setItemAccessories] = useState<Record<number, { accessoryId: number; quantity: number }[]>>({})
   const [verifyError, setVerifyError] = useState<string | null>(null)
   const [verifying, setVerifying] = useState(false)
 
@@ -218,7 +221,11 @@ export function CartPageClient() {
   function handleSubmit(formData: FormData) {
     formData.set('startAt', startAt)
     formData.set('endAt', endAt)
-    formData.set('items', JSON.stringify(items.map(i => ({ equipmentId: i.equipmentId, quantity: i.quantity }))))
+    formData.set('items', JSON.stringify(items.map(i => ({
+      equipmentId: i.equipmentId,
+      quantity: i.quantity,
+      accessories: itemAccessories[i.equipmentId] ?? [],
+    }))))
     formData.set('hasDepartmentApproval', String(hasDepartmentApproval))
     setError(null)
     startTransition(async () => {
@@ -310,6 +317,20 @@ export function CartPageClient() {
                         </span>
                       )
                     ) : null}
+                  </div>
+                )}
+
+                {/* 부속 기자재 선택 — 부속이 있는 기자재에만 표시된다(없으면 컴포넌트가 null 반환) */}
+                {startAt && endAt && (
+                  <div className="mt-2.5 pt-2.5 border-t border-base/60">
+                    <AccessorySelector
+                      equipmentId={item.equipmentId}
+                      startAt={startAt}
+                      endAt={endAt}
+                      onChange={(accs) =>
+                        setItemAccessories((prev) => ({ ...prev, [item.equipmentId]: accs }))
+                      }
+                    />
                   </div>
                 )}
               </div>

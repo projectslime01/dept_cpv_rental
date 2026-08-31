@@ -23,6 +23,67 @@ import { verifyStudent, verifyFailureMessage } from '@/lib/roster.server'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
+/**
+ * 부속 기자재 선택값을 검증·정규화한다. 단건 신청과 일괄(장바구니) 신청이 공유한다.
+ * - 같은 부속을 여러 번 보낸 경우 합산
+ * - equipmentId 에 실제로 속한 활성 부속인지 확인
+ * - 대여 기간 기준 가용 수량 확인 (공유 재고 그룹 반영)
+ */
+async function validateAccessoriesForEquipment(
+  equipmentId: number,
+  raw: { accessoryId: number; quantity: number }[] | string | null | undefined,
+  startAt: Date,
+  endAt: Date,
+): Promise<
+  | { ok: true; accessories: { accessoryId: number; quantity: number }[] }
+  | { ok: false; error: string }
+> {
+  let accessories: { accessoryId: number; quantity: number }[] = []
+  if (raw) {
+    if (typeof raw === 'string') {
+      try {
+        accessories = JSON.parse(raw)
+      } catch {
+        return { ok: false, error: '부속 기자재 정보가 올바르지 않습니다.' }
+      }
+    } else {
+      accessories = raw
+    }
+    if (!Array.isArray(accessories)) {
+      return { ok: false, error: '부속 기자재 정보가 올바르지 않습니다.' }
+    }
+  }
+
+  const map = new Map<number, number>()
+  for (const a of accessories) {
+    map.set(a.accessoryId, (map.get(a.accessoryId) ?? 0) + a.quantity)
+  }
+  accessories = Array.from(map.entries()).map(([accessoryId, quantity]) => ({ accessoryId, quantity }))
+
+  if (accessories.length > 0) {
+    const records = await prisma.equipmentAccessory.findMany({
+      where: { id: { in: accessories.map((a) => a.accessoryId) }, equipmentId, status: 'active' },
+      select: { id: true, name: true },
+    })
+    const validIds = new Set(records.map((r) => r.id))
+    for (const a of accessories) {
+      if (!validIds.has(a.accessoryId)) {
+        return { ok: false, error: '선택한 부속 기자재가 올바르지 않습니다.' }
+      }
+      if (a.quantity < 1) {
+        return { ok: false, error: '부속 기자재 수량은 1 이상이어야 합니다.' }
+      }
+      const avail = await getAvailableAccessoryQuantity(a.accessoryId, startAt, endAt)
+      if (avail < a.quantity) {
+        const name = records.find((r) => r.id === a.accessoryId)?.name ?? ''
+        return { ok: false, error: `부속 "${name}" 재고가 부족합니다 (가용: ${avail}개)` }
+      }
+    }
+  }
+
+  return { ok: true, accessories: accessories.filter((a) => a.quantity > 0) }
+}
+
 export type CreateRequestResult =
   | { success: true; requestNumber: string }
   | { success: false; error: string }
@@ -147,55 +208,15 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
     }
   }
 
-  // accessories JSON 파싱
-  let accessories: { accessoryId: number; quantity: number }[] = []
-  const accessoriesRaw = formData.get('accessories')
-  if (accessoriesRaw) {
-    try {
-      accessories = JSON.parse(accessoriesRaw as string)
-    } catch {
-      return { success: false, error: '부속 기자재 정보가 올바르지 않습니다.' }
-    }
-    if (!Array.isArray(accessories)) {
-      return { success: false, error: '부속 기자재 정보가 올바르지 않습니다.' }
-    }
-  }
-
-  // accessoryId 중복 제거 (같은 부속을 두 번 보내는 악의적 요청 방어)
-  const accessoryMap = new Map<number, number>()
-  for (const a of accessories) {
-    accessoryMap.set(a.accessoryId, (accessoryMap.get(a.accessoryId) ?? 0) + a.quantity)
-  }
-  accessories = Array.from(accessoryMap.entries()).map(([accessoryId, quantity]) => ({ accessoryId, quantity }))
-
-  // accessories 검증
-  if (accessories.length > 0) {
-    const accessoryRecords = await prisma.equipmentAccessory.findMany({
-      where: {
-        id: { in: accessories.map((a) => a.accessoryId) },
-        equipmentId,
-        status: 'active',
-      },
-      select: { id: true, name: true },
-    })
-    const validIds = new Set(accessoryRecords.map((r) => r.id))
-    for (const a of accessories) {
-      if (!validIds.has(a.accessoryId)) {
-        return { success: false, error: '선택한 부속 기자재가 올바르지 않습니다.' }
-      }
-      if (a.quantity < 1) {
-        return { success: false, error: '부속 기자재 수량은 1 이상이어야 합니다.' }
-      }
-      const avail = await getAvailableAccessoryQuantity(a.accessoryId, startAt, endAt)
-      if (avail < a.quantity) {
-        const name = accessoryRecords.find((r) => r.id === a.accessoryId)?.name ?? ''
-        return {
-          success: false,
-          error: `부속 "${name}" 재고가 부족합니다 (가용: ${avail}개)`,
-        }
-      }
-    }
-  }
+  // 부속 기자재 검증 (단건·일괄 공용 헬퍼)
+  const accCheck = await validateAccessoriesForEquipment(
+    equipmentId,
+    formData.get('accessories') as string | null,
+    startAt,
+    endAt,
+  )
+  if (!accCheck.ok) return { success: false, error: accCheck.error }
+  const accessories = accCheck.accessories
 
   try {
     const available = await checkAvailability(equipmentId, quantity, startAt, endAt)
@@ -331,7 +352,11 @@ export async function createBatchRentalRequest(formData: FormData): Promise<Crea
     }
   }
 
-  let items: { equipmentId: number; quantity: number }[]
+  let items: {
+    equipmentId: number
+    quantity: number
+    accessories?: { accessoryId: number; quantity: number }[]
+  }[]
   try {
     items = JSON.parse(formData.get('items') as string)
   } catch {
@@ -369,6 +394,14 @@ export async function createBatchRentalRequest(formData: FormData): Promise<Crea
       }
     }
 
+    // 기자재별 부속 검증 후, 검증된 값으로 교체해 둔다 (생성 시 재사용)
+    const normalizedAccessories = new Map<number, { accessoryId: number; quantity: number }[]>()
+    for (const item of items) {
+      const accCheck = await validateAccessoriesForEquipment(item.equipmentId, item.accessories, startAt, endAt)
+      if (!accCheck.ok) return { success: false, error: accCheck.error }
+      normalizedAccessories.set(item.equipmentId, accCheck.accessories)
+    }
+
     const passwordHash = await hashPassword(password)
     const now = new Date()
     const requestNumbers: string[] = []
@@ -398,6 +431,17 @@ export async function createBatchRentalRequest(formData: FormData): Promise<Crea
         where: { id: req.id },
         data: { requestNumber: rn, groupNumber },
       })
+
+      const accessories = normalizedAccessories.get(item.equipmentId) ?? []
+      if (accessories.length > 0) {
+        await prisma.rentalRequestAccessory.createMany({
+          data: accessories.map((a) => ({
+            rentalRequestId: req.id,
+            accessoryId: a.accessoryId,
+            quantity: a.quantity,
+          })),
+        })
+      }
     }
 
     return { success: true, groupNumber: groupNumber!, requestNumbers }
