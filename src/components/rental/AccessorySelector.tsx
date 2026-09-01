@@ -141,7 +141,7 @@ export function AccessorySelector({ equipmentId, startAt, endAt, onChange }: Pro
                 <button
                   type="button"
                   onClick={() => handleQuantityChange(opt.id, String(qty + 1))}
-                  disabled={!hasDate || qty >= opt.available || isUnavailable}
+                  disabled={qty >= opt.available || isUnavailable}
                   className="w-7 h-7 rounded-lg border border-base bg-surface text-base-primary hover:bg-surface-overlay disabled:opacity-30 text-sm font-bold transition-colors"
                 >
                   +
