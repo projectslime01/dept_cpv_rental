@@ -6,6 +6,7 @@ import { useCart } from '@/lib/useCart'
 import { DateTimePicker } from '@/components/ui/DateTimePicker'
 import { createBatchRentalRequest, checkCartAvailability, type CartAvailabilityItem } from '@/app/actions/rental'
 import { AccessorySelector } from '@/components/rental/AccessorySelector'
+import { eligibilityLabel } from '@/lib/eligibility'
 import { ClipboardList, Trash2, CheckCircle2, Minus, Plus, ArrowRight, CalendarDays, User, Loader2, AlertTriangle, Clock } from 'lucide-react'
 import {
   isSubmissionTimeValid,
@@ -473,7 +474,7 @@ export function CartPageClient() {
                   <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                   <span>
                     선택한 학년으로 대여할 수 없는 품목이 있습니다:{' '}
-                    <b>{gradeBlockedItems.map(i => `${i.name}(${availability?.[i.equipmentId]?.minGrade}학년~)`).join(', ')}</b>
+                    <b>{gradeBlockedItems.map(i => `${i.name}(${eligibilityLabel(i.name, availability?.[i.equipmentId]?.minGrade ?? 1)})`).join(', ')}</b>
                     {' '}— 해당 품목을 빼거나 학년을 확인해주세요.
                   </span>
                 </div>

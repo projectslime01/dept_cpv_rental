@@ -1,6 +1,7 @@
 'use client'
 
 import { useTransition, useState, useEffect } from 'react'
+import { eligibilityLabel } from '@/lib/eligibility'
 import { createRentalRequest } from '@/app/actions/rental'
 import { DateTimePicker } from '@/components/ui/DateTimePicker'
 import { CheckCircle2, ArrowRight, AlertTriangle, Clock, CalendarDays } from 'lucide-react'
@@ -219,7 +220,7 @@ export function RentalForm({ equipmentId, equipmentName, equipmentMinGrade = 1, 
         <div className="space-y-1.5">
           <label className="block text-xs font-medium text-base-secondary">
             대여 자격
-            <span className="ml-1 text-base-muted">이 기자재는 {equipmentMinGrade}학년 이상 대여 가능</span>
+            <span className="ml-1 text-base-muted">이 기자재는 {eligibilityLabel(equipmentName, equipmentMinGrade)} 대여 가능</span>
           </label>
           {verifying && (
             <div className="text-xs text-base-muted bg-surface-raised border border-base rounded-xl px-3 py-2">
@@ -244,7 +245,7 @@ export function RentalForm({ equipmentId, equipmentName, equipmentMinGrade = 1, 
           {gradeInsufficient && (
             <div className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-xl px-3 py-2 flex items-center gap-1.5 mt-1">
               <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-              <span>{equipmentMinGrade}학년 이상부터 대여 가능한 기자재입니다.</span>
+              <span>{eligibilityLabel(equipmentName, equipmentMinGrade)} 대여 가능한 기자재입니다.</span>
             </div>
           )}
         </div>

@@ -15,6 +15,7 @@ import {
   getAvailableQuantity,
 } from '@/lib/rental'
 import { getAvailableAccessoryQuantity } from '@/lib/accessory'
+import { eligibilityLabel } from '@/lib/eligibility'
 import { toWallClockString } from '@/lib/rentalUtils'
 import { checkRateLimit, recordFailedAttempt, resetAttempts } from '@/lib/rate-limit'
 import { restrictionBlockMessage } from '@/lib/restriction'
@@ -147,7 +148,7 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
   if (verifiedGrade < equipmentForLimit.minGrade) {
     return {
       success: false,
-      error: `'${equipmentForLimit.name}'은(는) ${equipmentForLimit.minGrade}학년 이상부터 대여 가능합니다.`,
+      error: `'${equipmentForLimit.name}'은(는) ${eligibilityLabel(equipmentForLimit.name, equipmentForLimit.minGrade)} 대여 가능합니다.`,
     }
   }
   if (quantity < equipmentForLimit.minRentalQuantity) {
@@ -381,7 +382,7 @@ export async function createBatchRentalRequest(formData: FormData): Promise<Crea
         ? Math.min(eq.maxRentalQuantity, eq.totalQuantity)
         : (eq?.totalQuantity ?? item.quantity)
       if (eq && verifiedGrade < eq.minGrade) {
-        return { success: false, error: `'${eq.name}'은(는) ${eq.minGrade}학년 이상부터 대여 가능합니다.` }
+        return { success: false, error: `'${eq.name}'은(는) ${eligibilityLabel(eq.name, eq.minGrade)} 대여 가능합니다.` }
       }
       if (item.quantity < minQty) {
         return { success: false, error: `'${eq?.name ?? item.equipmentId}': 이 기자재는 최소 ${minQty}개 이상 신청해야 합니다.` }
