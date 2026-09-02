@@ -2,13 +2,15 @@ import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import { Clock, Package, Building, Ban, ChevronRight } from 'lucide-react'
+import { Clock, Package, Building, Ban, ChevronRight, CalendarClock } from 'lucide-react'
 import { sortByCategory } from '@/lib/categories'
 import { groupRequests, unitFor } from '@/lib/requestGrouping'
 import { nowKST } from '@/lib/rentalUtils'
 
 export default async function DashboardPage() {
   const now = nowKST()
+
+  const soon = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000)
 
   const [
     eqPendingCount,
@@ -17,6 +19,8 @@ export default async function DashboardPage() {
     roomActiveRentals,
     eqDueSoon,
     roomDueSoon,
+    eqUpcoming,
+    roomUpcoming,
     equipmentStats,
     activeRestrictionCount,
   ] = await Promise.all([
@@ -46,6 +50,26 @@ export default async function DashboardPage() {
       },
       include: { classroom: { select: { roomNumber: true } } },
       orderBy: { endAt: 'asc' },
+    }),
+    // 대여 예정: 승인됐으나 아직 시작 전이며 3일 이내 시작
+    prisma.rentalRequest.findMany({
+      where: {
+        status: 'approved',
+        startAt: { gt: now, lte: soon },
+      },
+      include: {
+        equipment: { select: { name: true, category: true } },
+        accessories: { include: { accessory: { select: { name: true } } } },
+      },
+      orderBy: { startAt: 'asc' },
+    }),
+    prisma.classroomRentalRequest.findMany({
+      where: {
+        status: 'approved',
+        startAt: { gt: now, lte: soon },
+      },
+      include: { classroom: { select: { roomNumber: true } } },
+      orderBy: { startAt: 'asc' },
     }),
     prisma.equipment.findMany({
       where: { status: 'active' },
@@ -120,6 +144,102 @@ export default async function DashboardPage() {
           <ChevronRight className="w-5 h-5 text-red-500 shrink-0" />
         </Link>
       )}
+
+      {/* 대여 예정 (곧 시작) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* 기자재 대여 예정 */}
+        <div className="bg-surface-base rounded-2xl border border-base overflow-hidden">
+          <div className="flex items-center gap-2 px-5 py-3.5 border-b border-base">
+            <CalendarClock className="w-4 h-4 text-brand-rose" />
+            <h2 className="text-sm font-semibold text-base-primary">기자재 대여 예정 (3일 이내)</h2>
+            <span className="ml-auto text-xs text-base-muted">{eqUpcoming.length}건</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[360px]">
+              <thead>
+                <tr className="bg-surface-raised border-b border-base">
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted">대여 품목</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">신청자</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">대여 시작</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">D-Day</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-base">
+                {eqUpcoming.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="text-center py-6 text-xs text-base-muted">예정된 내역이 없습니다.</td>
+                  </tr>
+                ) : groupRequests(eqUpcoming).map((group) => {
+                  const head = group.rows[0]
+                  const sortedRows = sortByCategory(
+                    group.rows.map((r) => ({ ...r, name: r.equipment.name, category: r.equipment.category })),
+                  )
+                  return (
+                  <tr key={group.key} className="hover:bg-surface-overlay transition-colors align-top">
+                    <td className="px-4 py-3 text-base-primary max-w-[280px]">
+                      <div className="space-y-1">
+                        {sortedRows.map((r) => (
+                          <div key={r.id} className="leading-relaxed break-keep">
+                            <span>{r.equipment.name} {r.quantity}{unitFor(r.equipment.category)}</span>
+                            {r.accessories.length > 0 && (
+                              <span className="block text-xs text-base-muted">
+                                └ 부속: {r.accessories.map((a) => `${a.accessory.name} ${a.quantity}개`).join(', ')}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-base-secondary whitespace-nowrap">{head.applicantName}</td>
+                    <td className="px-4 py-3 text-base-muted text-xs whitespace-nowrap">{fmt(head.startAt)}</td>
+                    <td className="px-4 py-3 font-bold text-brand-rose whitespace-nowrap">
+                      {diffDays(head.startAt) === 0 ? 'D-Day' : `D-${diffDays(head.startAt)}`}
+                    </td>
+                  </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* 강의실 사용 예정 */}
+        <div className="bg-surface-base rounded-2xl border border-base overflow-hidden">
+          <div className="flex items-center gap-2 px-5 py-3.5 border-b border-base">
+            <CalendarClock className="w-4 h-4 text-brand-indigo" />
+            <h2 className="text-sm font-semibold text-base-primary">강의실 사용 예정 (3일 이내)</h2>
+            <span className="ml-auto text-xs text-base-muted">{roomUpcoming.length}건</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[360px]">
+              <thead>
+                <tr className="bg-surface-raised border-b border-base">
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">강의실</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">신청자</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">사용 시작</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">D-Day</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-base">
+                {roomUpcoming.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="text-center py-6 text-xs text-base-muted">예정된 내역이 없습니다.</td>
+                  </tr>
+                ) : roomUpcoming.map((r) => (
+                  <tr key={r.id} className="hover:bg-surface-overlay transition-colors">
+                    <td className="px-4 py-3 text-base-primary font-semibold">{r.classroom.roomNumber}</td>
+                    <td className="px-4 py-3 text-base-secondary">{r.applicantName}</td>
+                    <td className="px-4 py-3 text-base-muted text-xs">{fmt(r.startAt)}</td>
+                    <td className="px-4 py-3 font-bold text-brand-indigo whitespace-nowrap">
+                      {diffDays(r.startAt) === 0 ? 'D-Day' : `D-${diffDays(r.startAt)}`}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
 
       {/* 반납 / 사용 종료 예정 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
