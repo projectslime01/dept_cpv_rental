@@ -1,11 +1,12 @@
 'use client'
 
-import { useTransition, useRef, useState } from 'react'
+import { useMemo, useTransition, useRef, useState } from 'react'
 import {
   createManualBatchRentalRequest,
   createManualClassroomRentalRequest,
 } from '@/app/actions/admin'
 import { DateTimePicker } from '@/components/ui/DateTimePicker'
+import { groupByCategory } from '@/lib/categoryOrder'
 import { Plus, X } from 'lucide-react'
 
 interface Equipment {
@@ -63,9 +64,13 @@ function ResultBanner({
 }
 
 export function ManualRequestForm({ equipments, classrooms }: Props) {
+  // 카테고리 순서(카메라 바디 → 렌즈 → 삼각대 → 영상 장비 → 배터리 → 저장 매체 → 음향 → 기타)로 묶는다.
+  const groupedEquipments = useMemo(() => groupByCategory(equipments), [equipments])
+  const defaultEquipmentId = groupedEquipments[0]?.items[0]?.id ?? ''
+
   const [tab, setTab] = useState<'equipment' | 'classroom'>('equipment')
   const [rows, setRows] = useState<EquipRow[]>([
-    { key: 0, equipmentId: equipments[0]?.id ?? '', quantity: 1 },
+    { key: 0, equipmentId: defaultEquipmentId, quantity: 1 },
   ])
   const nextKey = useRef(1)
   const [isGroup, setIsGroup] = useState(false)
@@ -84,7 +89,7 @@ export function ManualRequestForm({ equipments, classrooms }: Props) {
   function addRow() {
     setRows((prev) => [
       ...prev,
-      { key: nextKey.current++, equipmentId: equipments[0]?.id ?? '', quantity: 1 },
+      { key: nextKey.current++, equipmentId: defaultEquipmentId, quantity: 1 },
     ])
   }
 
@@ -98,7 +103,7 @@ export function ManualRequestForm({ equipments, classrooms }: Props) {
 
   function resetEquipmentForm() {
     equipmentFormRef.current?.reset()
-    setRows([{ key: nextKey.current++, equipmentId: equipments[0]?.id ?? '', quantity: 1 }])
+    setRows([{ key: nextKey.current++, equipmentId: defaultEquipmentId, quantity: 1 }])
     setEquipStartAt('')
     setEquipEndAt('')
   }
@@ -221,10 +226,14 @@ export function ManualRequestForm({ equipments, classrooms }: Props) {
                     onChange={(e) => updateRow(row.key, { equipmentId: parseInt(e.target.value) })}
                     className={inputClass}
                   >
-                    {equipments.map((eq) => (
-                      <option key={eq.id} value={eq.id}>
-                        [{eq.category}] {eq.name} (총 {eq.totalQuantity}개 보유)
-                      </option>
+                    {groupedEquipments.map((g) => (
+                      <optgroup key={g.category} label={g.category}>
+                        {g.items.map((eq) => (
+                          <option key={eq.id} value={eq.id}>
+                            {eq.name} (총 {eq.totalQuantity}개 보유)
+                          </option>
+                        ))}
+                      </optgroup>
                     ))}
                   </select>
                 </div>
