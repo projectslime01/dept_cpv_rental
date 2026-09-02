@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { History, Search } from 'lucide-react'
-import { CATEGORY_ORDER } from '@/lib/categories'
+import { CATEGORY_ORDER, sortByCategory } from '@/lib/categories'
 import { groupRequests, formatItemList } from '@/lib/requestGrouping'
 
 const STATUS_STYLES: Record<string, string> = {
@@ -250,7 +250,7 @@ export default async function HistoryPage({
                   </tr>
                 ) : groupRequests(equipmentRequests).map((group) => {
                   const head = group.rows[0]
-                  const itemText = formatItemList(group.rows.map((r) => ({ name: r.equipment.name, category: r.equipment.category, quantity: r.quantity })))
+                  const itemText = formatItemList(sortByCategory(group.rows.map((r) => ({ name: r.equipment.name, category: r.equipment.category, quantity: r.quantity }))))
                   return (
                   <tr key={group.key} className="hover:bg-surface-overlay transition-colors align-top">
                     <td className="px-4 py-3 font-mono text-xs text-base-secondary">

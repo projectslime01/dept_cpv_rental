@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { maskName } from '@/lib/maskName'
 import { toWallClockString } from '@/lib/rentalUtils'
 import { groupRequests, formatItemList, unitFor } from '@/lib/requestGrouping'
+import { sortByCategory } from '@/lib/categories'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
@@ -78,11 +79,13 @@ export async function GET(req: NextRequest) {
     // 단건 신청은 groupNumber 가 없어 각자 하나의 묶음이 된다.
     const formattedEquipment = groupRequests(equipmentRentals).map((g) => {
       const head = g.rows[0]
-      const items = g.rows.map((r) => ({
-        name: r.equipment.name,
-        category: r.equipment.category,
-        quantity: r.quantity,
-      }))
+      const items = sortByCategory(
+        g.rows.map((r) => ({
+          name: r.equipment.name,
+          category: r.equipment.category,
+          quantity: r.quantity,
+        })),
+      )
       const totalQuantity = items.reduce((sum, it) => sum + it.quantity, 0)
       const label =
         items.length === 1

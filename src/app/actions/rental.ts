@@ -16,6 +16,7 @@ import {
 } from '@/lib/rental'
 import { getAvailableAccessoryQuantity } from '@/lib/accessory'
 import { eligibilityLabel } from '@/lib/eligibility'
+import { sortByCategory } from '@/lib/categories'
 import { toWallClockString } from '@/lib/rentalUtils'
 import { checkRateLimit, recordFailedAttempt, resetAttempts } from '@/lib/rate-limit'
 import { restrictionBlockMessage } from '@/lib/restriction'
@@ -638,10 +639,13 @@ export async function lookupRequest(formData: FormData): Promise<LookupResult> {
     if (request.groupNumber) {
       const siblings = await prisma.rentalRequest.findMany({
         where: { groupNumber: request.groupNumber },
-        include: { equipment: { select: { name: true } } },
+        include: { equipment: { select: { name: true, category: true } } },
         orderBy: { id: 'asc' },
       })
-      groupItems = siblings.map(s => ({
+      // 품목을 카테고리 순(카메라 바디 → 렌즈 → …)으로 정렬해 노출한다.
+      groupItems = sortByCategory(
+        siblings.map(s => ({ name: s.equipment.name, category: s.equipment.category, row: s })),
+      ).map(({ row: s }) => ({
         requestNumber: s.requestNumber,
         status: s.status,
         equipmentName: s.equipment.name,

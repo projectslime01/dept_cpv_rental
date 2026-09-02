@@ -144,7 +144,7 @@ export default async function DashboardPage() {
                   </tr>
                 ) : groupRequests(eqDueSoon).map((group) => {
                   const head = group.rows[0]
-                  const itemText = formatItemList(group.rows.map((r) => ({ name: r.equipment.name, category: r.equipment.category, quantity: r.quantity })))
+                  const itemText = formatItemList(sortByCategory(group.rows.map((r) => ({ name: r.equipment.name, category: r.equipment.category, quantity: r.quantity }))))
                   return (
                   <tr key={group.key} className="hover:bg-surface-overlay transition-colors align-top">
                     <td className="px-4 py-3 text-base-primary max-w-[280px]"><p className="leading-relaxed break-keep">{itemText}</p></td>
