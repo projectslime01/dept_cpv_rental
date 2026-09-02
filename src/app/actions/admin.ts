@@ -560,11 +560,16 @@ async function randomPasswordHash(): Promise<string> {
   return hashPassword(Math.random().toString(36).slice(2) + Date.now().toString(36))
 }
 
-export async function createManualRentalRequest(formData: FormData): Promise<TestRentalResult> {
+interface ManualBatchItem {
+  equipmentId: number
+  quantity: number
+}
+
+// 여러 기자재를 한 번에 규정 무시로 등록한다. 2개 이상이면 같은 groupNumber 로 묶어
+// 전체 대여 현황·조회에서 한 건(일괄 신청)으로 표시된다. 1개면 단건으로 저장.
+export async function createManualBatchRentalRequest(formData: FormData): Promise<TestRentalResult> {
   await requireAdminSession()
 
-  const equipmentId = parseInt(formData.get('equipmentId') as string)
-  const quantity = parseInt(formData.get('quantity') as string)
   const startAt = new Date(formData.get('startAt') as string)
   const endAt = new Date(formData.get('endAt') as string)
   const applicantName = (formData.get('applicantName') as string).trim()
@@ -574,53 +579,74 @@ export async function createManualRentalRequest(formData: FormData): Promise<Tes
   const purpose = (formData.get('purpose') as string | null)?.trim() || null
   const memo = (formData.get('memo') as string | null)?.trim() || null
 
-  if (isNaN(equipmentId) || equipmentId < 1) return { success: false, error: '기자재 정보가 올바르지 않습니다.' }
-  if (isNaN(quantity) || quantity < 1) return { success: false, error: '수량은 1개 이상이어야 합니다.' }
+  let items: ManualBatchItem[]
+  try {
+    const raw = JSON.parse((formData.get('items') as string) || '[]')
+    if (!Array.isArray(raw)) throw new Error('not array')
+    items = raw
+      .map((it) => ({ equipmentId: Number(it.equipmentId), quantity: Number(it.quantity) }))
+      .filter((it) => Number.isInteger(it.equipmentId) && it.equipmentId > 0)
+  } catch {
+    return { success: false, error: '기자재 목록이 올바르지 않습니다.' }
+  }
+
+  if (items.length === 0) return { success: false, error: '기자재를 1개 이상 추가해주세요.' }
+  if (items.some((it) => !Number.isInteger(it.quantity) || it.quantity < 1)) {
+    return { success: false, error: '각 기자재 수량은 1개 이상이어야 합니다.' }
+  }
   if (!applicantName || !studentId || !phone) return { success: false, error: '신청자 이름·학번·연락처를 입력해주세요.' }
   if (password && (password.length < 4 || password.length > 8)) return { success: false, error: '비밀번호는 4~8자리여야 합니다.' }
   if (isNaN(startAt.getTime()) || isNaN(endAt.getTime()) || startAt >= endAt) return { success: false, error: '대여 기간이 올바르지 않습니다.' }
 
-  const equipment = await prisma.equipment.findUnique({
-    where: { id: equipmentId },
-    select: { id: true },
-  })
-  if (!equipment) return { success: false, error: '해당 기자재를 찾을 수 없습니다.' }
+  const ids = Array.from(new Set(items.map((it) => it.equipmentId)))
+  const found = await prisma.equipment.findMany({ where: { id: { in: ids } }, select: { id: true } })
+  if (found.length !== ids.length) return { success: false, error: '존재하지 않는 기자재가 포함되어 있습니다.' }
 
   // 대여 규정 검증 전부 생략 — 최소/최대 수량, 재고 여유, 학년, 주말, 2일 전, 신청 시간 모두 무시.
 
   const adminNote = memo ? `${MANUAL_NOTE_PREFIX} · ${memo}` : MANUAL_NOTE_PREFIX
+  const multi = items.length > 1
 
   try {
-    const requestNumber = await prisma.$transaction(async (tx) => {
+    const groupRn = await prisma.$transaction(async (tx) => {
       const passwordHash = password ? await hashPassword(password) : await randomPasswordHash()
-      const req = await tx.rentalRequest.create({
-        data: {
-          requestNumber: `TEMP-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-          passwordHash,
-          applicantName,
-          studentId,
-          phone,
-          equipmentId,
-          quantity,
-          startAt,
-          endAt,
-          purpose,
-          status: 'approved',
-          adminNote,
-          isTest: false,
-        },
-      })
-      const rn = generateRequestNumber(new Date(), req.id)
-      await tx.rentalRequest.update({ where: { id: req.id }, data: { requestNumber: rn } })
-      return rn
+      const now = new Date()
+      let groupNumber: string | null = null
+      for (const item of items) {
+        const req = await tx.rentalRequest.create({
+          data: {
+            requestNumber: `TEMP-${Date.now()}-${item.equipmentId}-${Math.random().toString(36).slice(2, 6)}`,
+            groupNumber: null,
+            passwordHash,
+            applicantName,
+            studentId,
+            phone,
+            equipmentId: item.equipmentId,
+            quantity: item.quantity,
+            startAt,
+            endAt,
+            purpose,
+            status: 'approved',
+            adminNote,
+            isTest: false,
+          },
+        })
+        const rn = generateRequestNumber(now, req.id)
+        if (!groupNumber) groupNumber = rn
+        await tx.rentalRequest.update({
+          where: { id: req.id },
+          data: { requestNumber: rn, groupNumber: multi ? groupNumber : null },
+        })
+      }
+      return groupNumber!
     })
     revalidatePath('/admin/requests')
     revalidatePath('/admin/dashboard')
     revalidatePath('/')
-    revalidatePath(`/equipment/${equipmentId}`)
-    return { success: true, requestNumber }
+    for (const id of ids) revalidatePath(`/equipment/${id}`)
+    return { success: true, requestNumber: groupRn }
   } catch (error) {
-    console.error('createManualRentalRequest error:', error)
+    console.error('createManualBatchRentalRequest error:', error)
     return { success: false, error: '신청 처리 중 오류가 발생했습니다.' }
   }
 }

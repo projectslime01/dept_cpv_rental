@@ -2,10 +2,11 @@
 
 import { useTransition, useRef, useState } from 'react'
 import {
-  createManualRentalRequest,
+  createManualBatchRentalRequest,
   createManualClassroomRentalRequest,
 } from '@/app/actions/admin'
 import { DateTimePicker } from '@/components/ui/DateTimePicker'
+import { Plus, X } from 'lucide-react'
 
 interface Equipment {
   id: number
@@ -24,13 +25,25 @@ interface Props {
   classrooms: ClassroomOption[]
 }
 
+interface EquipRow {
+  key: number
+  equipmentId: number | ''
+  quantity: number
+}
+
 const inputClass =
   'w-full px-3.5 py-2.5 rounded-xl border border-base bg-surface-raised text-sm text-base-primary placeholder:text-base-faint focus:outline-none focus:border-brand-rose transition-colors'
 const labelClass = 'block text-xs font-semibold text-base-secondary mb-1.5'
 
 type Result = { success: true; requestNumber: string } | { success: false; error: string } | null
 
-function ResultBanner({ result }: { result: Result }) {
+function ResultBanner({
+  result,
+  renderSuccess,
+}: {
+  result: Result
+  renderSuccess?: (requestNumber: string) => string
+}) {
   if (!result) return null
   return (
     <div
@@ -41,7 +54,9 @@ function ResultBanner({ result }: { result: Result }) {
       }`}
     >
       {result.success
-        ? `✅ 등록 완료 (즉시 승인) — 신청번호: ${result.requestNumber}`
+        ? renderSuccess
+          ? renderSuccess(result.requestNumber)
+          : `✅ 등록 완료 (즉시 승인) — 신청번호: ${result.requestNumber}`
         : `❌ ${result.error}`}
     </div>
   )
@@ -49,14 +64,16 @@ function ResultBanner({ result }: { result: Result }) {
 
 export function ManualRequestForm({ equipments, classrooms }: Props) {
   const [tab, setTab] = useState<'equipment' | 'classroom'>('equipment')
-  const [selectedEquipmentId, setSelectedEquipmentId] = useState<number | null>(
-    equipments[0]?.id ?? null,
-  )
+  const [rows, setRows] = useState<EquipRow[]>([
+    { key: 0, equipmentId: equipments[0]?.id ?? '', quantity: 1 },
+  ])
+  const nextKey = useRef(1)
   const [isGroup, setIsGroup] = useState(false)
   const [equipmentPending, startEquipmentTransition] = useTransition()
   const [classroomPending, startClassroomTransition] = useTransition()
   const [equipmentResult, setEquipmentResult] = useState<Result>(null)
   const [classroomResult, setClassroomResult] = useState<Result>(null)
+  const [lastEquipCount, setLastEquipCount] = useState(1)
   const [equipStartAt, setEquipStartAt] = useState('')
   const [equipEndAt, setEquipEndAt] = useState('')
   const [classStartAt, setClassStartAt] = useState('')
@@ -64,10 +81,41 @@ export function ManualRequestForm({ equipments, classrooms }: Props) {
   const equipmentFormRef = useRef<HTMLFormElement>(null)
   const classroomFormRef = useRef<HTMLFormElement>(null)
 
-  const selectedEquipment = equipments.find((e) => e.id === selectedEquipmentId) ?? null
+  function addRow() {
+    setRows((prev) => [
+      ...prev,
+      { key: nextKey.current++, equipmentId: equipments[0]?.id ?? '', quantity: 1 },
+    ])
+  }
+
+  function removeRow(key: number) {
+    setRows((prev) => (prev.length <= 1 ? prev : prev.filter((r) => r.key !== key)))
+  }
+
+  function updateRow(key: number, patch: Partial<EquipRow>) {
+    setRows((prev) => prev.map((r) => (r.key === key ? { ...r, ...patch } : r)))
+  }
+
+  function resetEquipmentForm() {
+    equipmentFormRef.current?.reset()
+    setRows([{ key: nextKey.current++, equipmentId: equipments[0]?.id ?? '', quantity: 1 }])
+    setEquipStartAt('')
+    setEquipEndAt('')
+  }
 
   function handleEquipmentSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    const items = rows
+      .filter((r) => r.equipmentId !== '')
+      .map((r) => ({ equipmentId: Number(r.equipmentId), quantity: r.quantity }))
+    if (items.length === 0) {
+      setEquipmentResult({ success: false, error: '기자재를 1개 이상 추가해주세요.' })
+      return
+    }
+    if (items.some((it) => !Number.isInteger(it.quantity) || it.quantity < 1)) {
+      setEquipmentResult({ success: false, error: '각 기자재 수량은 1개 이상이어야 합니다.' })
+      return
+    }
     if (!equipStartAt || !equipEndAt) {
       setEquipmentResult({ success: false, error: '대여 시작일과 종료일을 선택해주세요.' })
       return
@@ -75,15 +123,13 @@ export function ManualRequestForm({ equipments, classrooms }: Props) {
     const fd = new FormData(e.currentTarget)
     fd.set('startAt', equipStartAt)
     fd.set('endAt', equipEndAt)
+    fd.set('items', JSON.stringify(items))
     setEquipmentResult(null)
+    setLastEquipCount(items.length)
     startEquipmentTransition(async () => {
-      const result = await createManualRentalRequest(fd)
+      const result = await createManualBatchRentalRequest(fd)
       setEquipmentResult(result)
-      if (result.success) {
-        equipmentFormRef.current?.reset()
-        setEquipStartAt('')
-        setEquipEndAt('')
-      }
+      if (result.success) resetEquipmentForm()
     })
   }
 
@@ -140,23 +186,67 @@ export function ManualRequestForm({ equipments, classrooms }: Props) {
       {/* 기자재 탭 */}
       {tab === 'equipment' && (
         <form ref={equipmentFormRef} onSubmit={handleEquipmentSubmit} className="space-y-4">
-          <ResultBanner result={equipmentResult} />
+          <ResultBanner
+            result={equipmentResult}
+            renderSuccess={(rn) =>
+              lastEquipCount > 1
+                ? `✅ ${lastEquipCount}종 일괄 등록 완료 (즉시 승인) — 그룹번호: ${rn}`
+                : `✅ 등록 완료 (즉시 승인) — 신청번호: ${rn}`
+            }
+          />
 
-          <div>
-            <label className={labelClass}>기자재 *</label>
-            <select
-              name="equipmentId"
-              required
-              value={selectedEquipmentId ?? ''}
-              onChange={(e) => setSelectedEquipmentId(parseInt(e.target.value))}
-              className={inputClass}
-            >
-              {equipments.map((eq) => (
-                <option key={eq.id} value={eq.id}>
-                  [{eq.category}] {eq.name} (총 {eq.totalQuantity}개 보유)
-                </option>
-              ))}
-            </select>
+          {/* 기자재 목록 (여러 개 추가 가능) */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className={`${labelClass} mb-0`}>기자재 목록 * (여러 개 추가 가능)</label>
+              <button
+                type="button"
+                onClick={addRow}
+                disabled={equipments.length === 0}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-brand-rose hover:opacity-80 disabled:opacity-40"
+              >
+                <Plus className="w-3.5 h-3.5" /> 기자재 추가
+              </button>
+            </div>
+
+            {rows.map((row) => (
+              <div key={row.key} className="flex items-center gap-2">
+                <select
+                  required
+                  value={row.equipmentId}
+                  onChange={(e) => updateRow(row.key, { equipmentId: parseInt(e.target.value) })}
+                  className={`${inputClass} flex-1`}
+                >
+                  {equipments.map((eq) => (
+                    <option key={eq.id} value={eq.id}>
+                      [{eq.category}] {eq.name} (총 {eq.totalQuantity}개 보유)
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  min={1}
+                  value={row.quantity}
+                  onChange={(e) =>
+                    updateRow(row.key, { quantity: Math.max(1, parseInt(e.target.value) || 1) })
+                  }
+                  aria-label="수량"
+                  className={`${inputClass} w-20 shrink-0 text-center`}
+                />
+                <button
+                  type="button"
+                  onClick={() => removeRow(row.key)}
+                  disabled={rows.length <= 1}
+                  aria-label="기자재 삭제"
+                  className="shrink-0 w-9 h-9 flex items-center justify-center rounded-xl border border-base text-base-muted hover:text-red-500 hover:border-red-300 disabled:opacity-30 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+            <p className="text-xs text-base-muted">
+              수량은 최대 한도·재고를 초과해도 그대로 등록됩니다. 2개 이상이면 한 건(일괄 신청)으로 묶입니다.
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -185,24 +275,9 @@ export function ManualRequestForm({ equipments, classrooms }: Props) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={labelClass}>
-                수량 *{selectedEquipment ? ` (총 ${selectedEquipment.totalQuantity}개 보유 · 한도 무시)` : ''}
-              </label>
-              <input
-                type="number"
-                name="quantity"
-                required
-                min={1}
-                defaultValue={1}
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label className={labelClass}>조회용 비밀번호 (선택 · 4~8자)</label>
-              <input type="password" name="password" minLength={4} maxLength={8} placeholder="미입력 시 조회 불가" className={inputClass} />
-            </div>
+          <div>
+            <label className={labelClass}>조회용 비밀번호 (선택 · 4~8자)</label>
+            <input type="password" name="password" minLength={4} maxLength={8} placeholder="미입력 시 조회 불가" className={inputClass} />
           </div>
 
           <div>
