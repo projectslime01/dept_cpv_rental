@@ -209,30 +209,40 @@ export function ManualRequestForm({ equipments, classrooms }: Props) {
               </button>
             </div>
 
-            {rows.map((row) => (
+            {rows.map((row, idx) => (
               <div key={row.key} className="flex items-center gap-2">
-                <select
-                  required
-                  value={row.equipmentId}
-                  onChange={(e) => updateRow(row.key, { equipmentId: parseInt(e.target.value) })}
-                  className={`${inputClass} flex-1`}
-                >
-                  {equipments.map((eq) => (
-                    <option key={eq.id} value={eq.id}>
-                      [{eq.category}] {eq.name} (총 {eq.totalQuantity}개 보유)
-                    </option>
-                  ))}
-                </select>
-                <input
-                  type="number"
-                  min={1}
-                  value={row.quantity}
-                  onChange={(e) =>
-                    updateRow(row.key, { quantity: Math.max(1, parseInt(e.target.value) || 1) })
-                  }
-                  aria-label="수량"
-                  className={`${inputClass} w-20 shrink-0 text-center`}
-                />
+                <span className="shrink-0 w-6 text-center text-xs font-semibold text-base-faint tabular-nums">
+                  {idx + 1}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <select
+                    required
+                    value={row.equipmentId}
+                    onChange={(e) => updateRow(row.key, { equipmentId: parseInt(e.target.value) })}
+                    className={inputClass}
+                  >
+                    {equipments.map((eq) => (
+                      <option key={eq.id} value={eq.id}>
+                        [{eq.category}] {eq.name} (총 {eq.totalQuantity}개 보유)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="relative w-24 shrink-0">
+                  <input
+                    type="number"
+                    min={1}
+                    value={row.quantity}
+                    onChange={(e) =>
+                      updateRow(row.key, { quantity: Math.max(1, parseInt(e.target.value) || 1) })
+                    }
+                    aria-label="수량"
+                    className={`${inputClass} pr-8 text-right tabular-nums`}
+                  />
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-base-muted">
+                    개
+                  </span>
+                </div>
                 <button
                   type="button"
                   onClick={() => removeRow(row.key)}
