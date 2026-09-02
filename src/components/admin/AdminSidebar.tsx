@@ -2,20 +2,21 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, ClipboardList, Package, Building2, DoorOpen, History, Users, TestTube2, BookOpen, Ban, GraduationCap } from 'lucide-react'
+import { LayoutDashboard, ClipboardList, ClipboardPlus, Package, Building2, DoorOpen, History, Users, TestTube2, BookOpen, Ban, GraduationCap } from 'lucide-react'
 
 const NAV_ITEMS = [
-  { href: '/admin/dashboard',    label: '대시보드',    icon: LayoutDashboard },
-  { href: '/admin/requests',     label: '기자재 신청', icon: ClipboardList },
-  { href: '/admin/classroom',    label: '강의실 신청', icon: DoorOpen },
-  { href: '/admin/equipment',    label: '기자재 관리', icon: Package },
-  { href: '/admin/classrooms',   label: '강의실 관리', icon: Building2 },
-  { href: '/admin/students',     label: '학생 명단',   icon: GraduationCap },
-  { href: '/admin/restrictions', label: '대여 제한자', icon: Ban },
-  { href: '/admin/history',      label: '대여 이력',   icon: History },
-  { href: '/admin/test-request', label: '테스트 신청', icon: TestTube2 },
-  { href: '/admin/guide',        label: '이용 가이드', icon: BookOpen },
-  { href: '/admin/accounts',     label: '계정 관리',   icon: Users },
+  { href: '/admin/dashboard',      label: '대시보드',    icon: LayoutDashboard },
+  { href: '/admin/requests',       label: '기자재 신청', icon: ClipboardList },
+  { href: '/admin/classroom',      label: '강의실 신청', icon: DoorOpen },
+  { href: '/admin/manual-request', label: '수동 등록',   icon: ClipboardPlus },
+  { href: '/admin/equipment',      label: '기자재 관리', icon: Package },
+  { href: '/admin/classrooms',     label: '강의실 관리', icon: Building2 },
+  { href: '/admin/students',       label: '학생 명단',   icon: GraduationCap },
+  { href: '/admin/restrictions',   label: '대여 제한자', icon: Ban },
+  { href: '/admin/history',        label: '대여 이력',   icon: History },
+  { href: '/admin/test-request',   label: '테스트 신청', icon: TestTube2 },
+  { href: '/admin/guide',          label: '이용 가이드', icon: BookOpen },
+  { href: '/admin/accounts',       label: '계정 관리',   icon: Users },
 ]
 
 export function AdminSidebar() {

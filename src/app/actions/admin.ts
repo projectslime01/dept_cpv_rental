@@ -545,3 +545,152 @@ export async function createTestClassroomRentalRequest(formData: FormData): Prom
     return { success: false, error: '신청 처리 중 오류가 발생했습니다.' }
   }
 }
+
+// ─── 규정 미적용 수동 등록 (관리자 직접 신청) ───────────────────────────────
+// 모든 대여 규정(최대 수량·재고 여유·학년·주말/공휴일·2일 전·신청 시간, 강의실
+// 시간표 충돌·중복 예약)을 무시하고 즉시 '승인' 상태의 실제 신청을 생성한다.
+// isTest=false 이므로 실제 재고를 차감하고 전체 대여 현황에 그대로 반영된다.
+// 수업용 대량 대여 등 관리자가 직접 수량을 확인해 접수한 건을 기입하는 용도.
+
+const MANUAL_NOTE_PREFIX = '수동 등록'
+
+// 조회용 비밀번호를 입력하지 않은 수동 등록은 신청자가 직접 조회하지 않아도 되므로
+// passwordHash 필드 제약만 만족시키도록 임의 값으로 채운다. (사실상 조회 불가)
+async function randomPasswordHash(): Promise<string> {
+  return hashPassword(Math.random().toString(36).slice(2) + Date.now().toString(36))
+}
+
+export async function createManualRentalRequest(formData: FormData): Promise<TestRentalResult> {
+  await requireAdminSession()
+
+  const equipmentId = parseInt(formData.get('equipmentId') as string)
+  const quantity = parseInt(formData.get('quantity') as string)
+  const startAt = new Date(formData.get('startAt') as string)
+  const endAt = new Date(formData.get('endAt') as string)
+  const applicantName = (formData.get('applicantName') as string).trim()
+  const studentId = (formData.get('studentId') as string).trim()
+  const phone = (formData.get('phone') as string).trim()
+  const password = (formData.get('password') as string | null)?.trim() ?? ''
+  const purpose = (formData.get('purpose') as string | null)?.trim() || null
+  const memo = (formData.get('memo') as string | null)?.trim() || null
+
+  if (isNaN(equipmentId) || equipmentId < 1) return { success: false, error: '기자재 정보가 올바르지 않습니다.' }
+  if (isNaN(quantity) || quantity < 1) return { success: false, error: '수량은 1개 이상이어야 합니다.' }
+  if (!applicantName || !studentId || !phone) return { success: false, error: '신청자 이름·학번·연락처를 입력해주세요.' }
+  if (password && (password.length < 4 || password.length > 8)) return { success: false, error: '비밀번호는 4~8자리여야 합니다.' }
+  if (isNaN(startAt.getTime()) || isNaN(endAt.getTime()) || startAt >= endAt) return { success: false, error: '대여 기간이 올바르지 않습니다.' }
+
+  const equipment = await prisma.equipment.findUnique({
+    where: { id: equipmentId },
+    select: { id: true },
+  })
+  if (!equipment) return { success: false, error: '해당 기자재를 찾을 수 없습니다.' }
+
+  // 대여 규정 검증 전부 생략 — 최소/최대 수량, 재고 여유, 학년, 주말, 2일 전, 신청 시간 모두 무시.
+
+  const adminNote = memo ? `${MANUAL_NOTE_PREFIX} · ${memo}` : MANUAL_NOTE_PREFIX
+
+  try {
+    const requestNumber = await prisma.$transaction(async (tx) => {
+      const passwordHash = password ? await hashPassword(password) : await randomPasswordHash()
+      const req = await tx.rentalRequest.create({
+        data: {
+          requestNumber: `TEMP-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          passwordHash,
+          applicantName,
+          studentId,
+          phone,
+          equipmentId,
+          quantity,
+          startAt,
+          endAt,
+          purpose,
+          status: 'approved',
+          adminNote,
+          isTest: false,
+        },
+      })
+      const rn = generateRequestNumber(new Date(), req.id)
+      await tx.rentalRequest.update({ where: { id: req.id }, data: { requestNumber: rn } })
+      return rn
+    })
+    revalidatePath('/admin/requests')
+    revalidatePath('/admin/dashboard')
+    revalidatePath('/')
+    revalidatePath(`/equipment/${equipmentId}`)
+    return { success: true, requestNumber }
+  } catch (error) {
+    console.error('createManualRentalRequest error:', error)
+    return { success: false, error: '신청 처리 중 오류가 발생했습니다.' }
+  }
+}
+
+export async function createManualClassroomRentalRequest(formData: FormData): Promise<TestRentalResult> {
+  await requireAdminSession()
+
+  const classroomId = parseInt(formData.get('classroomId') as string)
+  const startAt = new Date(formData.get('startAt') as string)
+  const endAt = new Date(formData.get('endAt') as string)
+  const applicantName = (formData.get('applicantName') as string).trim()
+  const studentId = (formData.get('studentId') as string).trim()
+  const phone = (formData.get('phone') as string).trim()
+  const password = (formData.get('password') as string | null)?.trim() ?? ''
+  const purpose = (formData.get('purpose') as string | null)?.trim() || null
+  const memo = (formData.get('memo') as string | null)?.trim() || null
+  const isGroup = formData.get('isGroup') === 'true'
+  const groupCount = isGroup ? parseInt(formData.get('groupCount') as string) || null : null
+  const groupMembers = isGroup ? ((formData.get('groupMembers') as string | null)?.trim() || null) : null
+  const monitorAssets = (formData.get('monitorAssets') as string | null)?.trim() || null
+
+  if (isNaN(classroomId) || classroomId < 1) return { success: false, error: '강의실 정보가 올바르지 않습니다.' }
+  if (!applicantName || !studentId || !phone) return { success: false, error: '신청자 이름·학번·연락처를 입력해주세요.' }
+  if (password && (password.length < 4 || password.length > 8)) return { success: false, error: '비밀번호는 4~8자리여야 합니다.' }
+  if (isNaN(startAt.getTime()) || isNaN(endAt.getTime()) || startAt >= endAt) return { success: false, error: '대여 기간이 올바르지 않습니다.' }
+
+  const classroom = await prisma.classroom.findUnique({
+    where: { id: classroomId },
+    select: { id: true },
+  })
+  if (!classroom) return { success: false, error: '해당 강의실을 찾을 수 없습니다.' }
+
+  // 대여 규정 검증 전부 생략 — 시간표 충돌, 중복 예약, 신청 시간 모두 무시.
+
+  const adminNote = memo ? `${MANUAL_NOTE_PREFIX} · ${memo}` : MANUAL_NOTE_PREFIX
+
+  try {
+    const requestNumber = await prisma.$transaction(async (tx) => {
+      const passwordHash = password ? await hashPassword(password) : await randomPasswordHash()
+      const req = await tx.classroomRentalRequest.create({
+        data: {
+          requestNumber: `TEMP-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          passwordHash,
+          applicantName,
+          studentId,
+          phone,
+          classroomId,
+          startAt,
+          endAt,
+          purpose,
+          isGroup,
+          groupCount,
+          groupMembers,
+          monitorAssets,
+          status: 'approved',
+          adminNote,
+          isTest: false,
+        },
+      })
+      const rn = generateClassroomRN(new Date(), req.id)
+      await tx.classroomRentalRequest.update({ where: { id: req.id }, data: { requestNumber: rn } })
+      return rn
+    })
+    revalidatePath('/admin/classroom')
+    revalidatePath('/admin/dashboard')
+    revalidatePath('/classrooms')
+    revalidatePath(`/classrooms/${classroomId}`)
+    return { success: true, requestNumber }
+  } catch (error) {
+    console.error('createManualClassroomRentalRequest error:', error)
+    return { success: false, error: '신청 처리 중 오류가 발생했습니다.' }
+  }
+}

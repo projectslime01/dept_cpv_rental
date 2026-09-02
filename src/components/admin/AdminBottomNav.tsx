@@ -2,18 +2,19 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, ClipboardList, Package, Building2, History, Users, TestTube2, BookOpen, Ban } from 'lucide-react'
+import { LayoutDashboard, ClipboardList, ClipboardPlus, Package, Building2, History, Users, TestTube2, BookOpen, Ban } from 'lucide-react'
 
 const NAV_ITEMS = [
-  { href: '/admin/dashboard',    label: '대시보드', icon: LayoutDashboard },
-  { href: '/admin/requests',     label: '신청',    icon: ClipboardList },
-  { href: '/admin/equipment',    label: '기자재',  icon: Package },
-  { href: '/admin/classrooms',   label: '강의실',  icon: Building2 },
-  { href: '/admin/restrictions', label: '제한자',  icon: Ban },
-  { href: '/admin/history',      label: '이력',    icon: History },
-  { href: '/admin/accounts',     label: '계정',    icon: Users },
-  { href: '/admin/test-request', label: '테스트',  icon: TestTube2 },
-  { href: '/admin/guide',        label: '가이드',  icon: BookOpen },
+  { href: '/admin/dashboard',      label: '대시보드', icon: LayoutDashboard },
+  { href: '/admin/requests',       label: '신청',    icon: ClipboardList },
+  { href: '/admin/manual-request', label: '수동',    icon: ClipboardPlus },
+  { href: '/admin/equipment',      label: '기자재',  icon: Package },
+  { href: '/admin/classrooms',     label: '강의실',  icon: Building2 },
+  { href: '/admin/restrictions',   label: '제한자',  icon: Ban },
+  { href: '/admin/history',        label: '이력',    icon: History },
+  { href: '/admin/accounts',       label: '계정',    icon: Users },
+  { href: '/admin/test-request',   label: '테스트',  icon: TestTube2 },
+  { href: '/admin/guide',          label: '가이드',  icon: BookOpen },
 ]
 
 export function AdminBottomNav() {
