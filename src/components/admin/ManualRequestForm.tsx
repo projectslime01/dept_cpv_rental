@@ -6,7 +6,7 @@ import {
   createManualClassroomRentalRequest,
 } from '@/app/actions/admin'
 import { DateTimePicker } from '@/components/ui/DateTimePicker'
-import { groupByCategory } from '@/lib/categoryOrder'
+import { groupByCategory } from '@/lib/categories'
 import { Plus, X } from 'lucide-react'
 
 interface Equipment {
