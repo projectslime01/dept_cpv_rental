@@ -3,7 +3,7 @@ import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { History, Search } from 'lucide-react'
 import { CATEGORY_ORDER, sortByCategory } from '@/lib/categories'
-import { groupRequests, formatItemList } from '@/lib/requestGrouping'
+import { groupRequests, unitFor } from '@/lib/requestGrouping'
 
 const STATUS_STYLES: Record<string, string> = {
   pending:  'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/30',
@@ -60,7 +60,10 @@ export default async function HistoryPage({
           ...(searchParams.from ? { createdAt: { gte: new Date(searchParams.from) } } : {}),
           ...(searchParams.to ? { createdAt: { lte: new Date(searchParams.to + 'T23:59:59') } } : {}),
         },
-        include: { equipment: { select: { name: true, category: true } } },
+        include: {
+          equipment: { select: { name: true, category: true } },
+          accessories: { include: { accessory: { select: { name: true } } } },
+        },
         orderBy: { createdAt: 'desc' },
         take: 200,
       })
@@ -250,7 +253,9 @@ export default async function HistoryPage({
                   </tr>
                 ) : groupRequests(equipmentRequests).map((group) => {
                   const head = group.rows[0]
-                  const itemText = formatItemList(sortByCategory(group.rows.map((r) => ({ name: r.equipment.name, category: r.equipment.category, quantity: r.quantity }))))
+                  const sortedRows = sortByCategory(
+                    group.rows.map((r) => ({ ...r, name: r.equipment.name, category: r.equipment.category })),
+                  )
                   return (
                   <tr key={group.key} className="hover:bg-surface-overlay transition-colors align-top">
                     <td className="px-4 py-3 font-mono text-xs text-base-secondary">
@@ -259,7 +264,20 @@ export default async function HistoryPage({
                     </td>
                     <td className="px-4 py-3 text-base-primary">{head.applicantName}</td>
                     <td className="px-4 py-3 text-base-secondary">{head.studentId}</td>
-                    <td className="px-4 py-3 text-base-primary max-w-[360px]"><p className="leading-relaxed break-keep">{itemText}</p></td>
+                    <td className="px-4 py-3 text-base-primary max-w-[360px]">
+                      <div className="space-y-1">
+                        {sortedRows.map((r) => (
+                          <div key={r.id} className="leading-relaxed break-keep">
+                            <span>{r.equipment.name} {r.quantity}{unitFor(r.equipment.category)}</span>
+                            {r.accessories.length > 0 && (
+                              <span className="block text-xs text-base-muted">
+                                └ 부속: {r.accessories.map((a) => `${a.accessory.name} ${a.quantity}개`).join(', ')}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </td>
                     <td className="px-4 py-3 text-xs text-base-secondary whitespace-nowrap">{fmt(head.startAt)}<br />~ {fmt(head.endAt)}</td>
                     <td className="px-4 py-3 text-center">
                       <span className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full border ${STATUS_STYLES[head.status] ?? STATUS_STYLES.pending}`}>

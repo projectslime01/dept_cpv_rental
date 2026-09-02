@@ -4,7 +4,7 @@ import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { Clock, Package, Building, Ban, ChevronRight } from 'lucide-react'
 import { sortByCategory } from '@/lib/categories'
-import { groupRequests, formatItemList } from '@/lib/requestGrouping'
+import { groupRequests, unitFor } from '@/lib/requestGrouping'
 import { nowKST } from '@/lib/rentalUtils'
 
 export default async function DashboardPage() {
@@ -33,7 +33,10 @@ export default async function DashboardPage() {
         status: 'approved',
         endAt: { gte: now, lte: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000) },
       },
-      include: { equipment: { select: { name: true, category: true } } },
+      include: {
+        equipment: { select: { name: true, category: true } },
+        accessories: { include: { accessory: { select: { name: true } } } },
+      },
       orderBy: { endAt: 'asc' },
     }),
     prisma.classroomRentalRequest.findMany({
@@ -144,10 +147,25 @@ export default async function DashboardPage() {
                   </tr>
                 ) : groupRequests(eqDueSoon).map((group) => {
                   const head = group.rows[0]
-                  const itemText = formatItemList(sortByCategory(group.rows.map((r) => ({ name: r.equipment.name, category: r.equipment.category, quantity: r.quantity }))))
+                  const sortedRows = sortByCategory(
+                    group.rows.map((r) => ({ ...r, name: r.equipment.name, category: r.equipment.category })),
+                  )
                   return (
                   <tr key={group.key} className="hover:bg-surface-overlay transition-colors align-top">
-                    <td className="px-4 py-3 text-base-primary max-w-[280px]"><p className="leading-relaxed break-keep">{itemText}</p></td>
+                    <td className="px-4 py-3 text-base-primary max-w-[280px]">
+                      <div className="space-y-1">
+                        {sortedRows.map((r) => (
+                          <div key={r.id} className="leading-relaxed break-keep">
+                            <span>{r.equipment.name} {r.quantity}{unitFor(r.equipment.category)}</span>
+                            {r.accessories.length > 0 && (
+                              <span className="block text-xs text-base-muted">
+                                └ 부속: {r.accessories.map((a) => `${a.accessory.name} ${a.quantity}개`).join(', ')}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </td>
                     <td className="px-4 py-3 text-base-secondary whitespace-nowrap">{head.applicantName}</td>
                     <td className="px-4 py-3 text-base-muted text-xs whitespace-nowrap">{fmt(head.endAt)}</td>
                     <td className="px-4 py-3 font-bold text-brand-rose whitespace-nowrap">
