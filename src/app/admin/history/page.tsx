@@ -262,7 +262,12 @@ export default async function HistoryPage({
                       {group.groupNumber ?? head.requestNumber}
                       {group.rows.length > 1 && <div className="text-[11px] text-base-muted mt-0.5">{group.rows.length}개 품목</div>}
                     </td>
-                    <td className="px-4 py-3 text-base-primary">{head.applicantName}</td>
+                    <td className="px-4 py-3 text-base-primary">
+                      <div>{head.applicantName}</div>
+                      {head.groupMembers && (
+                        <div className="text-[11px] text-base-muted mt-0.5 break-keep">조원: {head.groupMembers}</div>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-base-secondary">{head.studentId}</td>
                     <td className="px-4 py-3 text-base-primary max-w-[360px]">
                       <div className="space-y-1">

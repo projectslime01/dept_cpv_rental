@@ -218,6 +218,9 @@ export default async function RequestsPage({
                     </td>
                     <td className="px-4 py-3 text-base-primary">
                       <div>{head.applicantName}</div>
+                      {head.groupMembers && (
+                        <div className="text-[11px] text-base-muted mt-0.5 break-keep">조원: {head.groupMembers}</div>
+                      )}
                       {head.isTest && (
                         <div className="text-[11px] text-base-muted">
                           생성: {head.testAdmin?.name ?? '삭제된 관리자'}

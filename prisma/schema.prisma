@@ -37,6 +37,8 @@ model RentalRequest {
   startAt       DateTime
   endAt         DateTime
   purpose       String?
+  // 팀플 과제 시 조원 이름(선택). 값이 있으면 팀 신청으로 본다.
+  groupMembers  String?
   status        String    @default("pending")
   adminNote     String?
   returnedAt    DateTime?

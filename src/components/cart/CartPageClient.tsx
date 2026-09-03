@@ -491,6 +491,12 @@ export function CartPageClient() {
                 placeholder="예) 과제 촬영, 팀 프로젝트 등"
                 className="w-full px-3.5 py-2.5 rounded-xl border border-base text-sm bg-surface-raised text-base-primary placeholder:text-base-faint focus:outline-none focus:border-brand-rose transition-colors resize-none" />
             </div>
+            <div className="space-y-1.5">
+              <label htmlFor="groupMembers" className="block text-xs font-medium text-base-secondary">조원 이름 <span className="text-base-muted">(선택 · 팀플 과제 시)</span></label>
+              <input id="groupMembers" name="groupMembers" type="text"
+                placeholder="예) 홍길동, 김철수, 이영희" className={inputCls} />
+              <p className="text-[11px] text-base-muted">팀 과제로 함께 사용하는 조원이 있다면 이름을 적어주세요.</p>
+            </div>
           </div>
         </SectionCard>
 

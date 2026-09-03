@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { lookupRequest, LookupResult } from '@/app/actions/rental'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import { Loader2, CalendarDays, Clock, ClipboardList, Package } from 'lucide-react'
+import { Loader2, CalendarDays, Clock, ClipboardList, Package, Users } from 'lucide-react'
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   pending:  { label: '승인 대기', color: 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/30' },
@@ -98,6 +98,12 @@ export function StatusLookup() {
               <Clock className="w-3 h-3" />
               신청일: {fmt(result.data.createdAt)}
             </p>
+            {result.data.groupMembers && (
+              <p className="text-xs text-base-muted flex items-start gap-1 break-keep">
+                <Users className="w-3 h-3 mt-0.5 shrink-0" />
+                조원: {result.data.groupMembers}
+              </p>
+            )}
           </div>
 
           {/* 묶음 */}

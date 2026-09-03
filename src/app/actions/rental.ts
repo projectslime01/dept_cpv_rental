@@ -100,6 +100,7 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
   const phone = (formData.get('phone') as string).trim()
   const password = (formData.get('password') as string)
   const purpose = (formData.get('purpose') as string | null)?.trim() || null
+  const groupMembers = (formData.get('groupMembers') as string | null)?.trim() || null
   // 학년은 클라이언트 입력을 쓰지 않는다. 명단 대조 후 서버가 결정한다.
 
   if (isNaN(equipmentId) || equipmentId < 1) {
@@ -242,6 +243,7 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
           startAt,
           endAt,
           purpose,
+          groupMembers,
         },
       })
 
@@ -283,6 +285,7 @@ export async function createBatchRentalRequest(formData: FormData): Promise<Crea
   const phone = (formData.get('phone') as string).trim()
   const password = formData.get('password') as string
   const purpose = (formData.get('purpose') as string | null)?.trim() || null
+  const groupMembers = (formData.get('groupMembers') as string | null)?.trim() || null
   // 학년은 클라이언트 입력을 쓰지 않는다. 명단 대조 후 서버가 결정한다.
 
   if (!applicantName || !studentId || !phone || !password) {
@@ -424,6 +427,7 @@ export async function createBatchRentalRequest(formData: FormData): Promise<Crea
           startAt,
           endAt,
           purpose,
+          groupMembers,
         },
       })
       const rn = generateRequestNumber(now, req.id)
@@ -530,6 +534,7 @@ export type LookupResult =
         startAt: string
         endAt: string
         adminNote: string | null
+        groupMembers: string | null
         createdAt: string
         accessories: { name: string; quantity: number }[]
       }
@@ -598,6 +603,7 @@ export async function lookupRequest(formData: FormData): Promise<LookupResult> {
           startAt: toWallClockString(request.startAt),
           endAt: toWallClockString(request.endAt),
           adminNote: request.adminNote,
+          groupMembers: request.groupMembers,
           createdAt: toWallClockString(request.createdAt),
           accessories: [],
         },
@@ -665,6 +671,7 @@ export async function lookupRequest(formData: FormData): Promise<LookupResult> {
         startAt: toWallClockString(request.startAt),
         endAt: toWallClockString(request.endAt),
         adminNote: request.adminNote,
+        groupMembers: request.groupMembers,
         createdAt: toWallClockString(request.createdAt),
         accessories: request.accessories.map((ra) => ({
           name: ra.accessory.name,
