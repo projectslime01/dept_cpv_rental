@@ -234,13 +234,14 @@ export default async function HistoryPage({
         </div>
         <div className="overflow-x-auto">
           {currentType === 'equipment' ? (
-            <table className="w-full text-sm min-w-[820px]">
+            <table className="w-full text-sm min-w-[920px]">
               <thead>
                 <tr className="bg-surface-raised border-b border-base">
                   <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">신청번호</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">신청자</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">학번</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted">대여 품목</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted">대여 목적</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">대여 기간</th>
                   <th className="text-center px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">상태</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">신청일</th>
@@ -249,7 +250,7 @@ export default async function HistoryPage({
               <tbody className="divide-y divide-base">
                 {equipmentRequests.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-12 text-sm text-base-muted">이력이 없습니다.</td>
+                    <td colSpan={8} className="text-center py-12 text-sm text-base-muted">이력이 없습니다.</td>
                   </tr>
                 ) : groupRequests(equipmentRequests).map((group) => {
                   const head = group.rows[0]
@@ -282,6 +283,9 @@ export default async function HistoryPage({
                           </div>
                         ))}
                       </div>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-base-secondary max-w-[220px] break-keep">
+                      {head.purpose ? head.purpose : <span className="text-base-faint">-</span>}
                     </td>
                     <td className="px-4 py-3 text-xs text-base-secondary whitespace-nowrap">{fmt(head.startAt)}<br />~ {fmt(head.endAt)}</td>
                     <td className="px-4 py-3 text-center">
