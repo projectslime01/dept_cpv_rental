@@ -28,7 +28,16 @@ export function AccessorySelector({ equipmentId, startAt, endAt, onChange }: Pro
 
   const stableOnChange = useCallback(onChange, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // 기자재가 바뀌면(다른 부속 세트) 선택을 초기화한다. 날짜 변경으로는 초기화하지 않는다.
   useEffect(() => {
+    setQuantities({})
+  }, [equipmentId])
+
+  // 옵션/가용 수량 조회. 날짜가 바뀌어도 선택 수량은 보존하고, 아래 clamp 이펙트가
+  // 새 가용치에 맞춰 정리한다. (예전엔 여기서 매번 선택을 []로 초기화해, 부속을 먼저
+  // 고른 뒤 대여 기간을 선택하면 선택이 지워지는 버그가 있었다.)
+  useEffect(() => {
+    let cancelled = false
     setLoading(true)
     setFetchError(false)
     const url = hasDate
@@ -41,29 +50,60 @@ export function AccessorySelector({ equipmentId, startAt, endAt, onChange }: Pro
         return r.json()
       })
       .then((data: AccessoryOption[]) => {
+        if (cancelled) return
         setOptions(Array.isArray(data) ? data : [])
-        setQuantities({})
-        stableOnChange([])
       })
       .catch(() => {
+        if (cancelled) return
         setFetchError(true)
         setOptions([])
       })
-      .finally(() => setLoading(false))
-  }, [equipmentId, startAt, endAt, hasDate, stableOnChange])
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [equipmentId, startAt, endAt, hasDate])
+
+  // 옵션(가용 수량)이 갱신되면 선택 수량을 가용치 내로 정리한다. 선택 자체는 보존.
+  useEffect(() => {
+    setQuantities((prev) => {
+      const next: Record<number, number> = {}
+      for (const opt of options) {
+        const q = prev[opt.id] ?? 0
+        const clamped = hasDate ? Math.max(0, Math.min(q, opt.available)) : Math.max(0, q)
+        if (clamped > 0) next[opt.id] = clamped
+      }
+      const prevKeys = Object.keys(prev)
+      const nextKeys = Object.keys(next)
+      if (prevKeys.length === nextKeys.length && nextKeys.every((k) => prev[+k] === next[+k])) {
+        return prev // 변경 없음 — 같은 참조 반환으로 불필요한 렌더/루프 방지
+      }
+      return next
+    })
+  }, [options, hasDate])
+
+  // 선택 수량을 부모로 전달.
+  useEffect(() => {
+    stableOnChange(
+      Object.entries(quantities)
+        .map(([k, v]) => ({ accessoryId: parseInt(k), quantity: v }))
+        .filter((a) => a.quantity > 0),
+    )
+  }, [quantities, stableOnChange])
 
   function handleQuantityChange(id: number, value: string) {
     const num = Math.max(0, parseInt(value) || 0)
     const option = options.find((o) => o.id === id)
     const clamped = option ? Math.min(num, option.available) : num
 
-    const next = { ...quantities, [id]: clamped }
-    setQuantities(next)
-    onChange(
-      Object.entries(next)
-        .map(([k, v]) => ({ accessoryId: parseInt(k), quantity: v }))
-        .filter((a) => a.quantity > 0),
-    )
+    setQuantities((prev) => {
+      const next = { ...prev }
+      if (clamped > 0) next[id] = clamped
+      else delete next[id]
+      return next
+    })
   }
 
   if (loading) {
