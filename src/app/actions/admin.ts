@@ -563,6 +563,7 @@ async function randomPasswordHash(): Promise<string> {
 interface ManualBatchItem {
   equipmentId: number
   quantity: number
+  accessories: { accessoryId: number; quantity: number }[]
 }
 
 // 여러 기자재를 한 번에 규정 무시로 등록한다. 2개 이상이면 같은 groupNumber 로 묶어
@@ -584,7 +585,21 @@ export async function createManualBatchRentalRequest(formData: FormData): Promis
     const raw = JSON.parse((formData.get('items') as string) || '[]')
     if (!Array.isArray(raw)) throw new Error('not array')
     items = raw
-      .map((it) => ({ equipmentId: Number(it.equipmentId), quantity: Number(it.quantity) }))
+      .map((it) => ({
+        equipmentId: Number(it.equipmentId),
+        quantity: Number(it.quantity),
+        accessories: Array.isArray(it.accessories)
+          ? it.accessories
+              .map((a: { accessoryId: unknown; quantity: unknown }) => ({
+                accessoryId: Number(a.accessoryId),
+                quantity: Number(a.quantity),
+              }))
+              .filter(
+                (a: { accessoryId: number; quantity: number }) =>
+                  Number.isInteger(a.accessoryId) && a.accessoryId > 0 && Number.isInteger(a.quantity) && a.quantity > 0,
+              )
+          : [],
+      }))
       .filter((it) => Number.isInteger(it.equipmentId) && it.equipmentId > 0)
   } catch {
     return { success: false, error: '기자재 목록이 올바르지 않습니다.' }
@@ -601,6 +616,18 @@ export async function createManualBatchRentalRequest(formData: FormData): Promis
   const ids = Array.from(new Set(items.map((it) => it.equipmentId)))
   const found = await prisma.equipment.findMany({ where: { id: { in: ids } }, select: { id: true } })
   if (found.length !== ids.length) return { success: false, error: '존재하지 않는 기자재가 포함되어 있습니다.' }
+
+  // 부속은 소속(해당 기자재의 활성 부속)만 인정한다. 가용 수량은 규정 무시로 검증하지 않는다.
+  const validAccessoryRows = await prisma.equipmentAccessory.findMany({
+    where: { equipmentId: { in: ids }, status: 'active' },
+    select: { id: true, equipmentId: true },
+  })
+  const validAccessoryByEquip = new Map<number, Set<number>>()
+  for (const a of validAccessoryRows) {
+    const set = validAccessoryByEquip.get(a.equipmentId) ?? new Set<number>()
+    set.add(a.id)
+    validAccessoryByEquip.set(a.equipmentId, set)
+  }
 
   // 대여 규정 검증 전부 생략 — 최소/최대 수량, 재고 여유, 학년, 주말, 2일 전, 신청 시간 모두 무시.
 
@@ -637,6 +664,23 @@ export async function createManualBatchRentalRequest(formData: FormData): Promis
           where: { id: req.id },
           data: { requestNumber: rn, groupNumber: multi ? groupNumber : null },
         })
+
+        // 소속 검증 + 중복 합산 후 부속 연결
+        const validSet = validAccessoryByEquip.get(item.equipmentId) ?? new Set<number>()
+        const accMap = new Map<number, number>()
+        for (const a of item.accessories) {
+          if (!validSet.has(a.accessoryId)) continue
+          accMap.set(a.accessoryId, (accMap.get(a.accessoryId) ?? 0) + a.quantity)
+        }
+        if (accMap.size > 0) {
+          await tx.rentalRequestAccessory.createMany({
+            data: Array.from(accMap.entries()).map(([accessoryId, quantity]) => ({
+              rentalRequestId: req.id,
+              accessoryId,
+              quantity,
+            })),
+          })
+        }
       }
       return groupNumber!
     })

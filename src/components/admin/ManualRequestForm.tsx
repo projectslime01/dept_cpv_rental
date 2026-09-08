@@ -6,6 +6,7 @@ import {
   createManualClassroomRentalRequest,
 } from '@/app/actions/admin'
 import { DateTimePicker } from '@/components/ui/DateTimePicker'
+import { AccessorySelector } from '@/components/rental/AccessorySelector'
 import { groupByCategory } from '@/lib/categories'
 import { Plus, X } from 'lucide-react'
 
@@ -72,6 +73,10 @@ export function ManualRequestForm({ equipments, classrooms }: Props) {
   const [rows, setRows] = useState<EquipRow[]>([
     { key: 0, equipmentId: defaultEquipmentId, quantity: 1 },
   ])
+  // 행(key)별 선택 부속
+  const [itemAccessories, setItemAccessories] = useState<
+    Record<number, { accessoryId: number; quantity: number }[]>
+  >({})
   const nextKey = useRef(1)
   const [isGroup, setIsGroup] = useState(false)
   const [equipmentPending, startEquipmentTransition] = useTransition()
@@ -95,6 +100,11 @@ export function ManualRequestForm({ equipments, classrooms }: Props) {
 
   function removeRow(key: number) {
     setRows((prev) => (prev.length <= 1 ? prev : prev.filter((r) => r.key !== key)))
+    setItemAccessories((prev) => {
+      const next = { ...prev }
+      delete next[key]
+      return next
+    })
   }
 
   function updateRow(key: number, patch: Partial<EquipRow>) {
@@ -104,6 +114,7 @@ export function ManualRequestForm({ equipments, classrooms }: Props) {
   function resetEquipmentForm() {
     equipmentFormRef.current?.reset()
     setRows([{ key: nextKey.current++, equipmentId: defaultEquipmentId, quantity: 1 }])
+    setItemAccessories({})
     setEquipStartAt('')
     setEquipEndAt('')
   }
@@ -112,7 +123,11 @@ export function ManualRequestForm({ equipments, classrooms }: Props) {
     e.preventDefault()
     const items = rows
       .filter((r) => r.equipmentId !== '')
-      .map((r) => ({ equipmentId: Number(r.equipmentId), quantity: r.quantity }))
+      .map((r) => ({
+        equipmentId: Number(r.equipmentId),
+        quantity: r.quantity,
+        accessories: itemAccessories[r.key] ?? [],
+      }))
     if (items.length === 0) {
       setEquipmentResult({ success: false, error: '기자재를 1개 이상 추가해주세요.' })
       return
@@ -215,52 +230,68 @@ export function ManualRequestForm({ equipments, classrooms }: Props) {
             </div>
 
             {rows.map((row, idx) => (
-              <div key={row.key} className="flex items-center gap-2">
-                <span className="shrink-0 w-6 text-center text-xs font-semibold text-base-faint tabular-nums">
-                  {idx + 1}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <select
-                    required
-                    value={row.equipmentId}
-                    onChange={(e) => updateRow(row.key, { equipmentId: parseInt(e.target.value) })}
-                    className={inputClass}
-                  >
-                    {groupedEquipments.map((g) => (
-                      <optgroup key={g.category} label={g.category}>
-                        {g.items.map((eq) => (
-                          <option key={eq.id} value={eq.id}>
-                            {eq.name} (총 {eq.totalQuantity}개 보유)
-                          </option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </select>
-                </div>
-                <div className="relative w-24 shrink-0">
-                  <input
-                    type="number"
-                    min={1}
-                    value={row.quantity}
-                    onChange={(e) =>
-                      updateRow(row.key, { quantity: Math.max(1, parseInt(e.target.value) || 1) })
-                    }
-                    aria-label="수량"
-                    className={`${inputClass} pr-8 text-right tabular-nums`}
-                  />
-                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-base-muted">
-                    개
+              <div key={row.key} className="rounded-xl border border-base bg-surface-raised/40 p-2.5 space-y-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="shrink-0 w-6 text-center text-xs font-semibold text-base-faint tabular-nums">
+                    {idx + 1}
                   </span>
+                  <div className="flex-1 min-w-0">
+                    <select
+                      required
+                      value={row.equipmentId}
+                      onChange={(e) => updateRow(row.key, { equipmentId: parseInt(e.target.value) })}
+                      className={inputClass}
+                    >
+                      {groupedEquipments.map((g) => (
+                        <optgroup key={g.category} label={g.category}>
+                          {g.items.map((eq) => (
+                            <option key={eq.id} value={eq.id}>
+                              {eq.name} (총 {eq.totalQuantity}개 보유)
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="relative w-24 shrink-0">
+                    <input
+                      type="number"
+                      min={1}
+                      value={row.quantity}
+                      onChange={(e) =>
+                        updateRow(row.key, { quantity: Math.max(1, parseInt(e.target.value) || 1) })
+                      }
+                      aria-label="수량"
+                      className={`${inputClass} pr-8 text-right tabular-nums`}
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-base-muted">
+                      개
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeRow(row.key)}
+                    disabled={rows.length <= 1}
+                    aria-label="기자재 삭제"
+                    className="shrink-0 w-9 h-9 flex items-center justify-center rounded-xl border border-base text-base-muted hover:text-red-500 hover:border-red-300 disabled:opacity-30 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => removeRow(row.key)}
-                  disabled={rows.length <= 1}
-                  aria-label="기자재 삭제"
-                  className="shrink-0 w-9 h-9 flex items-center justify-center rounded-xl border border-base text-base-muted hover:text-red-500 hover:border-red-300 disabled:opacity-30 transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+
+                {/* 부속 기자재 — 부속이 있는 기자재에만 표시(없으면 컴포넌트가 null 반환) */}
+                {row.equipmentId !== '' && (
+                  <div className="pl-8">
+                    <AccessorySelector
+                      equipmentId={Number(row.equipmentId)}
+                      startAt={equipStartAt}
+                      endAt={equipEndAt}
+                      onChange={(accs) =>
+                        setItemAccessories((prev) => ({ ...prev, [row.key]: accs }))
+                      }
+                    />
+                  </div>
+                )}
               </div>
             ))}
             <p className="text-xs text-base-muted">
