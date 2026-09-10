@@ -5,7 +5,7 @@ import { ko } from 'date-fns/locale'
 import { Clock, Package, Building, Ban, ChevronRight, CalendarClock } from 'lucide-react'
 import { sortByCategory } from '@/lib/categories'
 import { groupRequests, unitFor } from '@/lib/requestGrouping'
-import { nowKST } from '@/lib/rentalUtils'
+import { nowKST, getWallClockDayStart } from '@/lib/rentalUtils'
 
 export default async function DashboardPage() {
   const now = nowKST()
@@ -94,7 +94,12 @@ export default async function DashboardPage() {
   )
 
   const fmt = (d: Date) => format(d, 'MM/dd HH:mm', { locale: ko })
-  const diffDays = (d: Date) => Math.max(0, Math.ceil((d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+  // D-Day 는 시:분이 아니라 "달력상 날짜 차이"로 센다. (오늘=0=D-Day, 내일=1=D-1)
+  // 시각까지 넣어 24시간 단위로 세면, 대상 시각이 현재보다 늦을 때 하루가 더 붙는 버그가 생긴다.
+  const MS_PER_DAY = 1000 * 60 * 60 * 24
+  const todayStartMs = getWallClockDayStart(now).getTime()
+  const diffDays = (d: Date) =>
+    Math.max(0, Math.round((getWallClockDayStart(d).getTime() - todayStartMs) / MS_PER_DAY))
 
   return (
     <div className="space-y-6">
