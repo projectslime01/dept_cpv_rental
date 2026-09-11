@@ -259,9 +259,45 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
       }
 
       const rn = generateRequestNumber(new Date(), request.id)
+
+      // 같은 신청자(학번)·같은 대여/반납 일시의 기존 개별 신청이 있으면 자동으로 한 그룹으로 묶는다.
+      // (거절/반납 완료 건은 제외, 테스트 신청 제외)
+      const siblings = await tx.rentalRequest.findMany({
+        where: {
+          studentId,
+          startAt,
+          endAt,
+          isTest: false,
+          status: { in: ['pending', 'approved'] },
+          id: { not: request.id },
+        },
+        select: { id: true, requestNumber: true, groupNumber: true },
+        orderBy: { id: 'asc' },
+      })
+
+      let groupNumber: string | null = null
+      if (siblings.length > 0) {
+        const existingGroup = siblings.find((s) => s.groupNumber)?.groupNumber ?? null
+        if (existingGroup) {
+          // 이미 그룹이 있으면 그 그룹에 합류한다. (혹시 남아있는 미묶음 형제도 함께 정리)
+          groupNumber = existingGroup
+          const ungrouped = siblings.filter((s) => !s.groupNumber).map((s) => s.id)
+          if (ungrouped.length > 0) {
+            await tx.rentalRequest.updateMany({ where: { id: { in: ungrouped } }, data: { groupNumber } })
+          }
+        } else {
+          // 기존 단건들 + 이번 신청을 한 그룹으로 새로 묶는다. 그룹번호 = 가장 이른 신청번호.
+          groupNumber = siblings[0].requestNumber
+          await tx.rentalRequest.updateMany({
+            where: { id: { in: siblings.map((s) => s.id) } },
+            data: { groupNumber },
+          })
+        }
+      }
+
       await tx.rentalRequest.update({
         where: { id: request.id },
-        data: { requestNumber: rn },
+        data: { requestNumber: rn, groupNumber },
       })
       return rn
     })
