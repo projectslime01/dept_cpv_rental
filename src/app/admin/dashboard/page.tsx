@@ -15,7 +15,7 @@ export default async function DashboardPage() {
   const [
     eqPendingCount,
     roomPendingCount,
-    eqActiveRentals,
+    eqActiveRows,
     roomActiveRentals,
     eqDueSoon,
     roomDueSoon,
@@ -26,8 +26,10 @@ export default async function DashboardPage() {
   ] = await Promise.all([
     prisma.rentalRequest.count({ where: { status: 'pending' } }),
     prisma.classroomRentalRequest.count({ where: { status: 'pending' } }),
-    prisma.rentalRequest.count({
+    // 대여 중: 묶음(groupNumber)은 한 건으로 세기 위해 행을 받아 그룹 키로 집계한다.
+    prisma.rentalRequest.findMany({
       where: { status: 'approved', startAt: { lte: now }, endAt: { gte: now } },
+      select: { id: true, groupNumber: true },
     }),
     prisma.classroomRentalRequest.count({
       where: { status: 'approved', startAt: { lte: now }, endAt: { gte: now } },
@@ -84,6 +86,11 @@ export default async function DashboardPage() {
       where: { releasedAt: null, startAt: { lte: now }, endAt: { gt: now } },
     }),
   ])
+
+  // 대여 중 건수: 같은 groupNumber 는 한 건으로, 그룹 없는 단건은 각각 1건으로 센다.
+  const eqActiveRentals = new Set(
+    eqActiveRows.map((r) => r.groupNumber ?? `s:${r.id}`),
+  ).size
 
   const stats = sortByCategory(
     equipmentStats.map((eq) => ({
