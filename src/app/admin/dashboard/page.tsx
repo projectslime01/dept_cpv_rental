@@ -13,7 +13,7 @@ export default async function DashboardPage() {
   const soon = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000)
 
   const [
-    eqPendingCount,
+    eqPendingRows,
     roomPendingCount,
     eqActiveRows,
     roomActiveRentals,
@@ -24,7 +24,11 @@ export default async function DashboardPage() {
     equipmentStats,
     activeRestrictionCount,
   ] = await Promise.all([
-    prisma.rentalRequest.count({ where: { status: 'pending' } }),
+    // 승인 대기: 묶음(groupNumber)은 한 건으로 세기 위해 행을 받아 그룹 키로 집계한다.
+    prisma.rentalRequest.findMany({
+      where: { status: 'pending' },
+      select: { id: true, groupNumber: true },
+    }),
     prisma.classroomRentalRequest.count({ where: { status: 'pending' } }),
     // 대여 중: 묶음(groupNumber)은 한 건으로 세기 위해 행을 받아 그룹 키로 집계한다.
     prisma.rentalRequest.findMany({
@@ -87,10 +91,11 @@ export default async function DashboardPage() {
     }),
   ])
 
-  // 대여 중 건수: 같은 groupNumber 는 한 건으로, 그룹 없는 단건은 각각 1건으로 센다.
-  const eqActiveRentals = new Set(
-    eqActiveRows.map((r) => r.groupNumber ?? `s:${r.id}`),
-  ).size
+  // 같은 groupNumber 는 한 건으로, 그룹 없는 단건은 각각 1건으로 센다.
+  const countByGroup = (rows: { id: number; groupNumber: string | null }[]) =>
+    new Set(rows.map((r) => r.groupNumber ?? `s:${r.id}`)).size
+  const eqPendingCount = countByGroup(eqPendingRows)
+  const eqActiveRentals = countByGroup(eqActiveRows)
 
   const stats = sortByCategory(
     equipmentStats.map((eq) => ({
