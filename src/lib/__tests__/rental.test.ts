@@ -19,7 +19,7 @@ describe('generateRequestNumber', () => {
 vi.mock('../prisma', () => ({
   prisma: {
     equipment: { findUnique: vi.fn() },
-    rentalRequest: { aggregate: vi.fn() },
+    rentalRequest: { findMany: vi.fn() },
   },
 }))
 
@@ -33,7 +33,7 @@ describe('getAvailableQuantity', () => {
       id: 1, totalQuantity: 5, minRentalQuantity: 1, maxRentalQuantity: null, status: 'active', minGrade: 1,
       name: '', category: '', description: null, imageUrl: null, createdAt: new Date(),
     })
-    vi.mocked(prisma.rentalRequest.aggregate).mockResolvedValue({ _sum: { quantity: 2 }, _avg: {}, _count: {}, _max: {}, _min: {} } as any)
+    vi.mocked(prisma.rentalRequest.findMany).mockResolvedValue([{ startAt: new Date('2026-05-21T09:00:00Z'), endAt: new Date('2026-05-21T18:00:00Z'), quantity: 2 }] as any)
 
     const result = await getAvailableQuantity(
       1,
@@ -48,7 +48,7 @@ describe('getAvailableQuantity', () => {
       id: 1, totalQuantity: 5, minRentalQuantity: 1, maxRentalQuantity: null, status: 'active', minGrade: 1,
       name: '', category: '', description: null, imageUrl: null, createdAt: new Date(),
     })
-    vi.mocked(prisma.rentalRequest.aggregate).mockResolvedValue({ _sum: { quantity: null }, _avg: {}, _count: {}, _max: {}, _min: {} } as any)
+    vi.mocked(prisma.rentalRequest.findMany).mockResolvedValue([])
 
     const result = await getAvailableQuantity(
       1,
@@ -56,6 +56,25 @@ describe('getAvailableQuantity', () => {
       new Date('2026-05-21T18:00:00Z'),
     )
     expect(result).toBe(5)
+  })
+
+  it('서로 겹치지 않는 대여는 합산하지 않고 동시 최대 수량만 차감한다', async () => {
+    vi.mocked(prisma.equipment.findUnique).mockResolvedValue({
+      id: 1, totalQuantity: 2, minRentalQuantity: 1, maxRentalQuantity: null, status: 'active', minGrade: 1,
+      name: '', category: '', description: null, imageUrl: null, createdAt: new Date(),
+    })
+    // 오전 1대, 오후 1대 — 하루 전체를 조회해도 동시에 나가 있는 건 1대
+    vi.mocked(prisma.rentalRequest.findMany).mockResolvedValue([
+      { startAt: new Date('2026-05-21T09:00:00Z'), endAt: new Date('2026-05-21T12:00:00Z'), quantity: 1 },
+      { startAt: new Date('2026-05-21T13:00:00Z'), endAt: new Date('2026-05-21T18:00:00Z'), quantity: 1 },
+    ] as any)
+
+    const result = await getAvailableQuantity(
+      1,
+      new Date('2026-05-21T09:00:00Z'),
+      new Date('2026-05-21T18:00:00Z'),
+    )
+    expect(result).toBe(1)
   })
 })
 
@@ -67,7 +86,7 @@ describe('checkAvailability', () => {
       id: 1, totalQuantity: 5, minRentalQuantity: 1, maxRentalQuantity: null, status: 'active', minGrade: 1,
       name: '', category: '', description: null, imageUrl: null, createdAt: new Date(),
     })
-    vi.mocked(prisma.rentalRequest.aggregate).mockResolvedValue({ _sum: { quantity: 2 }, _avg: {}, _count: {}, _max: {}, _min: {} } as any)
+    vi.mocked(prisma.rentalRequest.findMany).mockResolvedValue([{ startAt: new Date('2026-05-21T09:00:00Z'), endAt: new Date('2026-05-21T18:00:00Z'), quantity: 2 }] as any)
 
     const result = await checkAvailability(1, 3,
       new Date('2026-05-21T09:00:00Z'),
@@ -81,7 +100,7 @@ describe('checkAvailability', () => {
       id: 1, totalQuantity: 5, minRentalQuantity: 1, maxRentalQuantity: null, status: 'active', minGrade: 1,
       name: '', category: '', description: null, imageUrl: null, createdAt: new Date(),
     })
-    vi.mocked(prisma.rentalRequest.aggregate).mockResolvedValue({ _sum: { quantity: 3 }, _avg: {}, _count: {}, _max: {}, _min: {} } as any)
+    vi.mocked(prisma.rentalRequest.findMany).mockResolvedValue([{ startAt: new Date('2026-05-21T09:00:00Z'), endAt: new Date('2026-05-21T18:00:00Z'), quantity: 3 }] as any)
 
     const result = await checkAvailability(1, 3,
       new Date('2026-05-21T09:00:00Z'),

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAvailableQuantity } from '@/lib/rental'
+import { peakConcurrentUsage } from '@/lib/approvalCheck'
 
 export async function GET(
   req: NextRequest,
@@ -58,16 +59,8 @@ export async function GET(
         const dayStart = new Date(year, month - 1, day, 0, 0, 0, 0)
         const dayEnd = new Date(year, month - 1, day, 23, 59, 59, 999)
 
-        // 겹치는 수량 계산
-        let used = 0
-        for (const req of requests) {
-          const reqStart = new Date(req.startAt)
-          const reqEnd = new Date(req.endAt)
-          // 겹침 조건: reqStart < dayEnd && reqEnd > dayStart
-          if (reqStart < dayEnd && reqEnd > dayStart) {
-            used += req.quantity
-          }
-        }
+        // 그날 동시에 나가 있는 최대 수량 (승인 시 재고 확인과 같은 기준)
+        const used = peakConcurrentUsage(requests, dayStart, dayEnd)
 
         const dateString = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
         daysData.push({

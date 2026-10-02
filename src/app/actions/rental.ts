@@ -23,6 +23,7 @@ import { restrictionBlockMessage } from '@/lib/restriction'
 import { getActiveRestriction } from '@/lib/restriction.server'
 import { verifyStudent, verifyFailureMessage } from '@/lib/roster.server'
 import { format } from 'date-fns'
+import { peakConcurrentUsage, type UsageInterval } from '@/lib/approvalCheck'
 import { ko } from 'date-fns/locale'
 
 /**
@@ -545,21 +546,27 @@ export async function checkCartAvailability(
       where: { id: { in: ids } },
       select: { id: true, totalQuantity: true, status: true, minGrade: true },
     }),
-    prisma.rentalRequest.groupBy({
-      by: ['equipmentId'],
+    prisma.rentalRequest.findMany({
       where: {
         equipmentId: { in: ids },
         status: 'approved',
         startAt: { lt: end },
         endAt: { gt: start },
       },
-      _sum: { quantity: true },
+      select: { equipmentId: true, startAt: true, endAt: true, quantity: true },
     }),
   ])
 
-  const usedMap: Record<number, number> = {}
+  // 기간 내 동시에 나가 있는 최대 수량 (승인 시 재고 확인과 같은 기준)
+  const intervalsByEquipment = new Map<number, UsageInterval[]>()
   for (const r of overlapping) {
-    usedMap[r.equipmentId] = r._sum.quantity ?? 0
+    const list = intervalsByEquipment.get(r.equipmentId) ?? []
+    list.push(r)
+    intervalsByEquipment.set(r.equipmentId, list)
+  }
+  const usedMap: Record<number, number> = {}
+  for (const id of ids) {
+    usedMap[id] = peakConcurrentUsage(intervalsByEquipment.get(id) ?? [], start, end)
   }
 
   const eqMap: Record<number, { totalQuantity: number; status: string; minGrade: number }> = {}

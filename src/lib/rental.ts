@@ -1,4 +1,5 @@
 import { prisma } from './prisma'
+import { peakConcurrentUsage } from './approvalCheck'
 
 // 순수 유틸리티 함수 재-익스포트 (하위 호환)
 export {
@@ -25,16 +26,18 @@ export async function getAvailableQuantity(
   })
   if (!equipment || equipment.status !== 'active') return 0
 
-  const result = await prisma.rentalRequest.aggregate({
+  // 기간과 겹치는 대여를 모두 더하지 않고, 동시에 나가 있는 최대 수량으로 차감한다.
+  // (관리자 승인 시 재고 확인과 같은 기준 — @/lib/approvalCheck)
+  const overlapping = await prisma.rentalRequest.findMany({
     where: {
       equipmentId,
       status: 'approved',
       startAt: { lt: endAt },
       endAt: { gt: startAt },
     },
-    _sum: { quantity: true },
+    select: { startAt: true, endAt: true, quantity: true },
   })
-  const used = result._sum.quantity ?? 0
+  const used = peakConcurrentUsage(overlapping, startAt, endAt)
   return equipment.totalQuantity - used
 }
 

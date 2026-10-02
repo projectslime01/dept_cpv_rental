@@ -1,5 +1,6 @@
 // src/lib/accessory.ts
 import { prisma } from './prisma'
+import { peakConcurrentUsage } from './approvalCheck'
 
 /**
  * 주어진 부속과 재고를 공유하는 모든 부속의 id를 반환한다.
@@ -37,9 +38,9 @@ async function resolveStockGroup(
 
 /**
  * 주어진 기간에 대해 부속 기자재의 가용 수량을 반환한다.
- * approved 상태 신청의 겹치는 수량만 차감한다.
+ * approved 상태 신청 중 기간 내 동시에 나가 있는 최대 수량을 차감한다.
  * 공유 재고 그룹에 속한 부속은 그룹 전체(다른 기자재에 딸린 같은 부속 포함)의
- * 사용량을 합산해 차감한다.
+ * 사용량을 함께 계산해 차감한다.
  * accessory가 없거나 inactive이면 0 반환.
  */
 export async function getAvailableAccessoryQuantity(
@@ -50,7 +51,7 @@ export async function getAvailableAccessoryQuantity(
   const group = await resolveStockGroup(accessoryId)
   if (!group) return 0
 
-  const result = await prisma.rentalRequestAccessory.aggregate({
+  const uses = await prisma.rentalRequestAccessory.findMany({
     where: {
       accessoryId: { in: group.memberIds },
       rentalRequest: {
@@ -59,10 +60,14 @@ export async function getAvailableAccessoryQuantity(
         endAt: { gt: startAt },
       },
     },
-    _sum: { quantity: true },
+    select: { quantity: true, rentalRequest: { select: { startAt: true, endAt: true } } },
   })
 
-  const used = result._sum.quantity ?? 0
+  const used = peakConcurrentUsage(
+    uses.map((u) => ({ startAt: u.rentalRequest.startAt, endAt: u.rentalRequest.endAt, quantity: u.quantity })),
+    startAt,
+    endAt,
+  )
   return Math.max(0, group.totalQuantity - used)
 }
 
