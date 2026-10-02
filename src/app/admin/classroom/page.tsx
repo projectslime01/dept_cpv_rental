@@ -3,6 +3,8 @@ import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { DoorOpen } from 'lucide-react'
 import { ClassroomActionButtons } from '@/components/admin/ActionModal'
+import { ClassroomConflictBadge } from '@/components/admin/ApprovalBadges'
+import { checkClassroomConflicts } from '@/lib/approvalCheck.server'
 
 const STATUS_STYLES: Record<string, string> = {
   pending:  'bg-amber-500/10 text-amber-500 border-amber-500/30',
@@ -37,6 +39,13 @@ export default async function ClassroomAdminPage({
     },
     orderBy: { createdAt: 'desc' },
   })
+
+  // 승인 대기 건의 예약·정규 수업 충돌을 미리 계산
+  const conflicts = await checkClassroomConflicts(
+    requests
+      .filter((r) => r.status === 'pending')
+      .map((r) => ({ id: r.id, classroomId: r.classroomId, startAt: r.startAt, endAt: r.endAt })),
+  )
 
   const fmt = (d: Date) => format(d, 'yy.MM.dd HH:mm', { locale: ko })
   const currentStatus = searchParams.status ?? 'all'
@@ -144,6 +153,9 @@ export default async function ClassroomAdminPage({
                       <span className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full border ${STATUS_STYLES[r.status] ?? STATUS_STYLES.pending}`}>
                         {STATUS_LABELS[r.status] ?? r.status}
                       </span>
+                      {r.status === 'pending' && (
+                        <ClassroomConflictBadge conflicts={conflicts.get(r.id) ?? []} />
+                      )}
                       {r.hasDepartmentApproval && (
                         <p className="text-[10px] text-amber-500">학과장 승인</p>
                       )}
@@ -153,7 +165,13 @@ export default async function ClassroomAdminPage({
                     </div>
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <ClassroomActionButtons id={r.id} status={r.status} applicantName={r.applicantName} classroomNumber={r.classroom.roomNumber} />
+                    <ClassroomActionButtons
+                      id={r.id}
+                      status={r.status}
+                      applicantName={r.applicantName}
+                      classroomNumber={r.classroom.roomNumber}
+                      conflicts={r.status === 'pending' ? conflicts.get(r.id) ?? [] : undefined}
+                    />
                   </td>
                 </tr>
               ))}

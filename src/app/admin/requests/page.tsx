@@ -5,6 +5,8 @@ import { ClipboardList } from 'lucide-react'
 import { ActionButtons, ClassroomActionButtons } from '@/components/admin/ActionModal'
 import { CATEGORY_ORDER, sortByCategory } from '@/lib/categories'
 import { groupRequests, formatItemList, unitFor } from '@/lib/requestGrouping'
+import { checkEquipmentGroupsStock, checkClassroomConflicts } from '@/lib/approvalCheck.server'
+import { StockPill, StockStatusBadge, ClassroomConflictBadge } from '@/components/admin/ApprovalBadges'
 
 const STATUS_STYLES: Record<string, string> = {
   pending:  'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/30',
@@ -63,6 +65,30 @@ export default async function RequestsPage({
     : []
 
   const requestsCount = currentType === 'equipment' ? equipmentRequests.length : classroomRequests.length
+
+  // 승인 대기 건의 재고(기자재·부속) / 예약 충돌(강의실)을 미리 계산해 관리자가 바로 판단할 수 있게 한다.
+  const stockMap = await checkEquipmentGroupsStock(
+    groupRequests(equipmentRequests)
+      .map((g) => ({
+        key: g.key,
+        rows: g.rows
+          .filter((r) => r.status === 'pending')
+          .map((r) => ({
+            id: r.id,
+            equipmentId: r.equipmentId,
+            quantity: r.quantity,
+            startAt: r.startAt,
+            endAt: r.endAt,
+            accessories: r.accessories.map((a) => ({ accessoryId: a.accessoryId, quantity: a.quantity })),
+          })),
+      }))
+      .filter((g) => g.rows.length > 0),
+  )
+  const classroomConflicts = await checkClassroomConflicts(
+    classroomRequests
+      .filter((r) => r.status === 'pending')
+      .map((r) => ({ id: r.id, classroomId: r.classroomId, startAt: r.startAt, endAt: r.endAt })),
+  )
 
   // Get existing categories in CATEGORY_ORDER for equipment
   const allEquipment = await prisma.equipment.findMany({ select: { category: true }, distinct: ['category'] })
@@ -199,6 +225,7 @@ export default async function RequestsPage({
                   </tr>
                 ) : groupRequests(equipmentRequests).map((group) => {
                   const head = group.rows[0]
+                  const stock = head.status === 'pending' ? stockMap.get(group.key) : undefined
                   const sortedRows = sortByCategory(
                     group.rows.map((r) => ({ ...r, name: r.equipment.name, category: r.equipment.category })),
                   )
@@ -232,16 +259,36 @@ export default async function RequestsPage({
                     <td className="px-4 py-3 text-base-secondary">{head.studentId}</td>
                     <td className="px-4 py-3 text-base-primary max-w-[360px]">
                       <div className="space-y-1">
-                        {sortedRows.map((r) => (
-                          <div key={r.id} className="leading-relaxed break-keep">
-                            <span>{r.equipment.name} {r.quantity}{unitFor(r.equipment.category)}</span>
-                            {r.accessories.length > 0 && (
-                              <span className="block text-xs text-base-muted">
-                                └ 부속: {r.accessories.map((a) => `${a.accessory.name} ${a.quantity}개`).join(', ')}
-                              </span>
-                            )}
-                          </div>
-                        ))}
+                        {sortedRows.map((r) => {
+                          const eqLine = stock?.lines.find((l) => l.key === `eq:${r.equipmentId}`)
+                          return (
+                            <div key={r.id} className="leading-relaxed break-keep">
+                              <span>{r.equipment.name} {r.quantity}{unitFor(r.equipment.category)}</span>
+                              {eqLine && <StockPill line={eqLine} />}
+                              {r.accessories.length > 0 && (
+                                <span className="block text-xs text-base-muted">
+                                  └ 부속:{' '}
+                                  {r.accessories.map((a, i) => {
+                                    const accLine = stock?.lines.find(
+                                      (l) => l.kind === 'accessory' && l.accessoryIds?.includes(a.accessoryId),
+                                    )
+                                    return (
+                                      <span key={a.id}>
+                                        {i > 0 && ', '}
+                                        {a.accessory.name} {a.quantity}개
+                                        {accLine && accLine.shortage > 0 && (
+                                          <span className="text-red-600 dark:text-red-400 font-semibold">
+                                            {' '}({accLine.shortage}개 부족)
+                                          </span>
+                                        )}
+                                      </span>
+                                    )
+                                  })}
+                                </span>
+                              )}
+                            </div>
+                          )
+                        })}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-xs text-base-secondary max-w-[220px] break-keep">
@@ -263,6 +310,7 @@ export default async function RequestsPage({
                       <span className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full border ${STATUS_STYLES[head.status] ?? STATUS_STYLES.pending}`}>
                         {STATUS_LABELS[head.status] ?? head.status}
                       </span>
+                      {stock && <StockStatusBadge stock={stock} />}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <ActionButtons
@@ -270,6 +318,7 @@ export default async function RequestsPage({
                         status={head.status}
                         applicantName={head.applicantName}
                         equipmentName={itemText}
+                        stock={stock}
                       />
                     </td>
                   </tr>
@@ -338,6 +387,9 @@ export default async function RequestsPage({
                       <span className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full border ${STATUS_STYLES[r.status] ?? STATUS_STYLES.pending}`}>
                         {STATUS_LABELS[r.status] ?? r.status}
                       </span>
+                      {r.status === 'pending' && (
+                        <ClassroomConflictBadge conflicts={classroomConflicts.get(r.id) ?? []} />
+                      )}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <ClassroomActionButtons
@@ -345,6 +397,7 @@ export default async function RequestsPage({
                         status={r.status}
                         applicantName={r.applicantName}
                         classroomNumber={r.classroom.roomNumber}
+                        conflicts={r.status === 'pending' ? classroomConflicts.get(r.id) ?? [] : undefined}
                       />
                     </td>
                   </tr>

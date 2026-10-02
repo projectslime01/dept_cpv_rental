@@ -12,6 +12,8 @@ import {
 import { checkClassroomAvailability } from '@/app/actions/classroomRental'
 import { findTimetableConflict } from '@/lib/timetable'
 import { hashPassword } from '@/lib/password'
+import { checkEquipmentGroupsStock, checkClassroomConflicts } from '@/lib/approvalCheck.server'
+import type { StockLine } from '@/lib/approvalCheck'
 
 async function requireAdmin() {
   const session = await getServerSession(authOptions)
@@ -32,17 +34,18 @@ function generateClassroomRN(date: Date, id: number): string {
   return `ROOM-${format(date, 'yyyyMMdd')}-${String(id).padStart(4, '0')}`
 }
 
-export async function approveRequest(id: number, note?: string) {
-  await requireAdmin()
-  const request = await prisma.rentalRequest.update({
-    where: { id, status: 'pending' },
-    data: { status: 'approved', adminNote: note || null },
-    select: { equipmentId: true },
-  })
-  revalidatePath('/admin/requests')
-  revalidatePath('/admin/dashboard')
-  revalidatePath('/')
-  revalidatePath(`/equipment/${request.equipmentId}`)
+export type ApproveResult =
+  | { ok: true }
+  | { ok: false; error: string; lines?: StockLine[]; conflicts?: string[] }
+
+const STOCK_BLOCK_MESSAGE =
+  '재고가 부족한 품목이 있어 승인할 수 없습니다. 거절하거나, 꼭 필요하면 수동 등록으로 처리하세요.'
+const CLASSROOM_BLOCK_MESSAGE =
+  '이미 승인된 예약 또는 정규 수업과 겹쳐 승인할 수 없습니다. 거절하거나, 꼭 필요하면 수동 등록으로 처리하세요.'
+const ALREADY_PROCESSED_MESSAGE = '승인 대기 중인 신청이 없습니다. (이미 처리되었을 수 있습니다)'
+
+export async function approveRequest(id: number, note?: string): Promise<ApproveResult> {
+  return approveRequestGroup([id], note)
 }
 
 export async function rejectRequest(id: number, note: string) {
@@ -71,23 +74,44 @@ export async function markReturned(id: number) {
 }
 
 // ── 묶음(신청 통째) 일괄 처리 ──────────────────────────────
-export async function approveRequestGroup(ids: number[], note?: string) {
+// 승인 시점에 재고를 다시 확인한다. 하나라도 부족하면 묶음 전체를 승인하지 않는다.
+export async function approveRequestGroup(ids: number[], note?: string): Promise<ApproveResult> {
   await requireAdmin()
-  if (!ids?.length) return
-  const affected = await prisma.rentalRequest.findMany({
-    where: { id: { in: ids }, status: 'pending' },
-    select: { equipmentId: true },
-  })
-  await prisma.rentalRequest.updateMany({
-    where: { id: { in: ids }, status: 'pending' },
-    data: { status: 'approved', adminNote: note || null },
-  })
+  if (!ids?.length) return { ok: false, error: ALREADY_PROCESSED_MESSAGE }
+
+  const outcome = await prisma.$transaction(
+    async (tx) => {
+      const rows = await tx.rentalRequest.findMany({
+        where: { id: { in: ids }, status: 'pending' },
+        select: {
+          id: true,
+          equipmentId: true,
+          quantity: true,
+          startAt: true,
+          endAt: true,
+          accessories: { select: { accessoryId: true, quantity: true } },
+        },
+      })
+      if (rows.length === 0) return { ok: false as const, error: ALREADY_PROCESSED_MESSAGE }
+
+      const check = (await checkEquipmentGroupsStock([{ key: 'g', rows }], tx)).get('g')!
+      if (!check.ok) return { ok: false as const, error: STOCK_BLOCK_MESSAGE, lines: check.lines }
+
+      await tx.rentalRequest.updateMany({
+        where: { id: { in: rows.map((r) => r.id) }, status: 'pending' },
+        data: { status: 'approved', adminNote: note || null },
+      })
+      return { ok: true as const, equipmentIds: Array.from(new Set(rows.map((r) => r.equipmentId))) }
+    },
+    { timeout: 20000, maxWait: 10000 },
+  )
+
+  if (!outcome.ok) return outcome
   revalidatePath('/admin/requests')
   revalidatePath('/admin/dashboard')
   revalidatePath('/')
-  for (const eqId of Array.from(new Set(affected.map((a) => a.equipmentId)))) {
-    revalidatePath(`/equipment/${eqId}`)
-  }
+  for (const eqId of outcome.equipmentIds) revalidatePath(`/equipment/${eqId}`)
+  return { ok: true }
 }
 
 export async function rejectRequestGroup(ids: number[], note: string) {
@@ -197,17 +221,35 @@ export async function activateEquipment(id: number) {
   revalidatePath(`/equipment/${id}`)
 }
 
-export async function approveClassroomRequest(id: number, note?: string) {
+// 승인 시점에 같은 강의실 승인 예약·정규 수업과의 충돌을 다시 확인한다.
+export async function approveClassroomRequest(id: number, note?: string): Promise<ApproveResult> {
   await requireAdmin()
-  const request = await prisma.classroomRentalRequest.update({
-    where: { id, status: 'pending' },
-    data: { status: 'approved', adminNote: note || null },
-    select: { classroomId: true },
-  })
+  const outcome = await prisma.$transaction(
+    async (tx) => {
+      const row = await tx.classroomRentalRequest.findFirst({
+        where: { id, status: 'pending' },
+        select: { id: true, classroomId: true, startAt: true, endAt: true },
+      })
+      if (!row) return { ok: false as const, error: ALREADY_PROCESSED_MESSAGE }
+
+      const conflicts = (await checkClassroomConflicts([row], tx)).get(row.id) ?? []
+      if (conflicts.length > 0) return { ok: false as const, error: CLASSROOM_BLOCK_MESSAGE, conflicts }
+
+      await tx.classroomRentalRequest.update({
+        where: { id: row.id },
+        data: { status: 'approved', adminNote: note || null },
+      })
+      return { ok: true as const, classroomId: row.classroomId }
+    },
+    { timeout: 20000, maxWait: 10000 },
+  )
+  if (!outcome.ok) return outcome
+  const request = { classroomId: outcome.classroomId }
   revalidatePath('/admin/classroom')
   revalidatePath('/admin/dashboard')
   revalidatePath('/classrooms')
   revalidatePath(`/classrooms/${request.classroomId}`)
+  return { ok: true }
 }
 
 export async function rejectClassroomRequest(id: number, note: string) {
