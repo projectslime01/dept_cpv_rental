@@ -183,7 +183,7 @@ export function ClassroomRentalForm({ classroomId, classroomName, defaultStartAt
           <Clock className="w-5 h-5 shrink-0 mt-0.5" />
           <div className="space-y-1">
             <p className="text-xs font-bold">신청 불가 시간</p>
-            <p className="text-xs leading-relaxed">강의실 대여 신청은 평일 09:00 ~ 17:00에만 가능합니다.</p>
+            <p className="text-xs leading-relaxed">강의실 대여 신청은 평일 09:00 ~ 17:00에만 가능합니다. (주말 및 공휴일 신청 불가)</p>
           </div>
         </div>
       )}

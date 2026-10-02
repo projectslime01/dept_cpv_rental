@@ -8,6 +8,8 @@ import {
   isAllowedStartDay,
   getClassroomReturnDeadline,
   isWithinClassroomReturnDeadline,
+  isHoliday,
+  isSubmissionTimeValid,
 } from '../rentalUtils'
 
 /**
@@ -146,5 +148,28 @@ describe('강의실 반납 마감 — 대여 시작일 다음날 07:00 (서버 �
     expect(d.getMonth()).toBe(10)
     expect(d.getDate()).toBe(1)
     expect(d.getHours()).toBe(7)
+  })
+})
+
+describe('2026 추석 공휴일 — 9/28은 평일 (대체공휴일 아님)', () => {
+  // 2026 추석 연휴(9/24~9/26)는 토요일과 겹친다. 설·추석은 "일요일"과 겹칠 때만
+  // 대체공휴일이 생기므로 9/28(월)은 평일이다. 이를 공휴일로 두면 그날 하루 종일
+  // 학생 신청이 "신청 불가 시간"으로 막힌다(실제 발생한 버그).
+  it('9/24~9/26 은 공휴일이다', () => {
+    expect(isHoliday(new Date(2026, 8, 24))).toBe(true)
+    expect(isHoliday(new Date(2026, 8, 25))).toBe(true)
+    expect(isHoliday(new Date(2026, 8, 26))).toBe(true)
+  })
+
+  it('9/28(월)은 공휴일이 아니다', () => {
+    expect(isHoliday(new Date(2026, 8, 28))).toBe(false)
+  })
+
+  it('9/28 오후 3시 41분(KST) 신청은 허용된다', () => {
+    expect(isSubmissionTimeValid(new Date(Date.UTC(2026, 8, 28, 6, 41)))).toBe(true)
+  })
+
+  it('9/28 을 대여 시작일로 지정할 수 있다', () => {
+    expect(isAllowedStartDay(at('2026-09-28T10:00'))).toBe(true)
   })
 })
