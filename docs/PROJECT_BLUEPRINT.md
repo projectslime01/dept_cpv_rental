@@ -14,8 +14,8 @@
 담당자가 "이름 + 품목 + 수정사항"만 줬을 때 순서대로 처리한다.
 
 1. **레포 복제 → 이름/브랜딩 치환** — §9.1
-2. **품목(장비) 시드 교체** — `prisma/seed.ts`의 `equipmentData`, 카테고리는 `src/lib/categories.ts`의 `CATEGORY_ORDER` — §5, §9.2
-3. **대여 규칙 상수 조정** — 대여 정책은 대부분 `src/lib/rentalUtils.ts` 한 파일에 모여 있다 — §4, §9.3
+2. **품목(장비) 시드 교체** — `prisma/seed.ts`의 `equipmentData`, 카테고리는 `src/lib/categories.ts`의 `CATEGORY_ORDER` — §6, §9.2
+3. **대여 규칙 상수 조정** — 대여 정책은 대부분 `src/lib/rentalUtils.ts` 한 파일에 모여 있다 — §5, §9.3
 4. **자격/학년/커스텀 문구** — `src/lib/grade.ts`, `src/lib/eligibility.ts` — §6
 5. **환경변수 + DB 초기화** — §8
 6. **배포** — §8.3 (fresh clone → `main` 푸시, Vercel 자동 배포)
@@ -102,7 +102,7 @@ scripts/
 주요 모델과 역할. **새 프로젝트에서 "예약 대상"만 바뀌면 대부분 그대로 재사용**한다.
 
 - **Equipment** — 대여 품목. `totalQuantity`(총 보유), `minRentalQuantity`/`maxRentalQuantity`(1회 신청 최소/최대), `minGrade`(대여 가능 최소 학년 1/2/3), `category`, `status`(active/inactive).
-- **RentalRequest** — 기자재 신청. `requestNumber`(REQ-YYYYMMDD-####, 표시/조회 키), `groupNumber`(2건 이상 묶음 신청이면 대표 신청번호 공유), `passwordHash`(조회용), `applicantName/studentId/phone`, `quantity`, `grade`(명단에서 확정), `startAt/endAt`, `purpose`, `groupMembers`(팀플 조원, 선택), `status`(pending/approved/rejected/returned), `adminNote`, `returnedAt`, `isTest`(테스트 신청 표시), `testAdminId`.
+- **RentalRequest** — 기자재 신청. `requestNumber`(REQ-YYYYMMDD-####, 표시/조회 키), `groupNumber`(2건 이상 묶음 신청이면 대표 신청번호 공유), `passwordHash`(조회용), `applicantName/studentId/phone`, `quantity`, `grade`(명단에서 확정), `startAt/endAt`, `purpose`(필수), `groupMembers`(팀플 조원, 선택), `hasDepartmentApproval`(기간 초과·주말 수칙 위반을 학과장 사전 승인으로 신청했으면 true), `status`(pending/approved/rejected/returned), `adminNote`, `returnedAt`, `isTest`(테스트 신청 표시), `testAdminId`.
 - **EquipmentAccessory** — 부속 기자재(배터리·케이블 등). `sharedStockKey`가 같은 부속끼리는 **물리적 재고 풀을 공유**(예: FX3·A7M4 공용 배터리). null이면 단독 재고.
 - **RentalRequestAccessory** — 신청↔부속 연결(수량). `@@unique([rentalRequestId, accessoryId])`.
 - **Admin** — 관리자. `role`(**owner**=계정 추가/삭제 가능 / **staff**=자기 비번만). 새 계정은 기본 staff.
@@ -124,7 +124,9 @@ scripts/
 - `getEarliestAllowedStartDate(applyDate)` / `isValidStartDate` — **대여 시작은 신청일 기준 평일 2일 전** 이후.
 - `countWeekdaysInRange(start, end)` — 대여 기간 내 **평일(영업일) 수** (기간 초과 판정용).
 - `includesWeekend` / `isValidWeekendRental` — **주말 포함 시 반드시 금요일 반출·월요일 반납**.
-- `isHoliday(date)` — 한국 공휴일(양력 고정 + 연도별 음력·대체공휴일 하드코딩). **연도가 바뀌면 갱신 필요**.
+- `isAllowedStartDay(startAt)` — **대여 시작일이 주말·공휴일이면 신청 불가**(기자재·강의실 공통, 폼 달력에서도 비활성). 학과장 승인으로도 우회 불가.
+- `getClassroomReturnDeadline(startAt)` / `isWithinClassroomReturnDeadline` — **강의실 반납은 시작일 다음날 07:00까지**(`CLASSROOM_RETURN_DEADLINE_HOUR`).
+- `isHoliday(date)` — 한국 공휴일(양력 고정 + 연도별 음력·대체공휴일 하드코딩). **연도가 바뀌면 갱신 필요**. 대체공휴일을 넣을 땐 실제 지정 여부를 확인할 것(2026-09-28을 잘못 넣어 그날 신청이 전부 막힌 사고가 있었음 — 회귀 테스트 존재).
 - `generateRequestNumber(date, id)` → `REQ-YYYYMMDD-0001`.
 
 ### ⚠️ 타임존 처리 — 이 프로젝트에서 가장 중요한 함정
@@ -134,9 +136,24 @@ scripts/
 - **"현재 시각"으로 DB와 비교**할 때만 `nowKST()` / `getKSTHoursAndMinutes()`(실제 순간 → KST) 사용.
 - 이 규칙은 `src/lib/__tests__/rentalUtils.test.ts`가 **TZ=UTC와 TZ=Asia/Seoul 양쪽에서** 검증한다. 규칙을 바꾸면 이 테스트를 먼저 손본다.
 
-### 재고(가용 수량) 계산 (`src/lib/rental.ts`)
-- `getAvailableQuantity` = `totalQuantity − Σ(겹치는 기간의 status='approved' 신청 수량)`.
-- **`status='approved'`만 재고를 차감**한다. 그래서 **테스트 신청(pending 유지)은 재고에 영향 없음**, **수동 등록(즉시 approved)은 재고 차감**.
+### 재고(가용 수량) 계산 — "동시 최대 사용량" 기준 (`src/lib/approvalCheck.ts`)
+- 가용 수량 = `totalQuantity − peakConcurrentUsage(겹치는 approved 대여들, 신청 시작, 신청 종료)`.
+- **기간과 겹치는 대여를 전부 더하지 않는다.** 그러면 서로 겹치지 않는 대여(예: 오전 1대 + 오후 1대)까지 합산돼 실제보다 부족하게 나온다. 기간 내 **동시에 나가 있는 최대 수량**만 차감한다.
+- 구간은 **반열림 `[start, end)`** — 10:00에 끝나는 대여와 10:00에 시작하는 대여는 겹치지 않는다.
+- **`status='approved'`만 재고를 차감**한다. 그래서 **승인 대기·테스트 신청(pending)은 재고에 영향 없음**, **수동 등록(즉시 approved)은 재고 차감**.
+- 이 계산을 쓰는 곳(모두 같은 기준이어야 함):
+  - 학생 신청 접수 검증 — `rental.ts` `getAvailableQuantity`(단건·일괄), `accessory.ts` `getAvailableAccessoryQuantity`(공유 재고 풀)
+  - 신청 화면 표시 — 가용 조회 API(`api/equipment/[id]/availability`, 월간 달력 일별 포함), 부속 API, 장바구니 `checkCartAvailability`
+  - 관리자 승인 검증 — `approvalCheck.server.ts` (§5.1)
+- 예외: "지금 대여 중 / 지금 가용"(홈·대시보드·기자재 관리)은 **현재 시점 하나**라 단순 합이 맞다.
+
+### 5.1 승인 시 재고·충돌 자동 확인 (`src/lib/approvalCheck.server.ts`)
+학생 신청은 pending이라 재고를 잡지 않으므로, 같은 기간에 대기 건이 여러 개 쌓일 수 있다. **초과 승인은 승인 단계에서 막는다.**
+- **기자재** `checkEquipmentGroupsStock(groups, db)` — 묶음(그룹) 단위로 기자재·부속 풀별 요청 수량을 합산해 `StockLine{requested,total,available,shortage}`을 만든다. **하나라도 부족하면 묶음 전체 승인 불가**(`summarizeStock`).
+- **강의실** `checkClassroomConflicts(rows, db)` — 같은 강의실의 approved 예약과 겹치거나 정규 수업 시간표(`findTimetableConflict`)와 겹치면 충돌 사유 문자열 목록을 반환.
+- **화면**: 신청 목록에 품목별 `가용 n/m · k개 부족` 배지와 `승인 가능 / 재고 부족 / 예약 충돌` 상태 배지(`components/admin/ApprovalBadges.tsx`). 승인 모달에 재고 표·충돌 목록을 보여주고 부족/충돌이면 **"승인 확정" 비활성**(`ActionModal.tsx`).
+- **서버 재검증**: `approveRequestGroup` / `approveClassroomRequest`는 **한 트랜잭션 안에서 다시 계산**한 뒤 승인한다(화면이 오래됐거나 관리자 두 명이 동시에 승인해도 초과 불가). 반환형 `ApproveResult = {ok:true} | {ok:false; error; lines?; conflicts?}`.
+- 일부러 재고를 넘겨야 하는 경우(수업용 등)는 **규정 무시 수동 등록**을 쓴다(이 검사를 거치지 않음).
 
 ---
 
@@ -159,14 +176,18 @@ scripts/
 
 1. **타임존 벽시계 규칙** (§5) — 신규 날짜 로직 추가 시 반드시 준수. TZ=UTC/Asia-Seoul 양쪽 테스트.
 2. **재고엔 approved만 반영** — 신규 "신청 생성" 경로를 만들 때 status를 명확히(테스트=pending, 실제/수동=approved).
-3. **묶음 신청** — 다건 생성 시 2건 이상이면 첫 신청번호를 `groupNumber`로 공유해야 "한 건"으로 표시된다.
-4. **부속 공유 재고** — 부속 가용 수량은 `sharedStockKey` 그룹 기준. `src/lib/accessory.ts`의 `getAvailableAccessoryQuantity` 사용.
+3. **묶음 신청** — 다건 생성 시 2건 이상이면 첫 신청번호를 `groupNumber`로 공유해야 "한 건"으로 표시된다. **개별 단건 신청도 같은 학번·같은 시작/종료면 자동으로 기존 묶음에 합류**(또는 새 묶음 생성, 가장 이른 신청번호 사용)한다(`rental.ts`). 대시보드 건수도 `countByGroup`으로 묶음 단위 집계.
+4. **부속 공유 재고** — 부속 가용 수량은 `sharedStockKey` 그룹 기준(풀 총량 = 활성 멤버 totalQuantity의 최댓값). `src/lib/accessory.ts`의 `getAvailableAccessoryQuantity` 사용.
+4-1. **재고 계산은 `peakConcurrentUsage` 하나로** — 새 가용 수량 계산을 만들 때 `_sum`/`aggregate`로 단순 합산하지 말 것(§5). 학생 화면·신청 검증·승인 검증이 같은 숫자를 내야 한다.
+4-2. **승인 경로는 재고·충돌 검사를 반드시 거친다** — 새 승인 액션을 추가하면 트랜잭션 안에서 `checkEquipmentGroupsStock`/`checkClassroomConflicts`를 호출(§5.1).
 5. **명단 대조** — 학생 신청은 `roster.server.ts`의 `verifyStudent(studentId, name)`로 차단/통과, **학년은 서버가 명단 값으로 확정**(클라이언트 입력 불신).
 6. **대여 제한자** — 신청 전 `getActiveRestriction`로 차단.
 7. **권한(role)** — 파괴적/민감 관리 기능은 서버 액션에서 `role`로 재검증(예: 계정 추가/삭제는 owner만, `admin-accounts.ts`의 `requireOwner`). **UI 숨김만으로 끝내지 말 것.**
 8. **품목 나열 순서** — 관리자 화면의 "대여 품목"은 카테고리 순(`sortByCategory`)으로 정렬, 부속은 각 품목 아래 `└ 부속: …`로 표시.
 9. **CSS 오버플로 팝업** — 달력/드롭다운 팝업이 카드에 잘리면 부모 `overflow-hidden` 제거 또는 드롭업 처리(`DatePicker`가 참고 예시).
-10. **검증 실수로 실데이터 건드리지 말 것** — dev 서버가 **프로덕션 Neon DB에 연결**된다. 디버그/검증용으로 만든 레코드는 반드시 정리(삭제)하고, 절대 실제 계정/데이터를 삭제 대상으로 삼지 말 것.
+10. **D-Day/날짜 차이** — 시각 차이를 `ceil`하지 말고 `getWallClockDayStart`로 **달력상 날짜 차이**를 계산.
+11. **Map/Set 순회** — tsconfig target이 낮아 `for…of map.values()`가 TS2802 에러. `Array.from(...)`으로 감쌀 것.
+12. **검증 실수로 실데이터 건드리지 말 것** — dev 서버가 **프로덕션 Neon DB에 연결**된다. 디버그/검증용으로 만든 레코드는 반드시 정리(삭제)하고, 절대 실제 계정/데이터를 삭제 대상으로 삼지 말 것.
 
 ---
 
@@ -235,6 +256,10 @@ npm test           # vitest (rentalUtils 등 정책 테스트)
 | 학년/자격 제한 | Equipment `minGrade` + `grade.ts` + 문구 `eligibility.ts` |
 | 카테고리 순서 | `categories.ts` `CATEGORY_ORDER` |
 | 수량 단위(대/개) | `requestGrouping.ts` `unitFor` |
+| 대여 시작일 요일 제한(주말·공휴일) | `rentalUtils.ts` `isAllowedStartDay` |
+| 강의실 반납 마감 시각 | `rentalUtils.ts` `CLASSROOM_RETURN_DEADLINE_HOUR` |
+| 재고 계산 기준(동시 최대 vs 합산) | `approvalCheck.ts` `peakConcurrentUsage` |
+| 승인 차단 정책(묶음 전체 vs 품목별) | `approvalCheck.ts` `summarizeStock` + `admin.ts` `approveRequestGroup` |
 | 규정 무시 즉시 등록 필요 | `admin.ts` `createManualBatchRentalRequest`(참고 구현) |
 
 ---
@@ -242,7 +267,7 @@ npm test           # vitest (rentalUtils 등 정책 테스트)
 ## 10. 레퍼런스 프로젝트에서 구현된 기능 인벤토리
 
 학생: 카탈로그+카테고리 필터, 단건/장바구니 다건 신청, 부속 선택, 강의실 신청, 신청 조회(묶음/부속/조원 표시), 전체 대여 현황(달력, 이름 마스킹), 가이드, 규정 PDF.
-관리자: 대시보드(**대여 예정/반납 예정**, 재고 현황), 신청 관리(단건·묶음 승인/거절/반납, 카테고리 필터, **품목·부속·조원 표시**), 기자재·강의실·부속·시간표 관리, 학생 명단(엑셀 업로드), 대여 제한자, 대여 이력, **계정 관리(owner 전용 추가/삭제)**, 테스트 신청, **규정 무시 수동 등록(다건·즉시 승인·재고 반영)**.
+관리자: 대시보드(**대여 예정/반납 예정**·D-Day, 묶음 단위 건수, 재고 현황), 신청 관리(단건·묶음 승인/거절/반납, 카테고리 필터, **품목·부속·조원·대여 목적·학과장 승인 표시**, **승인 시 재고·예약 충돌 자동 확인 및 초과 승인 차단**), 기자재·강의실·부속·시간표 관리, 학생 명단(엑셀 업로드), 대여 제한자, 대여 이력, **계정 관리(owner 전용 추가/삭제)**, 테스트 신청, **규정 무시 수동 등록(다건·즉시 승인·재고 반영)**.
 
 ### 이 세션에서의 주요 개선 이력(요약)
 - 대여 기간 평일 계산의 **이중 KST 변환 버그** 수정(벽시계 유틸 도입, UTC/Seoul 테스트).
@@ -256,13 +281,21 @@ npm test           # vitest (rentalUtils 등 정책 테스트)
 - 관리자 품목 확인 화면에 **부속 기자재 표시**.
 - 대시보드에 **기자재/강의실 대여 예정** 섹션 추가.
 - 기자재 신청에 **조원 이름(선택, 팀플)** 필드 추가.
+- 관리자 신청 목록·이력에 **대여 목적**, 기자재 신청에 **학과장 승인 여부** 기록·표시.
+- 부속 선택이 기간 변경 시 초기화되던 버그 수정, 수동 등록에 부속 선택 추가.
+- 대시보드 D-Day를 달력 날짜 차이로 수정, 대여 중·승인 대기 건수를 묶음 단위로 집계.
+- 같은 신청자·같은 기간 단건 신청 **자동 묶음**.
+- **대여 시작일 주말·공휴일 차단**, **강의실 반납 다음날 07:00 마감**, 잘못 넣은 공휴일(2026-09-28) 제거.
+- **승인 시 기자재 재고·강의실 예약 충돌 자동 확인 + 초과 승인 차단**(묶음 전체 차단, 서버 트랜잭션 재검증).
+- 학생 신청·화면의 가용 수량도 **동시 최대 사용량 기준**으로 통일(오전·오후 나뉜 대여가 합산돼 잘못 막히던 문제 해소).
 
 ---
 
 ## 11. 빠른 참조 — 핵심 파일 지도
 
 - 정책(시간/기간/주말/공휴일/번호): `src/lib/rentalUtils.ts` (+ 테스트 `__tests__/rentalUtils.test.ts`)
-- 재고/가용: `src/lib/rental.ts`, 부속: `src/lib/accessory.ts`
+- 재고/가용: `src/lib/rental.ts`, 부속: `src/lib/accessory.ts`, 계산 기준: `src/lib/approvalCheck.ts`(+ 테스트 `__tests__/approvalCheck.test.ts`)
+- 승인 시 재고·충돌 확인: `src/lib/approvalCheck.server.ts` — 화면: `components/admin/ApprovalBadges.tsx`, `ActionModal.tsx`
 - 카테고리 순서/그룹: `src/lib/categories.ts` — 묶음/단위/포맷: `src/lib/requestGrouping.ts`
 - 자격: `src/lib/grade.ts`, 문구: `src/lib/eligibility.ts`
 - 신청 생성/조회(기자재): `src/app/actions/rental.ts` — 강의실: `classroomRental.ts`
@@ -276,4 +309,4 @@ npm test           # vitest (rentalUtils 등 정책 테스트)
 
 ---
 
-_이 문서는 레퍼런스 프로젝트 커밋 `ef801f2` 기준으로 작성되었다. 구조가 바뀌면 §3·§11의 경로를 함께 갱신할 것._
+_이 문서는 레퍼런스 프로젝트 커밋 `f28f7b1` 기준으로 갱신되었다. 구조가 바뀌면 §3·§11의 경로를 함께 갱신할 것._
