@@ -144,6 +144,37 @@ export function isValidStartDate(startAt: Date, applyDate: Date): boolean {
 }
 
 /**
+ * 대여 시작일로 지정할 수 있는 날인지 판별 — 주말(토·일)과 공휴일은 불가.
+ * 학과장 승인으로도 우회할 수 없는 하드 규칙이다. startAt 은 벽시계 Date.
+ */
+export function isAllowedStartDay(startAt: Date): boolean {
+  const day = getWallClockDayStart(startAt)
+  const dow = day.getDay()
+  return dow !== 0 && dow !== 6 && !isHoliday(day)
+}
+
+/** 강의실 반납 마감 시각(시). 대여 시작일 "다음날" 이 시각까지 반납해야 한다. */
+export const CLASSROOM_RETURN_DEADLINE_HOUR = 7
+
+/** 강의실 반납 마감 — 대여 시작일 다음날 07:00 (벽시계). */
+export function getClassroomReturnDeadline(startAt: Date): Date {
+  return new Date(
+    startAt.getFullYear(),
+    startAt.getMonth(),
+    startAt.getDate() + 1,
+    CLASSROOM_RETURN_DEADLINE_HOUR,
+    0,
+    0,
+    0,
+  )
+}
+
+/** 강의실 반납 일시가 마감(시작일 다음날 07:00) 이내인지 */
+export function isWithinClassroomReturnDeadline(startAt: Date, endAt: Date): boolean {
+  return endAt.getTime() <= getClassroomReturnDeadline(startAt).getTime()
+}
+
+/**
  * 대여 기간 내 실제 평일(영업일) 수량 카운트 (시작일과 종료일이 걸치는 날 기준)
  */
 export function countWeekdaysInRange(start: Date, end: Date): number {

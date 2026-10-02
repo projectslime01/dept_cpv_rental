@@ -20,6 +20,7 @@ interface Props {
   placeholder?: string
   disablePast?: boolean
   minDate?: Date           // disable any day strictly before this date
+  isDateDisabled?: (day: Date) => boolean  // 추가로 선택 불가 처리할 날 (예: 주말·공휴일)
 }
 
 export function DateTimePicker({
@@ -28,6 +29,7 @@ export function DateTimePicker({
   placeholder = '날짜 선택',
   disablePast = false,
   minDate,
+  isDateDisabled,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)
@@ -159,6 +161,7 @@ export function DateTimePicker({
               const thisMonth = isSameMonth(day, viewDate)
               const disabled  = (disablePast && isBefore(startOfDay(day), todayStart))
                              || (minDate != null && isBefore(startOfDay(day), startOfDay(minDate)))
+                             || (isDateDisabled?.(day) ?? false)
               const nowDay    = isToday(day)
               const sun = day.getDay() === 0
               const sat = day.getDay() === 6

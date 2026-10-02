@@ -5,6 +5,9 @@ import {
   isValidWeekendRental,
   isValidStartDate,
   toWallClockString,
+  isAllowedStartDay,
+  getClassroomReturnDeadline,
+  isWithinClassroomReturnDeadline,
 } from '../rentalUtils'
 
 /**
@@ -93,5 +96,55 @@ describe('toWallClockString — 서버에서 클라이언트로 보낼 때 벽�
     expect(round.getMonth()).toBe(7)
     expect(round.getDate()).toBe(27)   // 날짜가 밀리면 안 된다
     expect(round.getHours()).toBe(17)  // 시간이 밀리면 안 된다
+  })
+})
+
+describe('isAllowedStartDay — 대여 시작일은 주말·공휴일 불가 (서버 타임존 무관)', () => {
+  it('평일은 허용한다', () => {
+    expect(isAllowedStartDay(at('2026-10-06T09:00'))).toBe(true) // 화
+  })
+
+  it('토요일·일요일은 막는다', () => {
+    expect(isAllowedStartDay(at('2026-10-10T10:00'))).toBe(false) // 토
+    expect(isAllowedStartDay(at('2026-10-11T10:00'))).toBe(false) // 일
+  })
+
+  it('평일 공휴일·대체공휴일도 막는다', () => {
+    expect(isAllowedStartDay(at('2026-10-09T10:00'))).toBe(false) // 한글날(금)
+    expect(isAllowedStartDay(at('2026-10-05T10:00'))).toBe(false) // 개천절 대체공휴일(월)
+  })
+
+  it('금요일 밤 늦게 시작해도 금요일로 판정한다 (토요일로 밀리면 안 된다)', () => {
+    expect(isAllowedStartDay(at('2026-10-02T23:30'))).toBe(true)
+  })
+})
+
+describe('강의실 반납 마감 — 대여 시작일 다음날 07:00 (서버 타임존 무관)', () => {
+  it('마감은 시작일 다음날 07:00 이다', () => {
+    const d = getClassroomReturnDeadline(at('2026-10-06T18:00'))
+    expect(d.getFullYear()).toBe(2026)
+    expect(d.getMonth()).toBe(9)
+    expect(d.getDate()).toBe(7)
+    expect(d.getHours()).toBe(7)
+    expect(d.getMinutes()).toBe(0)
+  })
+
+  it('다음날 07:00 까지는 허용, 1분이라도 넘으면 막는다', () => {
+    const s = at('2026-10-06T18:00')
+    expect(isWithinClassroomReturnDeadline(s, at('2026-10-06T23:00'))).toBe(true)
+    expect(isWithinClassroomReturnDeadline(s, at('2026-10-07T07:00'))).toBe(true)
+    expect(isWithinClassroomReturnDeadline(s, at('2026-10-07T07:01'))).toBe(false)
+    expect(isWithinClassroomReturnDeadline(s, at('2026-10-08T09:00'))).toBe(false)
+  })
+
+  it('밤 늦은 시작도 다음날 07:00 기준이다', () => {
+    expect(isWithinClassroomReturnDeadline(at('2026-10-06T23:30'), at('2026-10-07T06:00'))).toBe(true)
+  })
+
+  it('월말에도 다음달 1일 07:00 으로 넘어간다', () => {
+    const d = getClassroomReturnDeadline(at('2026-10-31T20:00'))
+    expect(d.getMonth()).toBe(10)
+    expect(d.getDate()).toBe(1)
+    expect(d.getHours()).toBe(7)
   })
 })

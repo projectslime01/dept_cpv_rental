@@ -17,7 +17,7 @@ import {
 import { getAvailableAccessoryQuantity } from '@/lib/accessory'
 import { eligibilityLabel } from '@/lib/eligibility'
 import { sortByCategory } from '@/lib/categories'
-import { toWallClockString } from '@/lib/rentalUtils'
+import { toWallClockString, isAllowedStartDay } from '@/lib/rentalUtils'
 import { checkRateLimit, recordFailedAttempt, resetAttempts } from '@/lib/rate-limit'
 import { restrictionBlockMessage } from '@/lib/restriction'
 import { getActiveRestriction } from '@/lib/restriction.server'
@@ -187,6 +187,14 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
     }
   }
 
+  // 대여 시작일은 주말·공휴일 불가 (학과장 승인으로도 우회 불가)
+  if (!isAllowedStartDay(startAt)) {
+    return {
+      success: false,
+      error: '대여 시작일은 주말 및 공휴일로 지정할 수 없습니다. 평일을 선택해주세요.',
+    }
+  }
+
   const hasDepartmentApproval =
     formData.get('hasDepartmentApproval') === 'true' ||
     formData.get('hasDepartmentApproval') === 'on'
@@ -194,6 +202,8 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
   const exceedsDuration = weekdayCount > 3
   const containsWeekend = includesWeekend(startAt, endAt)
   const violatesWeekendRule = containsWeekend && !isValidWeekendRental(startAt, endAt)
+  // 학과장 승인은 실제로 필요했던(기간 초과·주말 수칙 위반) 경우에만 기록한다.
+  const departmentApprovalUsed = hasDepartmentApproval && (exceedsDuration || violatesWeekendRule)
 
   if (exceedsDuration || violatesWeekendRule) {
     if (!hasDepartmentApproval) {
@@ -244,6 +254,7 @@ export async function createRentalRequest(formData: FormData): Promise<CreateReq
           endAt,
           purpose,
           groupMembers,
+          hasDepartmentApproval: departmentApprovalUsed,
         },
       })
 
@@ -369,6 +380,14 @@ export async function createBatchRentalRequest(formData: FormData): Promise<Crea
     }
   }
 
+  // 대여 시작일은 주말·공휴일 불가 (학과장 승인으로도 우회 불가)
+  if (!isAllowedStartDay(startAt)) {
+    return {
+      success: false,
+      error: '대여 시작일은 주말 및 공휴일로 지정할 수 없습니다. 평일을 선택해주세요.',
+    }
+  }
+
   const hasDepartmentApproval =
     formData.get('hasDepartmentApproval') === 'true' ||
     formData.get('hasDepartmentApproval') === 'on'
@@ -376,6 +395,8 @@ export async function createBatchRentalRequest(formData: FormData): Promise<Crea
   const exceedsDuration = weekdayCount > 3
   const containsWeekend = includesWeekend(startAt, endAt)
   const violatesWeekendRule = containsWeekend && !isValidWeekendRental(startAt, endAt)
+  // 학과장 승인은 실제로 필요했던(기간 초과·주말 수칙 위반) 경우에만 기록한다.
+  const departmentApprovalUsed = hasDepartmentApproval && (exceedsDuration || violatesWeekendRule)
 
   if (exceedsDuration || violatesWeekendRule) {
     if (!hasDepartmentApproval) {
@@ -464,6 +485,7 @@ export async function createBatchRentalRequest(formData: FormData): Promise<Crea
           endAt,
           purpose,
           groupMembers,
+          hasDepartmentApproval: departmentApprovalUsed,
         },
       })
       const rn = generateRequestNumber(now, req.id)

@@ -234,7 +234,7 @@ export default async function HistoryPage({
         </div>
         <div className="overflow-x-auto">
           {currentType === 'equipment' ? (
-            <table className="w-full text-sm min-w-[920px]">
+            <table className="w-full text-sm min-w-[1020px]">
               <thead>
                 <tr className="bg-surface-raised border-b border-base">
                   <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">신청번호</th>
@@ -242,6 +242,7 @@ export default async function HistoryPage({
                   <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">학번</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted">대여 품목</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted">대여 목적</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">학과장 승인</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">대여 기간</th>
                   <th className="text-center px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">상태</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-base-muted whitespace-nowrap">신청일</th>
@@ -250,7 +251,7 @@ export default async function HistoryPage({
               <tbody className="divide-y divide-base">
                 {equipmentRequests.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="text-center py-12 text-sm text-base-muted">이력이 없습니다.</td>
+                    <td colSpan={9} className="text-center py-12 text-sm text-base-muted">이력이 없습니다.</td>
                   </tr>
                 ) : groupRequests(equipmentRequests).map((group) => {
                   const head = group.rows[0]
@@ -286,6 +287,17 @@ export default async function HistoryPage({
                     </td>
                     <td className="px-4 py-3 text-xs text-base-secondary max-w-[220px] break-keep">
                       {head.purpose ? head.purpose : <span className="text-base-faint">-</span>}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {group.rows.some((r) => r.hasDepartmentApproval) ? (
+                        <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/30 whitespace-nowrap">
+                          승인 득함
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-surface-raised text-base-muted border border-base whitespace-nowrap">
+                          미대상/없음
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-xs text-base-secondary whitespace-nowrap">{fmt(head.startAt)}<br />~ {fmt(head.endAt)}</td>
                     <td className="px-4 py-3 text-center">

@@ -14,6 +14,7 @@ import {
   includesWeekend,
   isValidWeekendRental,
   getEarliestAllowedStartDate,
+  isAllowedStartDay,
 } from '@/lib/rentalUtils'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
@@ -83,6 +84,8 @@ export function RentalForm({ equipmentId, equipmentName, equipmentMinGrade = 1, 
 
   // 2. 신청 기한 검증 (평일 기준 최소 2일 전)
   const isStartAtValid = startAt ? isValidStartDate(new Date(startAt), new Date()) : true
+  // 대여 시작일은 주말·공휴일 불가
+  const isStartDayValid = startAt ? isAllowedStartDay(new Date(startAt)) : true
   const earliestAllowedDate = getEarliestAllowedStartDate(new Date())
   const earliestAllowedStr = format(earliestAllowedDate, 'yyyy년 MM월 dd일', { locale: ko })
 
@@ -118,6 +121,7 @@ export function RentalForm({ equipmentId, equipmentName, equipmentMinGrade = 1, 
     gradeInsufficient ||
     !currentTimeValid ||
     !isStartAtValid ||
+    !isStartDayValid ||
     (needsApproval && !hasDepartmentApproval)
 
   function handleSubmit(formData: FormData) {
@@ -254,7 +258,7 @@ export function RentalForm({ equipmentId, equipmentName, equipmentMinGrade = 1, 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <p className="text-xs font-medium text-base-secondary">대여 시작 *</p>
-              <DateTimePicker value={startAt} onChange={setStartAt} placeholder="대여 시작" disablePast />
+              <DateTimePicker value={startAt} onChange={setStartAt} placeholder="대여 시작" disablePast isDateDisabled={(d) => !isAllowedStartDay(d)} />
             </div>
             <div className="space-y-1.5">
               <p className="text-xs font-medium text-base-secondary">반납 예정 *</p>
@@ -285,6 +289,12 @@ export function RentalForm({ equipmentId, equipmentName, equipmentMinGrade = 1, 
             <div className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-xl px-3 py-2 flex items-center gap-1.5 mt-2 animate-in fade-in slide-in-from-top-1 duration-200">
               <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
               <span>대여 신청은 평일 기준 최소 2일 전까지만 가능합니다. (가장 빠른 대여 가능일: {earliestAllowedStr})</span>
+            </div>
+          )}
+          {startAt && !isStartDayValid && (
+            <div className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-xl px-3 py-2 flex items-center gap-1.5 mt-2 animate-in fade-in slide-in-from-top-1 duration-200">
+              <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+              <span>대여 시작일은 주말 및 공휴일로 지정할 수 없습니다. 평일을 선택해주세요.</span>
             </div>
           )}
         </div>

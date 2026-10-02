@@ -15,6 +15,9 @@ import {
   includesWeekend,
   isValidWeekendRental,
   getEarliestAllowedStartDate,
+  isAllowedStartDay,
+  getClassroomReturnDeadline,
+  isWithinClassroomReturnDeadline,
 } from '@/lib/rentalUtils'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
@@ -73,6 +76,15 @@ export function ClassroomRentalForm({ classroomId, classroomName, defaultStartAt
   }, [])
 
   const isStartAtValid = startAt ? isValidStartDate(new Date(startAt), new Date()) : true
+  // 대여 시작일은 주말·공휴일 불가
+  const isStartDayValid = startAt ? isAllowedStartDay(new Date(startAt)) : true
+  // 반납은 대여 시작일 다음날 오전 7시까지
+  const returnDeadline = startAt ? getClassroomReturnDeadline(new Date(startAt)) : null
+  const returnDeadlineStr = returnDeadline
+    ? format(returnDeadline, 'M월 d일(EEE) a h시', { locale: ko })
+    : ''
+  const isReturnWithinDeadline =
+    startAt && endAt ? isWithinClassroomReturnDeadline(new Date(startAt), new Date(endAt)) : true
   const earliestAllowedDate = getEarliestAllowedStartDate(new Date())
   const earliestAllowedStr = format(earliestAllowedDate, 'yyyy년 MM월 dd일', { locale: ko })
 
@@ -105,6 +117,8 @@ export function ClassroomRentalForm({ classroomId, classroomName, defaultStartAt
     monitorUsed === null ||
     !currentTimeValid ||
     !isStartAtValid ||
+    !isStartDayValid ||
+    !isReturnWithinDeadline ||
     (needsApproval && !hasDepartmentApproval)
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -243,16 +257,46 @@ export function ClassroomRentalForm({ classroomId, classroomName, defaultStartAt
       <SectionCard icon={CalendarDays} title="대여 및 반납 일자">
         <div className="flex items-start gap-2 text-[11px] text-amber-500 bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-2.5">
           <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-          <span>사용일 기준 <strong>최소 평일 2일 전</strong> 신청 (주말 제외)</span>
+          <span>
+            사용일 기준 <strong>최소 평일 2일 전</strong> 신청 · 대여 시작일은 <strong>주말·공휴일 불가</strong> ·
+            반납은 <strong>대여 시작일 다음날 오전 7시까지</strong>
+          </span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Field label="대여 시작 *">
-            <DateTimePicker value={startAt} onChange={setStartAt} placeholder="대여 시작" minDate={minStartDate} />
+            <DateTimePicker
+              value={startAt}
+              onChange={setStartAt}
+              placeholder="대여 시작"
+              minDate={minStartDate}
+              isDateDisabled={(d) => !isAllowedStartDay(d)}
+            />
           </Field>
           <Field label="반납 예정 *">
             <DateTimePicker value={endAt} onChange={setEndAt} placeholder="반납 예정" minDate={minStartDate} />
+            {returnDeadline && (
+              <p className="text-[11px] text-base-muted mt-1">반납 마감: {returnDeadlineStr}</p>
+            )}
           </Field>
         </div>
+
+        {/* 시작일 주말·공휴일 */}
+        {startAt && !isStartDayValid && (
+          <div className="flex items-start gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-red-500">
+            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+            <p className="text-xs leading-relaxed">대여 시작일은 주말 및 공휴일로 지정할 수 없습니다. 평일을 선택해주세요.</p>
+          </div>
+        )}
+
+        {/* 반납 마감 초과 */}
+        {startAt && endAt && !isReturnWithinDeadline && (
+          <div className="flex items-start gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-red-500">
+            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+            <p className="text-xs leading-relaxed">
+              강의실 반납은 대여 시작일 다음날 오전 7시까지만 가능합니다. (반납 마감: <strong>{returnDeadlineStr}</strong>)
+            </p>
+          </div>
+        )}
 
         {/* 기한 초과 경고 */}
         {!isStartAtValid && startAt && (

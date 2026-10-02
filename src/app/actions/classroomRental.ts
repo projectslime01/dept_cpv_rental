@@ -11,6 +11,7 @@ import {
   isValidWeekendRental,
   getEarliestAllowedStartDate,
 } from '@/lib/rental'
+import { isAllowedStartDay, isWithinClassroomReturnDeadline } from '@/lib/rentalUtils'
 import { findTimetableConflict, DOW_LABELS } from '@/lib/timetable'
 import { restrictionBlockMessage } from '@/lib/restriction'
 import { getActiveRestriction } from '@/lib/restriction.server'
@@ -104,6 +105,22 @@ export async function createClassroomRentalRequest(formData: FormData): Promise<
     return {
       success: false,
       error: `대여 신청은 평일 기준 최소 2일 전까지 가능합니다. (가장 빠른 대여 시작일: ${earliestStr})`,
+    }
+  }
+
+  // 대여 시작일은 주말·공휴일 불가 (학과장 승인으로도 우회 불가)
+  if (!isAllowedStartDay(startAt)) {
+    return {
+      success: false,
+      error: '대여 시작일은 주말 및 공휴일로 지정할 수 없습니다. 평일을 선택해주세요.',
+    }
+  }
+
+  // 강의실 반납은 대여 시작일 다음날 오전 7시까지
+  if (!isWithinClassroomReturnDeadline(startAt, endAt)) {
+    return {
+      success: false,
+      error: '강의실 반납은 대여 시작일 다음날 오전 7시까지만 가능합니다.',
     }
   }
 
