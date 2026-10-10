@@ -3,7 +3,8 @@ import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { History, Search } from 'lucide-react'
 import { CATEGORY_ORDER, sortByCategory } from '@/lib/categories'
-import { groupRequests, unitFor } from '@/lib/requestGrouping'
+import { groupRequests, groupStatus, unitFor } from '@/lib/requestGrouping'
+import { RowStatusTag, MixedStatusNote } from '@/components/admin/ApprovalBadges'
 
 const STATUS_STYLES: Record<string, string> = {
   pending:  'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/30',
@@ -43,7 +44,12 @@ export default async function HistoryPage({
     ? allEquipment.filter(e => e.category === categoryFilter)
     : allEquipment
 
-  const equipmentRequests = currentType === 'equipment'
+  const equipmentInclude = {
+    equipment: { select: { name: true, category: true } },
+    accessories: { include: { accessory: { select: { name: true } } } },
+  } as const
+
+  const recentEquipmentRequests = currentType === 'equipment'
     ? await prisma.rentalRequest.findMany({
         where: {
           ...(searchParams.q
@@ -60,14 +66,30 @@ export default async function HistoryPage({
           ...(searchParams.from ? { createdAt: { gte: new Date(searchParams.from) } } : {}),
           ...(searchParams.to ? { createdAt: { lte: new Date(searchParams.to + 'T23:59:59') } } : {}),
         },
-        include: {
-          equipment: { select: { name: true, category: true } },
-          accessories: { include: { accessory: { select: { name: true } } } },
-        },
+        include: equipmentInclude,
         orderBy: { createdAt: 'desc' },
         take: 200,
       })
     : []
+
+  // 같은 신청자·같은 기간 단건 신청은 기존 묶음에 나중에 합류하므로 한 묶음이 여러 날짜에 걸친다.
+  // 최근 200건/기간 조건에 일부만 걸린 묶음은 나머지 품목을 채워 묶음을 통째로 보여준다.
+  // (품목·카테고리 필터는 특정 품목만 보려는 것이므로 채우지 않는다.)
+  const shownGroupNumbers = Array.from(
+    new Set(recentEquipmentRequests.map((r) => r.groupNumber).filter((g): g is string => !!g)),
+  )
+  const groupSiblings =
+    shownGroupNumbers.length > 0 && !searchParams.equipment && !categoryFilter
+      ? await prisma.rentalRequest.findMany({
+          where: {
+            groupNumber: { in: shownGroupNumbers },
+            id: { notIn: recentEquipmentRequests.map((r) => r.id) },
+          },
+          include: equipmentInclude,
+          orderBy: { createdAt: 'desc' },
+        })
+      : []
+  const equipmentRequests = [...recentEquipmentRequests, ...groupSiblings]
 
   const classroomRequests = currentType === 'classroom'
     ? await prisma.classroomRentalRequest.findMany({
@@ -91,7 +113,7 @@ export default async function HistoryPage({
       })
     : []
 
-  const requestsCount = currentType === 'equipment' ? equipmentRequests.length : classroomRequests.length
+  const requestsCount = currentType === 'equipment' ? recentEquipmentRequests.length : classroomRequests.length
 
   const fmt = (d: Date) => format(d, 'yy.MM.dd HH:mm', { locale: ko })
   const inputCls = 'h-9 px-3.5 rounded-xl border border-base text-sm bg-surface-raised text-base-primary focus:outline-none focus:border-strong transition-colors'
@@ -255,6 +277,7 @@ export default async function HistoryPage({
                   </tr>
                 ) : groupRequests(equipmentRequests).map((group) => {
                   const head = group.rows[0]
+                  const status = groupStatus(group.rows)
                   const sortedRows = sortByCategory(
                     group.rows.map((r) => ({ ...r, name: r.equipment.name, category: r.equipment.category })),
                   )
@@ -276,6 +299,7 @@ export default async function HistoryPage({
                         {sortedRows.map((r) => (
                           <div key={r.id} className="leading-relaxed break-keep">
                             <span>{r.equipment.name} {r.quantity}{unitFor(r.equipment.category)}</span>
+                            {r.status !== status && <RowStatusTag status={r.status} />}
                             {r.accessories.length > 0 && (
                               <span className="block text-xs text-base-muted">
                                 └ 부속: {r.accessories.map((a) => `${a.accessory.name} ${a.quantity}개`).join(', ')}
@@ -301,9 +325,10 @@ export default async function HistoryPage({
                     </td>
                     <td className="px-4 py-3 text-xs text-base-secondary whitespace-nowrap">{fmt(head.startAt)}<br />~ {fmt(head.endAt)}</td>
                     <td className="px-4 py-3 text-center">
-                      <span className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full border ${STATUS_STYLES[head.status] ?? STATUS_STYLES.pending}`}>
-                        {STATUS_LABELS[head.status] ?? head.status}
+                      <span className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full border ${STATUS_STYLES[status] ?? STATUS_STYLES.pending}`}>
+                        {STATUS_LABELS[status] ?? status}
                       </span>
+                      <MixedStatusNote rows={group.rows} status={status} />
                     </td>
                     <td className="px-4 py-3 text-xs text-base-secondary whitespace-nowrap">{fmt(head.createdAt)}</td>
                   </tr>

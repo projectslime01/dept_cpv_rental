@@ -51,3 +51,19 @@ export function groupRequests<T extends { id: number; groupNumber?: string | nul
   }
   return Array.from(map.values())
 }
+
+/** 대표 상태 우선순위 — 앞쪽일수록 관리자가 처리할 일이 남아 있는 상태 */
+const GROUP_STATUS_PRIORITY = ['pending', 'approved', 'returned', 'rejected']
+
+/**
+ * 묶음의 대표 상태.
+ * 같은 신청자·같은 기간 단건 신청이 이미 승인된 묶음에 자동 합류하면 한 묶음 안에
+ * 상태가 섞인다. 첫 줄(최신 신청) 상태만 보면 승인된 품목이 "대기"나 "거절"로 보이고
+ * 반납 버튼이 사라지므로, 처리할 일이 남은 상태를 우선해 대표로 삼는다.
+ */
+export function groupStatus<T extends { status: string }>(rows: T[]): string {
+  for (const s of GROUP_STATUS_PRIORITY) {
+    if (rows.some((r) => r.status === s)) return s
+  }
+  return rows[0]?.status ?? 'pending'
+}

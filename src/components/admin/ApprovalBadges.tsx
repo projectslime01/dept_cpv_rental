@@ -55,3 +55,32 @@ export function ClassroomConflictBadge({ conflicts }: { conflicts: string[] }) {
     </div>
   )
 }
+
+const ROW_STATUS_LABELS: Record<string, string> = {
+  pending: '대기', approved: '승인됨', rejected: '거절됨', returned: '반납됨',
+}
+
+/** 상태가 섞인 묶음에서 대표 상태와 다른 품목 옆에 붙이는 표시 (예: 이미 승인된 품목) */
+export function RowStatusTag({ status }: { status: string }) {
+  return (
+    <span className="ml-1.5 inline-flex items-center text-[10px] font-semibold px-1.5 py-0.5 rounded-md border whitespace-nowrap align-middle bg-surface-raised text-base-muted border-base">
+      {ROW_STATUS_LABELS[status] ?? status}
+    </span>
+  )
+}
+
+/** 상태가 섞인 묶음이면 "추가 신청 1건 · 기존 승인 13건"처럼 구성을 알려준다. */
+export function MixedStatusNote({ rows, status }: { rows: { status: string }[]; status: string }) {
+  const others = rows.filter((r) => r.status !== status)
+  if (others.length === 0) return null
+  const counts = new Map<string, number>()
+  for (const r of others) counts.set(r.status, (counts.get(r.status) ?? 0) + 1)
+  const main = rows.length - others.length
+  const mainLabel = status === 'pending' ? '추가 신청' : (ROW_STATUS_LABELS[status] ?? status)
+  return (
+    <div className="mt-1 text-[10px] leading-snug text-base-muted break-keep">
+      {mainLabel} {main}건
+      {Array.from(counts.entries()).map(([s, n]) => ` · ${ROW_STATUS_LABELS[s] ?? s} ${n}건`).join('')}
+    </div>
+  )
+}

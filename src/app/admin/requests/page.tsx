@@ -4,9 +4,9 @@ import { ko } from 'date-fns/locale'
 import { ClipboardList } from 'lucide-react'
 import { ActionButtons, ClassroomActionButtons } from '@/components/admin/ActionModal'
 import { CATEGORY_ORDER, sortByCategory } from '@/lib/categories'
-import { groupRequests, formatItemList, unitFor } from '@/lib/requestGrouping'
+import { groupRequests, groupStatus, formatItemList, unitFor } from '@/lib/requestGrouping'
 import { checkEquipmentGroupsStock, checkClassroomConflicts } from '@/lib/approvalCheck.server'
-import { StockPill, StockStatusBadge, ClassroomConflictBadge } from '@/components/admin/ApprovalBadges'
+import { StockPill, StockStatusBadge, ClassroomConflictBadge, RowStatusTag, MixedStatusNote } from '@/components/admin/ApprovalBadges'
 
 const STATUS_STYLES: Record<string, string> = {
   pending:  'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/30',
@@ -225,11 +225,13 @@ export default async function RequestsPage({
                   </tr>
                 ) : groupRequests(equipmentRequests).map((group) => {
                   const head = group.rows[0]
-                  const stock = head.status === 'pending' ? stockMap.get(group.key) : undefined
+                  const status = groupStatus(group.rows)
+                  const stock = status === 'pending' ? stockMap.get(group.key) : undefined
                   const sortedRows = sortByCategory(
                     group.rows.map((r) => ({ ...r, name: r.equipment.name, category: r.equipment.category })),
                   )
-                  const itemText = formatItemList(sortedRows)
+                  // 처리 버튼이 다루는 품목(대표 상태와 같은 줄)만 확인창에 보여준다.
+                  const itemText = formatItemList(sortedRows.filter((r) => r.status === status))
                   return (
                   <tr key={group.key} className="hover:bg-surface-overlay transition-colors align-top">
                     <td className="px-4 py-3 font-mono text-xs text-base-secondary">
@@ -264,7 +266,11 @@ export default async function RequestsPage({
                           return (
                             <div key={r.id} className="leading-relaxed break-keep">
                               <span>{r.equipment.name} {r.quantity}{unitFor(r.equipment.category)}</span>
-                              {eqLine && <StockPill line={eqLine} />}
+                              {r.status === status ? (
+                                eqLine && <StockPill line={eqLine} />
+                              ) : (
+                                <RowStatusTag status={r.status} />
+                              )}
                               {r.accessories.length > 0 && (
                                 <span className="block text-xs text-base-muted">
                                   └ 부속:{' '}
@@ -307,15 +313,16 @@ export default async function RequestsPage({
                     </td>
                     <td className="px-4 py-3 text-xs text-base-secondary whitespace-nowrap">{fmt(head.startAt)}<br />~ {fmt(head.endAt)}</td>
                     <td className="px-4 py-3 text-center">
-                      <span className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full border ${STATUS_STYLES[head.status] ?? STATUS_STYLES.pending}`}>
-                        {STATUS_LABELS[head.status] ?? head.status}
+                      <span className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full border ${STATUS_STYLES[status] ?? STATUS_STYLES.pending}`}>
+                        {STATUS_LABELS[status] ?? status}
                       </span>
+                      <MixedStatusNote rows={group.rows} status={status} />
                       {stock && <StockStatusBadge stock={stock} />}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <ActionButtons
                         ids={group.ids}
-                        status={head.status}
+                        status={status}
                         applicantName={head.applicantName}
                         equipmentName={itemText}
                         stock={stock}
