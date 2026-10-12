@@ -5,6 +5,8 @@ import {
   isValidWeekendRental,
   isValidStartDate,
   toWallClockString,
+  instantToWallClock,
+  kstDayRange,
   isAllowedStartDay,
   getClassroomReturnDeadline,
   isWithinClassroomReturnDeadline,
@@ -171,5 +173,29 @@ describe('2026 추석 공휴일 — 9/28은 평일 (대체공휴일 아님)', ()
 
   it('9/28 을 대여 시작일로 지정할 수 있다', () => {
     expect(isAllowedStartDay(at('2026-09-28T10:00'))).toBe(true)
+  })
+})
+
+describe('instantToWallClock — 실제 순간(createdAt 등)을 KST 벽시계로', () => {
+  it('UTC 05:05 접수 → KST 14:05 (서버 타임존과 무관)', () => {
+    const d = instantToWallClock(new Date('2026-10-08T05:05:40.757Z'))
+    expect([d.getFullYear(), d.getMonth() + 1, d.getDate(), d.getHours(), d.getMinutes()]).toEqual([2026, 10, 8, 14, 5])
+  })
+
+  it('UTC 15:30 → 다음 날 KST 00:30', () => {
+    const d = instantToWallClock(new Date('2026-10-01T15:30:00Z'))
+    expect([d.getMonth() + 1, d.getDate(), d.getHours(), d.getMinutes()]).toEqual([10, 2, 0, 30])
+  })
+
+  it('toWallClockString 과 함께 쓰면 클라이언트로 KST 문자열이 나간다', () => {
+    expect(toWallClockString(instantToWallClock(new Date('2026-10-01T03:43:28Z')))).toBe('2026-10-01T12:43:28')
+  })
+})
+
+describe('kstDayRange — 날짜 입력(YYYY-MM-DD)을 KST 하루의 실제 순간 범위로', () => {
+  it('KST 00:00 ~ 23:59:59.999', () => {
+    const { start, end } = kstDayRange('2026-10-08')
+    expect(start.toISOString()).toBe('2026-10-07T15:00:00.000Z')
+    expect(end.toISOString()).toBe('2026-10-08T14:59:59.999Z')
   })
 })

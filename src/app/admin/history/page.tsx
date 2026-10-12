@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { format } from 'date-fns'
+import { instantToWallClock, kstDayRange } from '@/lib/rentalUtils'
 import { ko } from 'date-fns/locale'
 import { History, Search } from 'lucide-react'
 import { CATEGORY_ORDER, sortByCategory } from '@/lib/categories'
@@ -44,6 +45,15 @@ export default async function HistoryPage({
     ? allEquipment.filter(e => e.category === categoryFilter)
     : allEquipment
 
+  // 신청일(createdAt)은 실제 순간이므로 날짜 입력을 KST 하루 범위로 바꿔 검색한다.
+  const createdAtFilter =
+    searchParams.from || searchParams.to
+      ? {
+          ...(searchParams.from ? { gte: kstDayRange(searchParams.from).start } : {}),
+          ...(searchParams.to ? { lte: kstDayRange(searchParams.to).end } : {}),
+        }
+      : undefined
+
   const equipmentInclude = {
     equipment: { select: { name: true, category: true } },
     accessories: { include: { accessory: { select: { name: true } } } },
@@ -63,8 +73,7 @@ export default async function HistoryPage({
             : {}),
           ...(searchParams.equipment ? { equipmentId: parseInt(searchParams.equipment) } : {}),
           ...(categoryFilter ? { equipment: { category: categoryFilter } } : {}),
-          ...(searchParams.from ? { createdAt: { gte: new Date(searchParams.from) } } : {}),
-          ...(searchParams.to ? { createdAt: { lte: new Date(searchParams.to + 'T23:59:59') } } : {}),
+          ...(createdAtFilter ? { createdAt: createdAtFilter } : {}),
         },
         include: equipmentInclude,
         orderBy: { createdAt: 'desc' },
@@ -104,8 +113,7 @@ export default async function HistoryPage({
               }
             : {}),
           ...(searchParams.classroom ? { classroomId: parseInt(searchParams.classroom) } : {}),
-          ...(searchParams.from ? { createdAt: { gte: new Date(searchParams.from) } } : {}),
-          ...(searchParams.to ? { createdAt: { lte: new Date(searchParams.to + 'T23:59:59') } } : {}),
+          ...(createdAtFilter ? { createdAt: createdAtFilter } : {}),
         },
         include: { classroom: { select: { roomNumber: true } } },
         orderBy: { createdAt: 'desc' },
@@ -330,7 +338,7 @@ export default async function HistoryPage({
                       </span>
                       <MixedStatusNote rows={group.rows} status={status} />
                     </td>
-                    <td className="px-4 py-3 text-xs text-base-secondary whitespace-nowrap">{fmt(head.createdAt)}</td>
+                    <td className="px-4 py-3 text-xs text-base-secondary whitespace-nowrap">{fmt(instantToWallClock(head.createdAt))}</td>
                   </tr>
                   )
                 })}
@@ -382,7 +390,7 @@ export default async function HistoryPage({
                         {STATUS_LABELS[r.status] ?? r.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-xs text-base-secondary whitespace-nowrap">{fmt(r.createdAt)}</td>
+                    <td className="px-4 py-3 text-xs text-base-secondary whitespace-nowrap">{fmt(instantToWallClock(r.createdAt))}</td>
                   </tr>
                 ))}
               </tbody>

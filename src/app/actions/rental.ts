@@ -17,7 +17,7 @@ import {
 import { getAvailableAccessoryQuantity } from '@/lib/accessory'
 import { eligibilityLabel } from '@/lib/eligibility'
 import { sortByCategory } from '@/lib/categories'
-import { toWallClockString, isAllowedStartDay } from '@/lib/rentalUtils'
+import { toWallClockString, instantToWallClock, isAllowedStartDay } from '@/lib/rentalUtils'
 import { checkRateLimit, recordFailedAttempt, resetAttempts } from '@/lib/rate-limit'
 import { restrictionBlockMessage } from '@/lib/restriction'
 import { getActiveRestriction } from '@/lib/restriction.server'
@@ -669,7 +669,7 @@ export async function lookupRequest(formData: FormData): Promise<LookupResult> {
           endAt: toWallClockString(request.endAt),
           adminNote: request.adminNote,
           groupMembers: request.groupMembers,
-          createdAt: toWallClockString(request.createdAt),
+          createdAt: toWallClockString(instantToWallClock(request.createdAt)),
           accessories: [],
         },
       }
@@ -737,7 +737,7 @@ export async function lookupRequest(formData: FormData): Promise<LookupResult> {
         endAt: toWallClockString(request.endAt),
         adminNote: request.adminNote,
         groupMembers: request.groupMembers,
-        createdAt: toWallClockString(request.createdAt),
+        createdAt: toWallClockString(instantToWallClock(request.createdAt)),
         accessories: request.accessories.map((ra) => ({
           name: ra.accessory.name,
           quantity: ra.quantity,

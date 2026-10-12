@@ -80,6 +80,30 @@ export function nowKST(): Date {
 }
 
 /**
+ * 실제 순간(createdAt·returnedAt 처럼 서버가 new Date() 로 기록한 값)을
+ * KST 벽시계 Date(로컬 필드 = KST 시각)로 바꾼다.
+ *
+ * 신청 폼의 startAt/endAt(이미 벽시계)과 달리 접수 시각 등은 실제 순간이라
+ * 그대로 format 하면 UTC 서버(Vercel)에서 9시간 이르게 보인다.
+ * 화면 표시는 format(instantToWallClock(d), …), 클라이언트 전송은
+ * toWallClockString(instantToWallClock(d)) 로 한다.
+ */
+export function instantToWallClock(date: Date): Date {
+  return getKSTHoursAndMinutes(date).date
+}
+
+/**
+ * 날짜 입력값("YYYY-MM-DD", KST 기준 하루)을 실제 순간 범위로 바꾼다.
+ * createdAt 같은 실제 순간 컬럼을 날짜로 검색할 때 사용한다.
+ */
+export function kstDayRange(day: string): { start: Date; end: Date } {
+  return {
+    start: new Date(`${day}T00:00:00.000+09:00`),
+    end: new Date(`${day}T23:59:59.999+09:00`),
+  }
+}
+
+/**
  * 신청 폼에서 온 벽시계 Date의 "그 날 00:00"(서버 로컬)을 만든다.
  *
  * 폼 값은 서버 타임존으로 파싱되므로 Date의 로컬 필드가 곧 KST 벽시계다.
