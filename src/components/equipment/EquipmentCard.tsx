@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { eligibilityLabel } from '@/lib/eligibility'
+import { eligibilityLabel, hasCustomEligibility } from '@/lib/eligibility'
 import { AddToCartButton } from '@/components/cart/AddToCartButton'
 import {
   Camera, Aperture, Video, Sun, HardDrive,
@@ -66,7 +66,7 @@ export function EquipmentCard({ id, name, category, description, totalQuantity, 
             <span className={`inline-block text-[11px] font-medium px-2 py-0.5 rounded-full border ${styles.badge}`}>
               {category}
             </span>
-            {minGrade > 1 && (
+            {(minGrade > 1 || hasCustomEligibility(name)) && (
               <span className="inline-block text-[11px] font-semibold px-2 py-0.5 rounded-full border text-rose-600 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900/50">
                 {eligibilityLabel(name, minGrade)}
               </span>

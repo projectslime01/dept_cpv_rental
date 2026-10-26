@@ -24,3 +24,8 @@ const CUSTOM_ELIGIBILITY_LABEL: Record<string, string> = {
 export function eligibilityLabel(equipmentName: string, minGrade: number): string {
   return CUSTOM_ELIGIBILITY_LABEL[equipmentName] ?? `${minGrade}학년 이상`
 }
+
+/** 커스텀 자격 문구가 지정된 기자재인지 (1학년 이상이어도 카드에 태그를 보여주기 위함) */
+export function hasCustomEligibility(equipmentName: string): boolean {
+  return equipmentName in CUSTOM_ELIGIBILITY_LABEL
+}
